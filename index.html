@@ -276,15 +276,158 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
 .pop.combo{color:#fff;font-size:22px;color:var(--gold);animation:pop .9s steps(9) forwards}
 .pop.oneshot{color:#ff5a3c;font-size:18px}
 .node .op{display:block;font-size:10px;color:#ff8fd0}
+/* ===== 한 화면 구성: 위 상태 줄 + 가운데 페이지 + 아래 버튼 (스크롤 없이) ===== */
+html,body{height:100%;overflow:hidden}
+#app{height:100%;height:100dvh;display:flex;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) 12px max(8px,env(safe-area-inset-bottom));max-width:460px}
+#startScreen.on{overflow:auto;flex:1}
+.screen.app.on{display:flex;flex-direction:column;flex:1;min-height:0;gap:8px}
+.topbar{background:var(--panel);border:3px solid var(--edge);border-radius:4px;padding:8px 10px 6px;box-shadow:inset 0 3px 0 var(--hi),0 3px 0 #000;flex:none}
+.tbRow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tbWeight{display:flex;align-items:baseline;gap:4px;min-width:0;flex-wrap:wrap}
+.tbWeight b{font-size:24px;line-height:1;text-shadow:2px 2px 0 #000;font-variant-numeric:tabular-nums}
+.tbWeight small{font-size:12px;color:var(--sub)}
+.tbName{font-size:12px;color:var(--gold);margin-right:4px}
+.tbGoal{font-size:11px;color:var(--sub);margin-left:6px}
+.tbGoal b{font-size:13px;color:var(--gold);text-shadow:none}
+.tbWallet{display:flex;gap:6px;flex:none}
+.tbWallet .cur{display:flex;align-items:center;gap:5px;background:var(--bar-bg);border:2px solid var(--edge);padding:4px 6px}
+.tbWallet b{font-size:14px;font-variant-numeric:tabular-nums}
+.tbWallet .calC b{color:#ff9a5a} .tbWallet .gemC b{color:#ff8fd0}
+.tbWallet .plus{margin-left:2px;padding:1px 6px;font-size:13px}
+.bar.thin{height:10px;margin-top:6px;border-width:2px}
+.topbar .barLabels{margin-top:4px;font-size:11px}
+.pages{flex:1;min-height:0;position:relative}
+.page{display:none;height:100%;overflow:auto;flex-direction:column;gap:8px;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+.page.on{display:flex}
+.bottomNav{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;flex:none}
+.nav{background:var(--panel2);color:var(--sub);border:3px solid var(--edge);border-radius:4px;padding:6px 0 5px;font-size:12px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:inset 0 -3px 0 #1b1e2a}
+.nav.on{background:var(--gold);color:#2a1f00;font-weight:700;box-shadow:inset 0 -3px 0 var(--gold-d),inset 0 3px 0 #ffe28a}
+.ni{width:14px;height:14px;display:block;border:2px solid currentColor}
+.ni.home{border-radius:2px 2px 0 0;clip-path:polygon(50% 0,100% 45%,100% 100%,0 100%,0 45%)}
+.ni.gear{border-radius:50%}
+.ni.skill{transform:rotate(45deg)}
+.ni.burn{border-radius:50% 50% 50% 0;transform:rotate(-45deg)}
+.ni.shop{clip-path:polygon(50% 0,100% 40%,50% 100%,0 40%);background:currentColor;border:none}
+/* 홈 */
+.charBar{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
+.charChip{display:flex;align-items:center;gap:6px;background:var(--panel);border:3px solid var(--edge);padding:4px 6px;text-align:left;color:var(--ink);min-width:0}
+.charChip canvas{width:40px;height:40px;background:#3b4a78;border:2px solid var(--edge);flex:none}
+.charChip b{display:block;font-size:13px}
+.charChip small{display:block;font-size:10px;color:var(--sub);word-break:keep-all}
+.charChip.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.charChip.locked{opacity:.55}
+.hubHero{margin-top:0;padding:10px}
+#hubHeroCv{width:120px;height:120px}
+.nextInfo{margin:0}
+.primary.big{margin-top:0}
+.miniStats{display:flex;justify-content:space-around;font-size:11px;color:var(--sub);background:var(--panel);border:2px solid var(--edge);padding:6px}
+.miniStats b{color:var(--ink)}
+.bottomBar{margin-top:auto}
+/* 장비·상점 2열 칸 */
+.gearCur{padding:10px}
+.gearCur .enh{margin-top:8px}
+.gearCur .hint{margin-top:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;list-style:none;margin:0;padding:0}
+.gi{background:var(--panel2);border:2px solid var(--edge);padding:6px 7px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.gi .nm{font-weight:700;font-size:13px}
+.gi .ds{font-size:11px;color:var(--sub);line-height:1.4;word-break:keep-all}
+.gi .st{font-size:11px;color:var(--sub);word-break:keep-all;line-height:1.4;margin-top:auto}
+.gi .st .buy{width:100%;padding:4px 6px}
+.gi .st b{color:var(--ink)}
+.gi.locked{background:#1b1e29} .gi.locked .nm{color:#7b7890}
+.gi .badge{display:inline-block;background:var(--panel);border:2px solid var(--edge);padding:2px 6px;font-weight:700;color:var(--ink)}
+.gi .badge.now{background:var(--green);color:#0d2416}
+.sectionK{margin:4px 0 0}
+.list.compact{margin:0}
+.list.compact .item{padding:6px 8px;margin-top:4px;font-size:13px}
+.list.compact .item .ds{font-size:11px}
+.burnHelp{font-size:12px;color:var(--sub);line-height:1.7;word-break:keep-all}
+.burnHelp b{color:var(--ink)}
+/* 던전 입장 */
+.dunHead{margin:0}
+.regionTabs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.rTab{background:var(--panel2);border:3px solid var(--edge);color:var(--ink);padding:4px 0;display:flex;flex-direction:column;align-items:center}
+.rTab b{font-size:15px} .rTab small{font-size:10px;color:var(--sub)}
+.rTab.on{background:var(--gold);color:#2a1f00} .rTab.on small{color:#5a4510}
+.rTab.done:not(.on){background:#2f5a3a}
+.rTab[disabled]{opacity:.45}
+.region{margin-top:0}
+.node.sel .dot{outline:3px solid #fff;outline-offset:1px}
+.hint.center{text-align:center}
+/* 전투 */
+#gameScreen .battle{margin-top:0;padding:8px;flex:1;min-height:0;display:flex;flex-direction:column}
+#gameScreen .sceneWrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000}
+#gameScreen #scene{width:auto;height:100%;max-width:100%;aspect-ratio:4/3;object-fit:contain}
+.dunName{font-size:12px;color:var(--gold);text-align:right}
+.dunBar{margin-bottom:6px}
+.powerLine{margin:0}
+.battleBottom{margin-top:0;flex:none}
+/* 축하 연출 */
+#celebrate{position:fixed;inset:0;pointer-events:none;z-index:40;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.celeb{text-align:center;animation:celebIn 1.4s cubic-bezier(.2,1.6,.4,1) forwards;background:rgba(10,10,20,.82);border:3px solid var(--gold);padding:12px 18px;box-shadow:0 4px 0 #000}
+.celeb b{display:block;font-size:24px;color:var(--gold);text-shadow:3px 3px 0 #000}
+.celeb small{display:block;font-size:12px;color:var(--ink);margin-top:4px}
+.celeb.goal b{font-size:30px}
+.celeb.unlock{border-color:#7fe3ff} .celeb.unlock b{color:#7fe3ff}
+@keyframes celebIn{0%{transform:scale(.4);opacity:0}15%{transform:scale(1.1);opacity:1}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95) translateY(-10px)}}
+.confetti{position:absolute;left:50%;top:50%;width:6px;height:6px;animation:burstOut 1.3s ease-out forwards;opacity:0}
+@keyframes burstOut{0%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 60px)) rotate(360deg);opacity:0}}
+.goal .goalUnlock{font-size:13px;color:#7fe3ff;margin:8px 0 0;word-break:keep-all}
+.goal .goalUnlock b{color:#fff}
+.goal .row{display:flex;gap:8px}
+.goal .row button{flex:1}
+@media (max-height:700px){ #hubHeroCv{width:96px;height:96px} .power{font-size:24px} .tbWeight b{font-size:20px} .nav{padding:4px 0} .primary.big{padding:11px;font-size:17px} }
+/* 정비 화면: 가운데 캐릭터, 좌우 단추, 단추를 누르면 창 */
+#hubScreen{position:relative}
+.hubStage{flex:1;min-height:0;display:grid;grid-template-columns:64px 1fr 64px;gap:6px;align-items:center;
+  background:radial-gradient(ellipse at 50% 85%,#3a4a6e 0 22%,transparent 23%),linear-gradient(#262b45 0 70%,#1d2236 70%);border:3px solid var(--edge);border-radius:4px;box-shadow:inset 0 3px 0 var(--hi);padding:8px 6px}
+.side{display:flex;flex-direction:column;gap:10px;align-items:center}
+.sideBtn{width:60px;padding:6px 0 5px;background:var(--panel2);border:3px solid var(--edge);border-radius:6px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:700;box-shadow:inset 0 -4px 0 #1b1e2a,inset 0 3px 0 var(--hi),0 3px 0 #000}
+.sideBtn:active{transform:translateY(2px)}
+.sideBtn.on{background:var(--gold);color:#2a1f00;box-shadow:inset 0 -4px 0 var(--gold-d),inset 0 3px 0 #ffe28a}
+.sideIco{width:36px;height:36px}
+.stageCenter{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;height:100%;justify-content:center}
+.stageCenter #hubHeroCv{width:min(100%,210px);height:auto;aspect-ratio:1;background:none;border:none;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+.powerBadge{display:flex;align-items:baseline;gap:6px;background:rgba(0,0,0,.35);border:2px solid var(--edge);padding:3px 10px}
+.powerBadge span{font-size:11px;color:var(--sub)}
+.powerBadge b{font-size:22px;color:var(--gold);text-shadow:2px 2px 0 #000}
+.stageCenter .hubWeapon{font-size:12px;margin:0}
+.stageCenter .hubItems{font-size:11px;text-align:center;margin:0}
+.hubBottom{flex:none;display:flex;flex-direction:column;gap:6px}
+.miniStats{flex-wrap:wrap;gap:6px;align-items:center}
+.ghost.tiny{font-size:11px;padding:0 4px}
+.sheet{position:absolute;left:0;right:0;top:92px;bottom:0;background:var(--bg);border:3px solid var(--edge);border-radius:4px;display:none;flex-direction:column;z-index:5;box-shadow:0 -4px 0 #000}
+.sheet.on{display:flex;animation:sheetUp .18s steps(4)}
+@keyframes sheetUp{from{transform:translateY(24px)}to{transform:none}}
+.sheetHead{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel);border-bottom:3px solid var(--edge)}
+.sheetHead b{font-size:17px;color:var(--gold)}
+.sheetBody{flex:1;min-height:0;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px;scrollbar-width:none}
+.sheetBody::-webkit-scrollbar{display:none}
+.charBar{flex:none}
+/* 던전 지도 */
+.mapWrap{position:relative;border:3px solid var(--edge);flex:none;box-shadow:0 3px 0 #000}
+#mapCv{width:100%;aspect-ratio:160/110;display:block}
+.mapTitle{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);border:2px solid var(--edge);padding:3px 8px;font-size:12px;color:var(--gold)}
+.mNode{position:absolute;transform:translate(-50%,-100%);background:rgba(0,0,0,.72);border:2px solid var(--edge);color:var(--ink);padding:2px 5px;display:flex;flex-direction:column;align-items:center;line-height:1.2;margin-top:-30px}
+.mNode span{font-size:12px;font-weight:700}
+.mNode small{font-size:9px;color:var(--sub);white-space:nowrap}
+.mNode.clear span{color:var(--green)} .mNode.next{border-color:var(--gold);animation:pulseN 1.2s steps(2) infinite} .mNode.next span{color:var(--gold)}
+.mNode.lock{opacity:.7}
+.mNode.sel{outline:2px solid #fff}
+#dungeonScreen .region{padding:0}
+#dungeonScreen .dunDetail{margin-top:0}
+.ff{width:auto;margin:0;padding:0 12px;font-size:14px}
+.ff.on{background:var(--gold);color:#2a1f00}
+.battleBottom{grid-template-columns:1fr 1fr auto auto}
 </style>
 </head>
 <body>
 <div id="app">
-
   <!-- 시작 화면 -->
   <section id="startScreen" class="screen on">
     <h1>강산해 줄이기</h1>
-    <p class="sub">음식 몬스터를 물리칠 때마다 칼로리가 빠집니다</p>
+    <p class="sub">음식 괴물을 물리치고 목표 체중을 향해</p>
     <canvas id="startHero" class="pix" width="64" height="64"></canvas>
     <div class="card">
       <div class="profile">
@@ -293,140 +436,134 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
         <div><div class="k">시작 체중</div><div class="v">120 kg</div></div>
       </div>
       <div class="fixedGoal"><span>목표 체중</span><b>75 kg</b></div>
-      <p class="hint">음식 괴물을 잡아 칼로리를 모으고, 정비 화면에서 칼로리를 버닝·장비·스킬에 나눠 씁니다. 던전 30개를 깨며 120 kg에서 75 kg까지 줄이세요.</p>
+      <p class="hint">괴물을 잡아 칼로리를 모으고, 칼로리를 버닝·장비·스킬에 나눠 씁니다. 75 kg을 이루면 다음 캐릭터가 열립니다.</p>
       <button class="primary" id="startBtn">새로 시작</button>
     </div>
     <div class="card" id="continueCard" hidden>
       <div class="profile" style="margin-bottom:0">
-        <div><div class="k">저장한 체중</div><div class="v" id="savedW">-</div></div>
+        <div><div class="k" id="savedName">저장한 체중</div><div class="v" id="savedW">-</div></div>
         <div><div class="k">목표</div><div class="v" id="savedT">-</div></div>
-        <div><div class="k">플레이 시간</div><div class="v" id="savedTime">-</div></div>
+        <div><div class="k">진행</div><div class="v" id="savedTime">-</div></div>
       </div>
       <button class="primary" id="continueBtn">이어 하기</button>
       <p class="warn">새로 시작하면 저장한 기록이 지워집니다.</p>
     </div>
   </section>
 
-  <!-- 정비 화면: 던전 사이에 무기·스킬을 손보는 곳 -->
-  <section id="hubScreen" class="screen">
-    <div class="card">
-      <div class="top">
-        <div>
-          <div class="label">현재 체중</div>
-          <div class="weight"><span id="hubW">120.0</span><small>kg</small></div>
-        </div>
-        <div class="goal">
-          <div class="label">목표</div>
-          <div class="v" id="hubGoal">-</div>
+  <!-- 정비 화면: 위 상태 줄 + 가운데 페이지 + 아래 버튼 -->
+  <section id="hubScreen" class="screen app">
+    <div class="topbar">
+      <div class="tbRow">
+        <div class="tbWeight"><span class="tbName" id="tbName">강산해</span><b id="hubW">120.0</b><small>kg</small><span class="tbGoal">목표 <b id="hubGoal">75 kg</b></span></div>
+        <div class="tbWallet">
+          <span class="cur calC"><span class="ico cal"></span><b id="wCal">0</b></span>
+          <span class="cur gemC"><span class="ico gem"></span><b id="wGem">0</b><button class="plus" id="chargeBtn" aria-label="보석 충전">+</button></span>
         </div>
       </div>
-      <div class="bar"><div id="hubBar"></div></div>
-      <div class="barLabels"><span>120 kg</span><span id="hubRemain">남은 체중 -</span><span id="hubPct">0%</span></div>
+      <div class="bar thin"><div id="hubBar"></div></div>
+      <div class="barLabels"><span id="hubStartLbl">120 kg</span><span id="hubRemain">남은 체중 -</span><span id="hubPct">0%</span></div>
     </div>
 
-    <div class="wallet">
-      <div class="cur calC"><span class="ico cal"></span><div><div class="k">칼로리</div><b id="wCal">0</b></div></div>
-      <div class="cur gemC"><span class="ico gem"></span><div><div class="k">보석</div><b id="wGem">0</b></div><button class="plus" id="chargeBtn" aria-label="보석 충전">충전</button></div>
-    </div>
-
-    <div class="card hubHero">
-      <canvas id="hubHeroCv" class="pix" width="64" height="64"></canvas>
-      <div class="hubInfo">
-        <div class="k">전투력</div>
-        <div class="power" id="hubPower">0</div>
+    <div class="hubStage" id="hubStage">
+      <div class="side left">
+        <button class="sideBtn" data-pg="Gear"><canvas class="pix sideIco" width="24" height="24" data-ico="gear"></canvas><span>장비</span></button>
+        <button class="sideBtn" data-pg="Skill"><canvas class="pix sideIco" width="24" height="24" data-ico="skill"></canvas><span>스킬</span></button>
+      </div>
+      <div class="stageCenter">
+        <div class="powerBadge"><span>전투력</span><b id="hubPower">0</b></div>
+        <canvas id="hubHeroCv" class="pix" width="64" height="64"></canvas>
         <div class="hubWeapon" id="hubWeapon">-</div>
         <div class="hubItems" id="hubItems"></div>
       </div>
-    </div>
-    <div class="card burnCard">
-      <div class="burnHead"><b>칼로리 버닝</b><span id="burnLimit">-</span></div>
-      <div class="burnBar"><div id="burnDone"></div><div id="burnRoom"></div></div>
-      <p class="burnInfo" id="burnInfo">-</p>
-      <div class="burnBtns"><button class="buy burnBtn" id="burnSmall">-</button><button class="buy burnBtn" id="burnMax">-</button></div>
-    </div>
-    <button class="primary big" id="toDungeonBtn">던전 입장</button>
-    <p class="nextInfo" id="nextInfo">-</p>
-
-    <div class="card panel">
-      <div class="tabs" role="tablist">
-        <button class="tab on" data-tab="Weapon">장비</button>
-        <button class="tab" data-tab="Skill">스킬</button>
-        <button class="tab" data-tab="Gem">보석 상점</button>
+      <div class="side right">
+        <button class="sideBtn" data-pg="Burn"><canvas class="pix sideIco" width="24" height="24" data-ico="burn"></canvas><span id="navBurn">버닝</span></button>
+        <button class="sideBtn" data-pg="Shop"><canvas class="pix sideIco" width="24" height="24" data-ico="shop"></canvas><span>상점</span></button>
       </div>
-      <div class="tabBody" id="tabWeapon">
-        <div class="cur">
-          <canvas id="wIcon" class="pix" width="32" height="24"></canvas>
-          <div><div class="wname" id="wName">-</div><div class="wstat" id="wStat">-</div></div>
+    </div>
+    <div class="charBar" id="charBar"></div>
+    <div class="hubBottom">
+      <p class="nextInfo" id="nextInfo">-</p>
+      <button class="primary big" id="toDungeonBtn">던전 입장</button>
+      <div class="miniStats"><span>깬 던전 <b id="hubBest">0</b></span><span>모은 칼로리 <b id="kcalTot">0</b></span><span>처치 <b id="killTot">0</b></span><button class="ghost tiny" id="soundBtn">소리 켬</button><button class="ghost tiny" id="toTitle">처음으로</button></div>
+    </div>
+
+    <!-- 좌우 단추로 여는 창 -->
+    <div class="sheet" id="pgGear">
+      <div class="sheetHead"><b>장비</b><button class="back sheetClose">닫기</button></div>
+      <div class="sheetBody">
+        <div class="card gearCur">
+          <div class="cur">
+            <canvas id="wIcon" class="pix" width="32" height="24"></canvas>
+            <div><div class="wname" id="wName">-</div><div class="wstat" id="wStat">-</div></div>
+          </div>
+          <button class="enh" id="enhBtn"><span class="enhTitle" id="enhTitle">+1</span><span class="enhGain" id="enhGain">-</span><span class="enhCost" id="enhCost">-</span></button>
+          <p class="hint" id="enhWhy">-</p>
         </div>
-        <button class="enh" id="enhBtn">
-          <span class="enhTitle" id="enhTitle">+1 강화</span>
-          <span class="enhGain" id="enhGain">-</span>
-          <span class="enhCost" id="enhCost">-</span>
-        </button>
-        <p class="hint" id="enhWhy">새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.</p>
         <p class="sectionK">무기 · 칼로리로 구입</p>
-        <ul class="list" id="weaponList"></ul>
+        <ul class="grid2" id="weaponList"></ul>
       </div>
-      <div class="tabBody" id="tabSkill" hidden>
-        <p class="draft">스킬은 칼로리로 배우고 칼로리로 레벨을 올립니다(최대 Lv5). 배운 스킬은 전투에서 자동으로 발동합니다.</p>
-        <p class="sectionK">공격 스킬</p>
-        <ul class="list" id="atkList"></ul>
-        <p class="sectionK">방어 스킬 · 음식 몬스터의 '먹이기' 공격(체중이 다시 늘어남)을 막습니다</p>
-        <ul class="list" id="defList"></ul>
+    </div>
+    <div class="sheet" id="pgSkill">
+      <div class="sheetHead"><b>스킬</b><button class="back sheetClose">닫기</button></div>
+      <div class="sheetBody">
+        <p class="sectionK">공격 스킬 · 배우면 전투에서 자동으로 발동</p>
+        <ul class="list compact" id="atkList"></ul>
+        <p class="sectionK" id="defDesc">방어 스킬</p>
+        <ul class="list compact" id="defList"></ul>
       </div>
-      <div class="tabBody" id="tabGem" hidden>
-        <div class="gemHead"><span>보유 보석 <b id="gemV2">0</b></span><button class="buy" id="chargeBtn2">보석 충전</button></div>
+    </div>
+    <div class="sheet" id="pgBurn">
+      <div class="sheetHead"><b id="burnTitle">칼로리 버닝</b><button class="back sheetClose">닫기</button></div>
+      <div class="sheetBody">
+        <div class="card burnCard">
+          <div class="burnHead"><span id="burnLimit">-</span></div>
+          <div class="burnBar"><div id="burnDone"></div><div id="burnRoom"></div></div>
+          <p class="burnInfo" id="burnInfo">-</p>
+          <div class="burnBtns"><button class="buy burnBtn" id="burnSmall">-</button><button class="buy burnBtn" id="burnMax">-</button></div>
+        </div>
+        <div class="card burnHelp" id="burnHelp">-</div>
+      </div>
+    </div>
+    <div class="sheet" id="pgShop">
+      <div class="sheetHead"><b>보석 상점</b><button class="back sheetClose">닫기</button></div>
+      <div class="sheetBody">
+        <div class="gemHead"><span>보유 보석 <b id="gemV2">0</b></span><button class="buy gemBuy" id="chargeBtn2">보석 충전</button></div>
         <p class="sectionK">압도적인 힘</p>
-        <ul class="list" id="gemPowerList"></ul>
+        <ul class="grid2" id="gemPowerList"></ul>
         <p class="sectionK">꾸미기</p>
-        <ul class="list" id="gemLookList"></ul>
+        <ul class="grid2" id="gemLookList"></ul>
       </div>
     </div>
-
-    <div class="stats">
-      <div class="stat"><div class="k">깬 던전</div><div class="v" id="hubBest">0</div></div>
-      <div class="stat"><div class="k">모은 칼로리</div><div class="v" id="kcalTot">0</div></div>
-      <div class="stat"><div class="k">처치</div><div class="v" id="killTot">0</div></div>
-    </div>
-    <p class="note">칼로리와 체중 변화는 게임용 수치입니다.<br>체중이 줄수록 몸이 가벼워져 공격이 빨라집니다.</p>
-    <div class="bottomBar"><button class="ghost" id="soundBtn">소리 켬</button><button class="ghost" id="toTitle">처음 화면으로</button></div>
   </section>
 
   <!-- 던전 입장 화면 -->
-  <section id="dungeonScreen" class="screen">
+  <section id="dungeonScreen" class="screen app">
     <div class="dunHead">
-      <button class="back" id="dunBack">‹ 정비로</button>
+      <button class="back" id="dunBack">‹ 정비</button>
       <div class="dunTitle">던전 입장</div>
       <div class="myPower"><span class="k">내 전투력</span><b id="dunPower">0</b></div>
     </div>
-    <div class="legend"><span><i class="lg clear"></i>클리어</span><span><i class="lg next"></i>도전 가능</span><span><i class="lg lock"></i>잠김</span></div>
-    <p class="hint" id="dunItemNote"></p>
+    <div class="regionTabs" id="regionTabs"></div>
+    <div class="mapWrap" id="mapWrap"><canvas id="mapCv" class="pix" width="160" height="110"></canvas><div id="mapNodes"></div><div class="mapTitle" id="mapTitle">-</div></div>
     <div id="dunMap"></div>
+    <p class="hint center" id="dunItemNote"></p>
   </section>
 
   <!-- 전투 화면 -->
-  <section id="gameScreen" class="screen">
-    <div class="card">
-      <div class="top">
-        <div>
-          <div class="label">현재 체중</div>
-          <div class="weight"><span id="wNum">120.0</span><small>kg</small></div>
-        </div>
-        <div class="goal">
-          <div class="label">목표</div>
-          <div class="v" id="goalV">-</div>
-        </div>
+  <section id="gameScreen" class="screen app">
+    <div class="topbar">
+      <div class="tbRow">
+        <div class="tbWeight"><b id="wNum">120.0</b><small>kg</small><span class="tbGoal">목표 <b id="goalV">-</b></span></div>
+        <div class="dunName" id="dunName">-</div>
       </div>
-      <div class="bar"><div id="wBar"></div></div>
-      <div class="barLabels"><span>120 kg</span><span id="remain">남은 체중 -</span><span id="pct">0%</span></div>
+      <div class="bar thin"><div id="wBar"></div></div>
+      <div class="barLabels"><span id="startLbl">120 kg</span><span id="remain">남은 체중 -</span><span id="pct">0%</span></div>
     </div>
-
     <div class="card battle" id="battle">
       <div class="dunBar">
-        <div class="dunName" id="dunName">-</div>
+        <div class="powerLine" id="powerLine">-</div>
         <div class="dots" id="dots"></div>
       </div>
-      <div class="powerLine" id="powerLine">-</div>
       <div class="bossTimer" id="bossTimer" hidden><span>보스 제한 시간</span><div class="tbar"><div id="bossTimeFill"></div></div><b id="bossTimeV">25.0</b></div>
       <div class="monHead">
         <div class="monName" id="monName">-</div>
@@ -442,26 +579,8 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
     <div class="battleBottom">
       <div class="stat"><div class="k">공격 속도</div><div class="v" id="spd">x1.0</div></div>
       <div class="stat"><div class="k">이번 던전 칼로리</div><div class="v" id="runCoin">0</div></div>
+      <button class="secondary ff" id="ffBtn">x1 ▶</button>
       <button class="secondary retreat" id="retreatBtn">후퇴</button>
-    </div>
-  </section>
-
-  <!-- 끝 화면 -->
-  <section id="endScreen" class="screen">
-    <div class="endTitle">목표 달성!</div>
-    <p class="sub" id="endSub">-</p>
-    <div class="card">
-      <div class="compare">
-        <figure><canvas id="beforeC" class="pix" width="64" height="64"></canvas><figcaption>처음<b>120.0 kg</b></figcaption></figure>
-        <div class="arrow">›</div>
-        <figure><canvas id="afterC" class="pix" width="64" height="64"></canvas><figcaption>지금<b id="afterW">-</b></figcaption></figure>
-      </div>
-      <div class="endStats">
-        <div class="stat"><div class="k">걸린 시간</div><div class="v" id="endTime">-</div></div>
-        <div class="stat"><div class="k">모은 칼로리</div><div class="v" id="endKcal">-</div></div>
-        <div class="stat"><div class="k">처치</div><div class="v" id="endKills">-</div></div>
-      </div>
-      <button class="primary" id="againBtn">처음부터 다시 하기</button>
     </div>
   </section>
 </div>
@@ -469,7 +588,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
 <div class="confirm" id="confirm">
   <div class="card">
     <p style="margin:0 0 4px;font-weight:700">새로 시작할까요?</p>
-    <p style="margin:0;color:var(--sub);font-size:14px">저장한 기록이 지워집니다.</p>
+    <p style="margin:0;color:var(--sub);font-size:14px">저장한 기록(모든 캐릭터)이 지워집니다.</p>
     <div class="row"><button class="secondary" id="cNo">취소</button><button class="primary" id="cYes">새로 시작</button></div>
   </div>
 </div>
@@ -482,6 +601,20 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
     <button class="primary" id="resOk">정비로</button>
   </div>
 </div>
+<div class="confirm" id="goalModal">
+  <div class="card result goal">
+    <div class="resTitle" id="goalTitle">목표치 달성!</div>
+    <p class="resSub" id="goalSub">-</p>
+    <div class="compare">
+      <figure><canvas id="beforeC" class="pix" width="64" height="64"></canvas><figcaption>처음<b id="beforeW">-</b></figcaption></figure>
+      <div class="arrow">›</div>
+      <figure><canvas id="afterC" class="pix" width="64" height="64"></canvas><figcaption>지금<b id="afterW">-</b></figcaption></figure>
+    </div>
+    <p class="goalUnlock" id="goalUnlock"></p>
+    <p class="hint" id="goalNote"></p>
+    <div class="row"><button class="secondary" id="goalStay">계속하기</button><button class="primary" id="goalNext">다음 캐릭터</button></div>
+  </div>
+</div>
 <div class="confirm" id="chargeModal">
   <div class="card charge">
     <div class="chargeHead"><b>보석 충전</b><button class="back" id="chargeClose">닫기</button></div>
@@ -490,7 +623,9 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
     <p class="hint" id="chargeHave">보유 보석 0</p>
   </div>
 </div>
+<div id="celebrate"></div>
 <div id="toast"></div>
+
 
 <script>
 // ===== LOGIC START (게임 규칙. 화면과 분리해 시뮬레이션에서도 같은 코드를 씀) =====
@@ -512,9 +647,9 @@ const CFG = {
   skillMax: 5,
   respawn: 0.5, offlineCap: 300,
 };
-const REGIONS = ['야식 골목', '패스트푸드 거리', '디저트 공장', '탄산 폭포', '뷔페 마왕성', '폭식의 탑'];
+let REGIONS = ['야식 골목', '패스트푸드 거리', '디저트 공장', '탄산 폭포', '뷔페 마왕성', '폭식의 탑'];
 // at: 목표까지 감량할 양(45kg) 가운데 이만큼 빠지면 해금. price: 칼로리. gem: 보석 전용
-const WEAPONS = [
+let WEAPONS = [
   { id: 'fist',   name: '주먹·발차기', atk: 10,  crit: 0.05, at: 0,    price: 100 },
   { id: 'rope',   name: '줄넘기',     atk: 16,  crit: 0.08, at: 0.08, price: 150 },
   { id: 'dumbbell', name: '덤벨',     atk: 26,  crit: 0.10, at: 0.2,  price: 600 },
@@ -522,23 +657,23 @@ const WEAPONS = [
   { id: 'ball',   name: '메디신볼',   atk: 60,  crit: 0.15, at: 0.5,  price: 5000 },
   { id: 'barbell', name: '바벨',      atk: 90,  crit: 0.18, at: 0.66, price: 13000 },
   { id: 'gold',   name: '황금 바벨',  atk: 130, crit: 0.22, at: 0.82, price: 32000 },
-  { id: 'diamond', name: '다이아 바벨', atk: 250, crit: 0.25, at: 0, price: 32000, gem: 300 },
+  { id: 'diamond', name: '다이아 바벨', atk: 250, crit: 0.25, at: 0, price: 3000, gem: 300 },
 ];
-const MONSTERS = [
+let MONSTERS = [
   { id: 'chicken', name: '닭다리 괴수' },
   { id: 'pizza', name: '피자 괴물' },
   { id: 'burger', name: '식인 버거' },
   { id: 'donut', name: '도넛 괴물' },
   { id: 'cola', name: '탄산 괴물' },
 ];
-const BOSSES = [{ id: 'cake', name: '대왕 케이크 마왕' }, { id: 'burgerboss', name: '식인 버거 대왕' }, { id: 'pizzaboss', name: '피자 폭군' }];
+let BOSSES = [{ id: 'cake', name: '대왕 케이크 마왕' }, { id: 'burgerboss', name: '식인 버거 대왕' }, { id: 'pizzaboss', name: '피자 폭군' }];
 // 스킬: 칼로리로 배우고(Lv1), 칼로리로 레벨을 올린다(최대 Lv5)
-const ATTACK_SKILLS = [
+let ATTACK_SKILLS = [
   { id: 'burpee', name: '버피 강타', at: 0.15, price: 300, desc: lv => `6초마다 공격력 ${(3 + (lv - 1) * 0.75).toFixed(2).replace(/\.?0+$/, '')}배로 한 방` },
   { id: 'double', name: '2단 뛰기', at: 0.42, price: 3000, desc: lv => `공격할 때 ${Math.round((0.2 + (lv - 1) * 0.06) * 100)}% 확률로 한 번 더 공격` },
   { id: 'squat', name: '스쿼트 점프', at: 0.72, price: 20000, desc: lv => `10초마다 5초 동안 치명타 +${Math.round((0.15 + (lv - 1) * 0.05) * 100)}%p` },
 ];
-const DEFENSE_SKILLS = [
+let DEFENSE_SKILLS = [
   { id: 'water', name: '물 한 잔', at: 0.1, price: 200, desc: lv => `먹이기 공격으로 찌는 체중 -${Math.round((0.3 + (lv - 1) * 0.08) * 100)}%` },
   { id: 'diary', name: '식단 일기', at: 0.45, price: 4000, desc: lv => `먹이기 공격을 ${Math.round((0.25 + (lv - 1) * 0.07) * 100)}% 확률로 피함` },
   { id: 'protein', name: '단백질 방패', at: 0.76, price: 22000, desc: lv => `보스의 먹이기 공격 -${Math.round((0.5 + (lv - 1) * 0.1) * 100)}%` },
@@ -555,13 +690,62 @@ const GEM_SHOP = [
 ];
 // 충전 화면(테스트용: 실제 결제 없이 바로 보석이 들어온다)
 const CHARGE_PACKS = [{ gems: 60, bonus: 0 }, { gems: 300, bonus: 30 }, { gems: 1000, bonus: 150 }, { gems: 2500, bonus: 600 }];
-const SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
-function totalLoss(s) { return CFG.start - s.target; }
-function unlockWeightOf(s, at) { return CFG.start - at * totalLoss(s); }
+let SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
+// ----- 캐릭터 -----
+// dir: -1 감량(강산해), +1 증량(김혁수). 두 캐릭터 모두 목표까지 가면 공격 속도가 같은 배율(x3.7)이 된다.
+const CHARS = {
+  sanhae: { id: 'sanhae', name: '강산해', height: 180, start: 120, target: 75, dir: -1, verb: '버닝', act: '감량', attack: '먹이기',
+    attackFx: '체중이 다시 늘어남', regions: REGIONS, weapons: WEAPONS, atkSkills: ATTACK_SKILLS, defSkills: DEFENSE_SKILLS, monsters: MONSTERS, bosses: BOSSES,
+    finalBoss: { id: 'cake', name: '폭식 대마왕' }, gemWeapon: '다이아 바벨', story: '음식 괴물을 잡아 칼로리를 모으고, 칼로리를 태워 120 kg에서 75 kg까지 줄입니다.' },
+  hyuksu: { id: 'hyuksu', name: '김혁수', height: 178, start: 50, target: 80, dir: 1, verb: '벌크업', act: '증량', attack: '굶기기',
+    attackFx: '체중이 다시 빠짐', unlockBy: 'sanhae',
+    regions: ['샐러드 바', '디톡스 카페', '단식원', '러닝 트랙', '다이어트 캠프', '굶주림의 성'],
+    weapons: [
+      { id: 'flick', name: '꿀밤', atk: 10, crit: 0.05, at: 0, price: 100 },
+      { id: 'spoon', name: '숟가락', atk: 16, crit: 0.08, at: 0.08, price: 150 },
+      { id: 'fork', name: '포크', atk: 26, crit: 0.10, at: 0.2, price: 600 },
+      { id: 'chop', name: '쌍 젓가락', atk: 40, crit: 0.12, at: 0.34, price: 1800 },
+      { id: 'pan', name: '프라이팬', atk: 60, crit: 0.15, at: 0.5, price: 5000 },
+      { id: 'ladle', name: '거대 국자', atk: 90, crit: 0.18, at: 0.66, price: 13000 },
+      { id: 'gspoon', name: '황금 수저', atk: 130, crit: 0.22, at: 0.82, price: 32000 },
+      { id: 'dspoon', name: '다이아 수저', atk: 250, crit: 0.25, at: 0, price: 3000, gem: 300 },
+    ],
+    // 효과는 강산해 스킬과 같은 틀(아이디가 효과를 정한다), 이름과 설명만 다르다
+    atkSkills: [
+      { id: 'burpee', name: '단백질 쉐이크 샷', at: 0.15, price: 300, desc: lv => `6초마다 공격력 ${(3 + (lv - 1) * 0.75).toFixed(2).replace(/\.?0+$/, '')}배로 한 방` },
+      { id: 'double', name: '폭풍 먹방', at: 0.42, price: 3000, desc: lv => `공격할 때 ${Math.round((0.2 + (lv - 1) * 0.06) * 100)}% 확률로 한 번 더 공격` },
+      { id: 'squat', name: '벌크 분노', at: 0.72, price: 20000, desc: lv => `10초마다 5초 동안 치명타 +${Math.round((0.15 + (lv - 1) * 0.05) * 100)}%p` },
+    ],
+    defSkills: [
+      { id: 'water', name: '든든한 도시락', at: 0.1, price: 200, desc: lv => `굶기기 공격으로 빠지는 체중 -${Math.round((0.3 + (lv - 1) * 0.08) * 100)}%` },
+      { id: 'diary', name: '야식 비축', at: 0.45, price: 4000, desc: lv => `굶기기 공격을 ${Math.round((0.25 + (lv - 1) * 0.07) * 100)}% 확률로 피함` },
+      { id: 'protein', name: '위장 강화', at: 0.76, price: 22000, desc: lv => `보스의 굶기기 공격 -${Math.round((0.5 + (lv - 1) * 0.1) * 100)}%` },
+    ],
+    monsters: [
+      { id: 'salad', name: '샐러드 괴물' }, { id: 'broccoli', name: '브로콜리 괴물' }, { id: 'konjac', name: '곤약 괴물' },
+      { id: 'juice', name: '디톡스 주스 괴물' }, { id: 'breast', name: '닭가슴살 괴물' },
+    ],
+    bosses: [{ id: 'saladboss', name: '샐러드 대왕' }, { id: 'juiceboss', name: '디톡스 마녀' }, { id: 'broccoliboss', name: '브로콜리 장군' }],
+    finalBoss: { id: 'konjacboss', name: '단식 대마왕' }, gemWeapon: '다이아 수저', story: '다이어트 괴물을 잡아 칼로리를 모으고, 칼로리를 먹어 50 kg에서 80 kg까지 찌웁니다.' },
+};
+const CHAR_ORDER = ['sanhae', 'hyuksu'];
+let CUR = 'sanhae';
+function CH(s) { return CHARS[(s && s.ch) || CUR]; }
+// 화면과 규칙이 쓰는 목록을 이 캐릭터 것으로 바꾼다
+function setChar(id) {
+  const c = CHARS[id]; CUR = id;
+  REGIONS = c.regions; WEAPONS = c.weapons; ATTACK_SKILLS = c.atkSkills; DEFENSE_SKILLS = c.defSkills; MONSTERS = c.monsters; BOSSES = c.bosses;
+  SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
+  const g = GEM_SHOP.find(x => x.id === 'diamond'); g.name = c.gemWeapon; g.desc = `보석 전용 무기 · 공격력 250 · 치명타 25%`;
+}
+function totalLoss(s) { const c = CH(s); return Math.abs(c.target - c.start); }   // 목표까지 바꿀 체중(강산해 45kg, 김혁수 30kg)
+function kgPer(s) { return totalLoss(s) / CFG.dungeons; }                          // 던전 하나당 열리는 버닝·벌크업 한도
+function unlockWeightOf(s, at) { const c = CH(s); return c.start + c.dir * at * totalLoss(s); }
 function isUnlocked(s, item) { return s.maxBurned >= item.at * totalLoss(s) - 1e-9; }
 
-function newState(target) {
-  const s = { v: 5, target: target || CFG.fixedTarget, cal: 0, calTotal: 0, burned: 0, maxBurned: 0, weapon: 0, enh: 0, enhCount: 0,
+function newState(ch) {
+  ch = typeof ch === 'string' ? ch : 'sanhae'; setChar(ch);
+  const s = { v: 5, ch, target: CHARS[ch].target, goal: false, cal: 0, calTotal: 0, burned: 0, maxBurned: 0, weapon: 0, enh: 0, enhCount: 0,
     gems: 0, gemsSpent: 0, charged: 0,
     own: { w: [true], a: [0, 0, 0], d: [0, 0, 0] }, items: { boost: 0, time: 0 }, cos: { owned: {}, theme: '', band: false },
     dun: { best: 0, clears: {}, fails: 0 }, inDun: false, run: null,
@@ -570,9 +754,10 @@ function newState(target) {
   s.hp = monsterOf(s).hp;
   return s;
 }
-function weightOf(s) { return CFG.start - s.burned; }
+function weightOf(s) { const c = CH(s); return c.start + c.dir * s.burned; }
 function progressOf(s) { return Math.min(1, s.burned / totalLoss(s)); }
-function speedOf(s) { return 1 + CFG.speedPerKg * s.burned; }
+function speedPerKg(s) { return CFG.speedPerKg * 45 / totalLoss(s); } // 목표까지 가면 두 캐릭터 모두 같은 배율
+function speedOf(s) { return 1 + speedPerKg(s) * s.burned; }
 function weaponOf(s) { return WEAPONS[s.weapon]; }
 function lvOf(s, kind, id) { const i = SHOP[kind].findIndex(x => x.id === id); return s.own[kind][i] || 0; }
 function has(s, kind, id) { return lvOf(s, kind, id) > 0; }
@@ -597,7 +782,7 @@ function monsterOf(s) {
   const boss = isBoss(s.stage, s.idx);
   const mul = boss ? CFG.bossMul : 1;
   let m = boss ? BOSSES[(s.stage - 1) % BOSSES.length] : MONSTERS[(s.stage * 3 + s.idx * 7) % MONSTERS.length];
-  if (boss && s.stage === CFG.dungeons) m = { id: 'cake', name: '폭식 대마왕' };
+  if (boss && s.stage === CFG.dungeons) m = CH(s).finalBoss;
   return { ...m, boss, hp: Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, s.stage - 1) * mul),
     kcal: Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, s.stage - 1) * mul) };
 }
@@ -611,13 +796,13 @@ function dungeonKcalOf(d) { return Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow,
 function overpowerOf(s, d) { return Math.max(1, Math.min(5, powerOf(s) / recPowerOf(d || s.stage))); }
 function canEnter(s, d) { return !s.done && d >= 1 && d <= Math.min(s.dun.best + 1, CFG.dungeons); }
 // ----- 칼로리 버닝 -----
-function burnCapKg(s) { return Math.min(totalLoss(s), s.dun.best * CFG.kgPerDungeon); }   // 지금까지 뺄 수 있는 총량
-function burnLimitWeight(s) { return CFG.start - burnCapKg(s); }
-function burnableKg(s) { return Math.max(0, Math.floor((burnCapKg(s) - s.burned) * 10 + 1e-6) / 10); } // 0.1kg 단위
+function burnCapKg(s) { return Math.min(totalLoss(s), s.dun.best * kgPer(s)); }   // 지금까지 바꿀 수 있는 총량
+function burnLimitWeight(s) { const c = CH(s); return c.start + c.dir * burnCapKg(s); }
+function burnableKg(s) { if (s.goal) return 0; return Math.max(0, Math.floor((burnCapKg(s) - s.burned) * 10 + 1e-6) / 10); } // 0.1kg 단위
 // b(kg)만큼 이미 뺀 상태에서 x(kg)를 더 빼는 값. 0.1kg 단위로 더한다
 function burnCostOf(s, x) {
   let cost = 0, b = s.burned;
-  for (let k = 0; k < Math.round(x * 10) - 1e-9; k++) { cost += 0.1 * CFG.burn0 * Math.pow(CFG.burnGrow, (b + k * 0.1) / CFG.kgPerDungeon); }
+  for (let k = 0; k < Math.round(x * 10) - 1e-9; k++) { cost += 0.1 * CFG.burn0 * Math.pow(CFG.burnGrow, (b + k * 0.1) / kgPer(s)); }
   return Math.ceil(cost);
 }
 function maxAffordableBurn(s) { // 칼로리와 한도 안에서 뺄 수 있는 최대 kg (0.1 단위)
@@ -631,7 +816,7 @@ function burn(s, x, ev) {
   const cost = burnCostOf(s, x); if (cost > s.cal) return false;
   s.cal -= cost; s.burned = Math.round((s.burned + x) * 100) / 100; s.maxBurned = Math.max(s.maxBurned, s.burned);
   if (ev) ev.push({ t: 'burn', kg: x, cost });
-  if (weightOf(s) <= s.target + 1e-9) { s.burned = totalLoss(s); s.done = true; if (ev) ev.push({ t: 'done' }); }
+  if (s.burned >= totalLoss(s) - 1e-6) { s.burned = totalLoss(s); s.maxBurned = s.burned; s.goal = true; if (ev) ev.push({ t: 'goal', ch: s.ch }); } // 목표 달성: 체중 변화는 여기서 멈춘다
   return true;
 }
 // ----- 무기 강화: 칼로리를 쓴다 -----
@@ -724,7 +909,7 @@ function endRun(s, ok, ev) {
   const r = s.run, d = r.d;
   const res = { t: ok ? 'clear' : 'fail', d, kills: r.kills, cal: r.cal, fedKg: r.kg0 - s.burned, time: s.time - r.t0, gems: 0, boost: r.boost };
   if (ok) {
-    if (d > s.dun.best) { s.dun.best = d; res.gems = CFG.firstClearGems; s.gems += res.gems; res.first = true; res.capKg = CFG.kgPerDungeon; }
+    if (d > s.dun.best) { s.dun.best = d; res.gems = CFG.firstClearGems; s.gems += res.gems; res.first = true; res.capKg = Math.round(kgPer(s) * 10) / 10; }
     const prev = s.dun.clears[d]; if (!prev || res.time < prev) s.dun.clears[d] = Math.round(res.time * 10) / 10;
   } else s.dun.fails++;
   s.inDun = false;
@@ -764,7 +949,8 @@ function feed(s, ev, rnd) {
   let mul = m.boss ? 2 : 1;
   if (wl) mul *= 1 - (0.3 + (wl - 1) * 0.08);
   if (m.boss && pl) mul *= 1 - (0.5 + (pl - 1) * 0.1);
-  const kg = Math.min(s.burned, Math.round(CFG.feedKg * mul * 1000) / 1000);
+  if (s.goal) { if (ev) ev.push({ t: 'dodge' }); return; } // 목표를 이룬 뒤에는 체중이 변하지 않는다
+  const kg = Math.min(s.burned, Math.round(CFG.feedKg * totalLoss(s) / 45 * mul * 1000) / 1000);
   s.burned = Math.round((s.burned - kg) * 1000) / 1000; s.fed += kg;
   if (ev) ev.push({ t: 'feed', kg });
 }
@@ -799,8 +985,8 @@ function step(s, dt, ev, rnd) {
 // 시뮬레이션용 사용자(정비 화면에서 하는 일). order: 칼로리를 쓰는 순서
 //   'burn' 버닝 먼저 → 무기·스킬 → 강화 / 'gear' 무기·스킬·강화 먼저 → 남으면 버닝 / 'mix' 번갈아
 // gems: 처음에 충전한 보석. 있으면 다이아 바벨을 먼저 사고, 막히면 부스터를 쓴다.
-function simulate(target, order, limitSec, noShop, gems, stopKg) {
-  const s = newState(target); let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+function simulate(ch, order, limitSec, noShop, gems, stopKg) {
+  const s = newState(typeof ch === 'string' ? ch : 'sanhae'); let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   s.log = []; s.gems = gems || 0; let lastFail = 0;
   const gear = () => {
     for (let i = WEAPONS.length - 2; i > s.weapon; i--) if (buy(s, 'w', i)) break;
@@ -810,7 +996,7 @@ function simulate(target, order, limitSec, noShop, gems, stopKg) {
     while (powerOf(s) < recPowerOf(next) && enhance(s)) {}
   };
   const burnAll = () => burn(s, maxAffordableBurn(s));
-  while (!s.done && s.time < (limitSec || 6 * 3600)) {
+  while (!s.goal && s.time < (limitSec || 6 * 3600)) {
     if (!s.inDun && stopKg && s.burned >= stopKg) break;
     if (!s.inDun) {
       if (!noShop) {
@@ -818,7 +1004,7 @@ function simulate(target, order, limitSec, noShop, gems, stopKg) {
         else if (order === 'gear') { gear(); burnAll(); }
         else { const half = s.cal / 2; const keep = s.cal - half; s.cal = half; burnAll(); s.cal += keep; gear(); burnAll(); }
       }
-      if (s.done) break;
+      if (s.goal) break;
       if (s.gems >= 300 && !s.own.w[7]) gemBuy(s, 'diamond');
       let d = Math.min(CFG.dungeons, s.dun.best + 1);
       if (s.dun.best >= CFG.dungeons) d = CFG.dungeons; // 다 깼으면 마지막 던전을 돌며 칼로리를 모은다
@@ -830,7 +1016,7 @@ function simulate(target, order, limitSec, noShop, gems, stopKg) {
   }
   return s;
 }
-function estimateMinutes(target) { return simulate(target, 'mix').time / 60; }
+function estimateMinutes(ch) { return simulate(ch, 'mix').time / 60; }
 // ===== LOGIC END =====
 
 // ===== 도트 그림 =====
@@ -850,6 +1036,9 @@ function rectO(c, x, y, w, h, color) { rect(c, x - 1, y - 1, w + 2, h + 2, OUT);
 // 주인공: fat 1(120kg) → 0(아주 날씬). 몸통 너비를 체중에 따라 연속으로 바꾼다.
 function drawHero(c, x, ground, fat, pose) {
   pose = pose || {};
+  const HY = pose.char === 'hyuksu';
+  const SKIN = HY ? '#f1c9a5' : '#ecbd92', SKIN_D = HY ? '#cf9c7c' : '#c98f6d', SKIN_L = HY ? '#fbe0c6' : '#f7d6b4', HAIR = '#16141a';
+  const SHIRT = HY ? '#6fbf8a' : '#7ea6d6', SHIRT_D = HY ? '#4f9a68' : '#5f86b8', PANTS = HY ? '#5a5f70' : '#4b5e8a';
   const bob = pose.bob || 0, punch = pose.punch || 0, blink = pose.blink;
   const rx = 6 + 10 * fat, ry = 11 + 2.5 * fat;
   const cy = ground - 7 - ry + bob;
@@ -858,11 +1047,10 @@ function drawHero(c, x, ground, fat, pose) {
   // 다리
   const legGap = 2 + 4 * fat, st = pose.step || 0; // st: 걸음 (-1..1)
   const bl = { dx: -Math.round(st * 2), up: Math.round(Math.max(0, -st) * 2) }, fl = { dx: Math.round(st * 2), up: Math.round(Math.max(0, st) * 2) };
-  rectO(c, x - legGap - 3 + bl.dx, ground - 8 - bl.up, 4, 8, '#4b5e8a');
-  if (!(pose.kick && punch > 0.05)) rectO(c, x + legGap - 1 + fl.dx, ground - 8 - fl.up, 4, 8, '#4b5e8a');
+  rectO(c, x - legGap - 3 + bl.dx, ground - 8 - bl.up, 4, 8, PANTS);
+  if (!(pose.kick && punch > 0.05)) rectO(c, x + legGap - 1 + fl.dx, ground - 8 - fl.up, 4, 8, PANTS);
   rect(c, x - legGap - 4 + bl.dx, ground - 2 - bl.up, 6, 2, '#f4f1ea');
   if (!(pose.kick && punch > 0.05)) rect(c, x + legGap - 2 + fl.dx, ground - 2 - fl.up, 6, 2, '#f4f1ea');
-  const SKIN = '#ecbd92', SKIN_D = '#c98f6d', SKIN_L = '#f7d6b4', HAIR = '#16141a';
   // 뒷팔 (근육형: 굵은 팔)
   ellO(c, x - rx + 1, cy - ry * 0.25, 3.2 + fat * 1.2, 5.5, SKIN);
   // 몸통: 어깨가 넓고 배가 둥근 근육형. 민소매 운동복 + 반바지
@@ -876,11 +1064,15 @@ function drawHero(c, x, ground, fat, pose) {
     }
   };
   body(1, () => OUT);
-  body(0, dy => dy > ry * 0.45 ? '#4b5e8a' : dy < -ry * 0.62 ? SKIN : '#7ea6d6');
+  body(0, dy => dy > ry * 0.45 ? PANTS : dy < -ry * 0.62 ? (HY ? SHIRT : SKIN) : SHIRT);
   // 어깨 근육과 가슴 선
-  rect(c, x - rx * 0.92, cy - ry * 0.62, rx * 0.35, 2, SKIN); rect(c, x + rx * 0.57, cy - ry * 0.62, rx * 0.35, 2, SKIN);
-  rect(c, x - rx * 0.45, cy - ry * 0.25, rx * 0.35, 1, '#5f86b8'); rect(c, x + rx * 0.1, cy - ry * 0.25, rx * 0.35, 1, '#5f86b8');
-  rect(c, x, cy - ry * 0.45, 1, ry * 0.25, '#5f86b8');
+  if (!HY) { // 강산해: 민소매라 어깨 근육과 가슴 선이 보인다
+    rect(c, x - rx * 0.92, cy - ry * 0.62, rx * 0.35, 2, SKIN); rect(c, x + rx * 0.57, cy - ry * 0.62, rx * 0.35, 2, SKIN);
+    rect(c, x - rx * 0.45, cy - ry * 0.25, rx * 0.35, 1, SHIRT_D); rect(c, x + rx * 0.1, cy - ry * 0.25, rx * 0.35, 1, SHIRT_D);
+    rect(c, x, cy - ry * 0.45, 1, ry * 0.25, SHIRT_D);
+  } else { // 김혁수: 반팔 티셔츠, 가슴에 덤벨 그림
+    rect(c, x - 1, cy - ry * 0.2, 3, 1, '#e8f4ec'); rect(c, x - 2, cy - ry * 0.2 - 1, 1, 3, '#e8f4ec'); rect(c, x + 2, cy - ry * 0.2 - 1, 1, 3, '#e8f4ec');
+  }
   // 배 하이라이트
   c.globalAlpha = 0.3; ell(c, x + rx * 0.35, cy + ry * 0.1, rx * 0.22, ry * 0.22, '#fff'); c.globalAlpha = 1;
   // 머리: 짧은 흑발, 뚜렷한 이목구비, 쌍꺼풀
@@ -892,17 +1084,23 @@ function drawHero(c, x, ground, fat, pose) {
     c.globalAlpha = 0.6; ell(c, hx + hr * 0.5, hy + hry * 0.45, hr * 0.35, hry * 0.28, SKIN_L); c.globalAlpha = 1;
     rect(c, hx - hr * 0.45, hy + hry - 1, hr, 1, SKIN_D);
   } else if (fat < 0.4) { rect(c, hx - hr + 1, hy + hry - 2, 2, 1, SKIN_D); rect(c, hx + hr - 2, hy + hry - 2, 2, 1, SKIN_D); } // 턱선
-  // 짧은 머리 (각진 짧은 커트)
   const top = hy - hry;
-  rect(c, hx - hr, top, hr * 2 + 1, 4, HAIR);
-  rect(c, hx - hr + 1, top - 1, hr * 2 - 1, 1, HAIR);
-  for (let i = -hr + 1; i < hr; i += 3) rect(c, hx + i, top - 2, 1, 1, HAIR);
-  rect(c, hx - hr, top + 3, 2, 4, HAIR); // 옆머리(짧게)
-  // 머리띠 (보석 상점의 금빛 머리띠를 쓰면 금색)
-  const BAND = pose.band ? '#f5c542' : '#e06b5b';
-  rect(c, hx - hr, top + 3, hr * 2 + 1, 2, BAND);
-  rect(c, hx - hr - 3, top + 4, 3, 1, BAND); rect(c, hx - hr - 4, top + 5, 2, 1, BAND);
-  if (pose.band) { rect(c, hx - 1, top + 3, 1, 1, '#fff6c8'); rect(c, hx + 3, top + 3, 1, 1, '#fff6c8'); }
+  if (!HY) { // 강산해: 각진 짧은 커트
+    rect(c, hx - hr, top, hr * 2 + 1, 4, HAIR);
+    rect(c, hx - hr + 1, top - 1, hr * 2 - 1, 1, HAIR);
+    for (let i = -hr + 1; i < hr; i += 3) rect(c, hx + i, top - 2, 1, 1, HAIR);
+    rect(c, hx - hr, top + 3, 2, 4, HAIR); // 옆머리(짧게)
+  } else { // 김혁수: 가르마를 탄 단정한 머리, 앞머리가 이마를 덮는다
+    rect(c, hx - hr, top - 1, hr * 2 + 1, 5, HAIR); rect(c, hx - hr + 1, top - 2, hr * 2 - 1, 1, HAIR);
+    rect(c, hx - hr, top + 4, 3, 3, HAIR); rect(c, hx + 1, top + 4, hr - 1, 1, HAIR); rect(c, hx - 2, top - 1, 1, 2, '#3a3440');
+  }
+  // 머리띠 (강산해 기본, 금빛 머리띠를 사면 두 캐릭터 모두 금색)
+  if (!HY || pose.band) {
+    const BAND = pose.band ? '#f5c542' : '#e06b5b';
+    rect(c, hx - hr, top + 3, hr * 2 + 1, 2, BAND);
+    rect(c, hx - hr - 3, top + 4, 3, 1, BAND); rect(c, hx - hr - 4, top + 5, 2, 1, BAND);
+    if (pose.band) { rect(c, hx - 1, top + 3, 1, 1, '#fff6c8'); rect(c, hx + 3, top + 3, 1, 1, '#fff6c8'); }
+  }
   // 눈썹(진하게)
   const e1 = hx + Math.round(hr * 0.15), e2 = e1 + 4;
   rect(c, e1 - 1, hy - 2, 3, 1, HAIR); rect(c, e2, hy - 2, 3, 1, HAIR);
@@ -912,6 +1110,12 @@ function drawHero(c, x, ground, fat, pose) {
     rect(c, e1, hy - 1, 2, 1, SKIN_D); rect(c, e2, hy - 1, 2, 1, SKIN_D); // 쌍꺼풀
     rect(c, e1, hy, 2, 2, '#fff'); rect(c, e2, hy, 2, 2, '#fff');
     rect(c, e1 + 1, hy, 1, 2, OUT); rect(c, e2 + 1, hy, 1, 2, OUT);
+  }
+  if (HY) { // 뿔테안경: 두꺼운 검은 테 두 개와 다리
+    rect(c, e1 - 1, hy - 1, 4, 1, '#2a1a12'); rect(c, e1 - 1, hy + 2, 4, 1, '#2a1a12'); rect(c, e1 - 1, hy - 1, 1, 4, '#2a1a12'); rect(c, e1 + 2, hy - 1, 1, 4, '#2a1a12');
+    rect(c, e2 - 1, hy - 1, 4, 1, '#2a1a12'); rect(c, e2 - 1, hy + 2, 4, 1, '#2a1a12'); rect(c, e2 - 1, hy - 1, 1, 4, '#2a1a12'); rect(c, e2 + 2, hy - 1, 1, 4, '#2a1a12');
+    rect(c, e1 + 3, hy, 1, 1, '#2a1a12'); rect(c, hx - hr, hy, e1 - (hx - hr) - 1, 1, '#2a1a12');
+    c.globalAlpha = .35; rect(c, e1, hy, 1, 1, '#fff'); rect(c, e2, hy, 1, 1, '#fff'); c.globalAlpha = 1;
   }
   // 코(그늘) 와 턱선
   rect(c, e1 + 3, hy + 2, 1, 2, SKIN_D); rect(c, e1 + 4, hy + 3, 1, 1, SKIN_D);
@@ -923,7 +1127,7 @@ function drawHero(c, x, ground, fat, pose) {
   // 발차기: 앞다리를 앞으로 뻗는다
   if (pose.kick && punch > 0.05) {
     const ky = ground - 9 - Math.round(punch * 3);
-    rectO(c, x + 1, ky, rx + punch * 9, 4, '#4b5e8a');
+    rectO(c, x + 1, ky, rx + punch * 9, 4, PANTS);
     rectO(c, x + rx + punch * 9, ky - 1, 4, 6, '#f4f1ea');
     if (punch > 0.6) { rect(c, x + rx + punch * 9 + 6, ky - 2, 1, 1, '#fff'); rect(c, x + rx + punch * 9 + 7, ky + 2, 2, 1, '#fff'); }
   }
@@ -933,14 +1137,24 @@ function drawHero(c, x, ground, fat, pose) {
   if (reach > 0.5) rectO(c, x + rx - 2, ay - 1, reach + 2, 3, SKIN);
   ellO(c, x + rx - 2, cy - ry * 0.3, 3.4 + fat * 1.2, 5, SKIN); // 굵은 위팔(이두)
   rect(c, x + rx - 3, cy - ry * 0.3 - 2, 2, 1, SKIN_L);
-  if (pose.weapon && pose.weapon !== 'fist') drawWeapon(c, pose.weapon, ax + 2, ay, false);
+  if (pose.weapon && pose.weapon !== 'fist' && pose.weapon !== 'flick') drawWeapon(c, pose.weapon, ax + 2, ay, false);
   ellO(c, ax, ay, 2.5 + fat, 3 + fat * 0.5, SKIN);
   if (!pose.kick && punch > 0.6) { rect(c, ax + 4, ay - 3, 1, 1, '#fff'); rect(c, ax + 5, ay, 2, 1, '#fff'); rect(c, ax + 4, ay + 3, 1, 1, '#fff'); }
 }
 // 무기: (x, y)가 손잡이. icon=true면 아이콘용(주먹은 주먹 그림)
 function drawWeapon(c, id, x, y, icon) {
   const IRON = '#4a4f57', BAR = '#9aa3ad', GOLD = '#e9b949', GOLD2 = '#f6d77e';
-  if (id === 'fist') { if (icon) { ellO(c, x + 3, y, 5, 5, '#e8b88f'); rect(c, x + 1, y - 2, 6, 1, '#c99670'); rect(c, x + 1, y + 1, 6, 1, '#c99670'); } return; }
+  if (id === 'spoon' || id === 'gspoon' || id === 'dspoon') { // 숟가락
+    const M = id === 'gspoon' ? GOLD : id === 'dspoon' ? '#7fe3ff' : '#c9d3df', M2 = id === 'gspoon' ? GOLD2 : id === 'dspoon' ? '#d6f7ff' : '#eef2f6';
+    rect(c, x - 2, y, 10, 2, M); ellO(c, x + 11, y, 4, 3, M); rect(c, x + 10, y - 1, 2, 1, M2);
+    if (id === 'dspoon') { rect(c, x + 13, y - 3, 1, 1, '#fff'); rect(c, x + 7, y + 3, 1, 1, '#fff'); }
+    return;
+  }
+  if (id === 'fork') { rect(c, x - 2, y, 10, 2, '#c9d3df'); rect(c, x + 8, y - 2, 2, 6, '#c9d3df'); for (const dy of [-2, 0, 2]) rect(c, x + 10, y + dy, 5, 1, '#eef2f6'); return; }
+  if (id === 'chop') { rectO(c, x - 2, y - 1, 18, 1, '#b07a3a'); rectO(c, x - 2, y + 2, 18, 1, '#b07a3a'); rect(c, x - 2, y - 1, 4, 1, '#c0394b'); rect(c, x - 2, y + 2, 4, 1, '#c0394b'); return; }
+  if (id === 'pan') { rect(c, x - 3, y, 8, 2, '#5a3a24'); ellO(c, x + 11, y + 1, 7, 5, '#2b2d33'); ell(c, x + 11, y, 5, 3, '#3a3d45'); rect(c, x + 8, y - 2, 2, 1, '#6b7079'); return; }
+  if (id === 'ladle') { rect(c, x - 3, y - 6, 2, 10, '#9aa3ad'); rect(c, x - 3, y - 6, 12, 2, '#9aa3ad'); ellO(c, x + 12, y - 1, 6, 5, '#c9d3df'); ell(c, x + 12, y - 2, 4, 2, '#eef2f6'); return; }
+  if (id === 'fist' || id === 'flick') { if (icon) { ellO(c, x + 3, y, 5, 5, '#e8b88f'); rect(c, x + 1, y - 2, 6, 1, '#c99670'); rect(c, x + 1, y + 1, 6, 1, '#c99670'); } return; }
   if (id === 'rope') {
     for (let i = 0; i <= 12; i++) rect(c, x + i, y - 2 - Math.round(Math.sin(i / 12 * Math.PI) * 6), 1, 1, '#f4efe6');
     rectO(c, x - 1, y - 3, 2, 5, '#e06b5b'); rectO(c, x + 12, y - 3, 2, 5, '#e06b5b'); return;
@@ -1077,6 +1291,50 @@ const SPR = {
     maw(c, 14, 44, 36, 10, true);
   },
 };
+// 김혁수의 적: 다이어트 괴물
+Object.assign(SPR, {
+  salad(c) { // 샐러드 괴물: 그릇 위로 잎이 머리카락처럼 솟음
+    stubLegs(c, 24, 47, '#7a6a5a');
+    for (const [a, b, r] of [[14, 16, 7], [24, 12, 8], [34, 16, 7], [19, 20, 6], [30, 20, 6]]) ellO(c, a, b, r, r * .8, a % 2 ? '#6fbf5a' : '#4f9a42');
+    rect(c, 22, 10, 2, 2, '#c0394b'); rect(c, 31, 14, 2, 2, '#f3cf5a');
+    ellO(c, 24, 33, 18, 9, '#e8e0d0', dy => dy < -5 ? '#cfc6b4' : '#e8e0d0'); rect(c, 7, 28, 34, 2, '#b8ae9a');
+    evilEyeL(c, 15, 30); evilEye(c, 28, 30); maw(c, 17, 35, 14, 5);
+    clawArm(c, 1, 31, -1, '#6fbf5a'); clawArm(c, 42, 31, 1, '#6fbf5a');
+  },
+  broccoli(c) { // 브로콜리 괴물: 꽃송이 머리, 줄기 몸통
+    stubLegs(c, 24, 47, '#4f8a3a');
+    rectO(c, 17, 26, 14, 16, '#7fbf5a'); rect(c, 19, 28, 2, 12, '#9fd47a');
+    for (const [a, b, r] of [[12, 16, 7], [22, 10, 8], [33, 14, 7], [17, 22, 6], [29, 22, 6], [24, 18, 6]]) ellO(c, a, b, r, r, '#3f8a3a');
+    for (let i = 0; i < 14; i++) rect(c, 9 + (i * 7) % 30, 8 + (i * 5) % 18, 1, 1, '#6fbf5a');
+    evilEyeL(c, 17, 30); evilEye(c, 26, 30); maw(c, 19, 35, 10, 4);
+    clawArm(c, 10, 31, -1, '#7fbf5a'); clawArm(c, 32, 31, 1, '#7fbf5a');
+  },
+  konjac(c) { // 곤약 괴물: 회색 젤리 덩어리, 검은 점
+    stubLegs(c, 24, 47, '#6f6f78');
+    ellO(c, 24, 30, 17, 15, '#9a9aa6', dy => dy < -9 ? '#b4b4c0' : '#9a9aa6');
+    for (const [a, b] of [[13, 22], [20, 18], [31, 21], [36, 30], [12, 34], [27, 38], [18, 40]]) rect(c, a, b, 1, 1, '#4a4a55');
+    c.globalAlpha = .35; ell(c, 16, 20, 4, 3, '#fff'); c.globalAlpha = 1;
+    evilEyeL(c, 15, 26); evilEye(c, 28, 26); maw(c, 16, 32, 16, 6, true);
+    clawArm(c, 1, 30, -1, '#9a9aa6'); clawArm(c, 42, 30, 1, '#9a9aa6');
+  },
+  juice(c) { // 디톡스 주스 괴물: 초록 병, 빨대
+    stubLegs(c, 24, 47, '#3f6b3a');
+    rectO(c, 28, 0, 3, 10, '#f4efe6'); rect(c, 28, 3, 3, 2, '#6fbf5a');
+    rectO(c, 16, 6, 16, 5, '#d8d0c0');
+    for (let y = 0; y < 32; y++) { const w = y < 4 ? 18 + y * 2 : 26; rect(c, 24 - w / 2 - 1, 11 + y, w + 2, 1, OUT); rect(c, 24 - w / 2, 11 + y, w, 1, y < 6 ? '#bfe8a8' : '#5fae4a'); }
+    rect(c, 13, 23, 22, 9, '#e8f4dc'); rect(c, 15, 27, 18, 1, '#5fae4a');
+    evilEyeL(c, 16, 24); evilEye(c, 28, 24); maw(c, 17, 34, 14, 5);
+    for (const [a, b] of [[16, 40], [30, 38], [22, 17]]) ellO(c, a, b, 1, 1, '#9fd47a');
+    clawArm(c, 3, 30, -1, '#5fae4a'); clawArm(c, 40, 30, 1, '#5fae4a');
+  },
+  breast(c) { // 닭가슴살 괴물: 창백한 살덩이, 칼집 무늬
+    stubLegs(c, 24, 47, '#c9a58f');
+    ellO(c, 24, 30, 18, 13, '#f2d6c4', dy => dy < -8 ? '#fbe6d8' : '#f2d6c4');
+    for (const [a, b] of [[12, 24], [20, 20], [30, 22], [34, 32], [14, 36]]) { rect(c, a, b, 4, 1, '#d9a88f'); rect(c, a + 1, b + 1, 4, 1, '#d9a88f'); }
+    evilEyeL(c, 15, 26); evilEye(c, 28, 26); maw(c, 16, 32, 16, 6, true);
+    clawArm(c, 0, 30, -1, '#f2d6c4'); clawArm(c, 43, 30, 1, '#f2d6c4');
+  },
+});
 // 보스: 잔몹을 크게 키우고 왕관을 씌운다
 function makeBoss(baseId) {
   return (c, t) => {
@@ -1089,8 +1347,9 @@ function makeBoss(baseId) {
 }
 SPR.burgerboss = makeBoss('burger');
 SPR.pizzaboss = makeBoss('pizza');
+SPR.saladboss = makeBoss('salad'); SPR.juiceboss = makeBoss('juice'); SPR.broccoliboss = makeBoss('broccoli'); SPR.konjacboss = makeBoss('konjac');
 const sprCache = {};
-const BIG = { cake: 1, burgerboss: 1, pizzaboss: 1 };
+const BIG = { cake: 1, burgerboss: 1, pizzaboss: 1, saladboss: 1, juiceboss: 1, broccoliboss: 1, konjacboss: 1 };
 function sprite(id, t) {
   const big = !!BIG[id];
   const size = big ? 64 : 48;
@@ -1158,12 +1417,15 @@ const vis = { weight: 120, atkT: 9, atkDur: .3, kick: false, mFlash: 0, mKnock: 
   fx: [], flash: 0, flashColor: '#fff', hitStop: 0,
   particles: [], time: 0, sweat: 0, hpShown: 1 };
 
-// 옛 저장(던전 구조 이전, v3)을 새 구조로 옮긴다: 체중·무기·스킬·코인은 그대로, 지나온 라운드 수만큼 던전을 깬 것으로 친다
-function migrate(o) {
+// ----- 저장: 여러 캐릭터를 한 기록(프로필)에 담는다 -----
+// 캐릭터마다 따로: 체중·칼로리·무기·스킬·던전 진행. 함께 쓰는 것: 보석, 테마·꾸미기.
+let PRO = null;
+// 옛 저장(v3·v4: 코인·재료 시절)을 강산해 기록(v5)으로 옮긴다
+function migrateChar(o) {
   if (!o) return null;
-  if (o.v === 5) return o;
+  if (o.v === 5) { if (!o.ch) o.ch = 'sanhae'; if (o.done) { o.goal = true; o.done = false; } return o; }
   if (o.v !== 3 && o.v !== 4) return null;
-  const s = newState(CFG.fixedTarget);
+  const s = newState('sanhae');
   for (const k of ['burned', 'maxBurned', 'weapon', 'enh', 'enhCount', 'kills', 'time', 'fed', 'dodged', 'gems', 'gemsSpent', 'charged']) if (o[k] != null) s[k] = o[k];
   s.burned = Math.max(0, Math.min(s.burned, totalLoss(s) - 0.1)); s.maxBurned = Math.max(s.maxBurned, s.burned);
   s.cal = Math.round((o.coins || 0) + (o.mats || 0) * 30); s.calTotal = s.cal;
@@ -1175,56 +1437,112 @@ function migrate(o) {
   s.migrated = true;
   return s;
 }
-function load() { if (DEMO) return null; try { return migrate(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return null; } }
-function save() { if (DEMO || !S) return; try { S.savedAt = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function newProfile() { const s = newState('sanhae'); return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: 0, cos: s.cos, unlocked: { sanhae: true } }; }
+function loadProfile(raw) {
+  if (!raw) return null;
+  if (raw.v === 6) return raw;
+  const s = migrateChar(raw); if (!s) return null;
+  return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: s.gems || 0, cos: s.cos, unlocked: { sanhae: true, hyuksu: !!s.goal } };
+}
+function load() { if (DEMO) return null; try { return loadProfile(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return null; } }
+function syncShared() { if (PRO && S) { PRO.gems = S.gems; PRO.cos = S.cos; PRO.chars[S.ch] = S; PRO.cur = S.ch; } }
+function save() { if (DEMO || !S || !PRO) return; try { syncShared(); S.savedAt = Date.now(); PRO.savedAt = S.savedAt; localStorage.setItem(SAVE_KEY, JSON.stringify(PRO)); } catch (e) {} }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+// 캐릭터 바꾸기: 지금 캐릭터 기록은 그대로 두고, 보석·꾸미기만 들고 간다
+function useChar(id) {
+  if (PRO && S) syncShared();
+  setChar(id);
+  if (!PRO.chars[id]) PRO.chars[id] = newState(id);
+  S = PRO.chars[id]; setChar(id);
+  S.gems = PRO.gems; S.cos = PRO.cos; PRO.cur = id;
+  vis.weight = weightOf(S);
+}
 
 function show(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); window.scrollTo(0, 0); }
 function fmtTime(sec) { sec = Math.round(sec); const m = Math.floor(sec / 60), s = sec % 60; return m + '분 ' + String(s).padStart(2, '0') + '초'; }
 function fmtNum(n) { return Math.round(n).toLocaleString('ko-KR'); }
-function fatOf(w) { return Math.max(0, Math.min(1, (w - 60) / 60)); }
+// 그림의 체형: 강산해는 120kg 둥근 몸(1)에서 날씬(0)으로, 김혁수는 50kg 깡마른 몸(-0.25)에서 80kg 건장(0.35)으로
+function fatOf(w, ch) { ch = ch || (S && S.ch) || 'sanhae'; return ch === 'hyuksu' ? Math.max(-0.25, Math.min(0.6, (w - 62) / 50)) : Math.max(0, Math.min(1, (w - 60) / 60)); }
 let toastTimer = 0;
 function toast(msg, ms) { const t = $('toast'); t.innerHTML = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), ms || 3500); }
 function applyTheme() { document.body.classList.toggle('theme-gold', !!S && S.cos.theme === 'gold'); document.body.classList.toggle('theme-neon', !!S && S.cos.theme === 'neon'); }
-
 function drawPortrait(cv, w, t, extra) {
   const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-  drawHero(c, 31, 60, fatOf(w), Object.assign({ bob: Math.round(Math.sin((t || 0) * 3)), blink: false, band: S && S.cos.band }, extra || {}));
+  const ch = (extra && extra.char) || (S && S.ch) || 'sanhae';
+  drawHero(c, 31, 60, fatOf(w, ch), Object.assign({ bob: Math.round(Math.sin((t || 0) * 3)), blink: false, band: S && S.cos.band, char: ch }, extra || {}));
+}
+// 화면 전체 축하 연출(강화·해금·목표 달성)
+function celebrate(title, sub, kind) {
+  const box = $('celebrate'); box.innerHTML = '';
+  const el = document.createElement('div'); el.className = 'celeb ' + (kind || '');
+  el.innerHTML = `<b>${title}</b>${sub ? `<small>${sub}</small>` : ''}`; box.appendChild(el);
+  const n = kind === 'goal' ? 70 : kind === 'unlock' ? 30 : 18;
+  const colors = kind === 'goal' ? ['#f5c542', '#5cc47e', '#ff6fbf', '#7fe3ff', '#fff'] : kind === 'unlock' ? ['#7fe3ff', '#fff', '#f5c542'] : ['#f5c542', '#fff', '#ff9a5a'];
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('i'); p.className = 'confetti';
+    const a = Math.random() * Math.PI * 2, d = 80 + Math.random() * (kind === 'goal' ? 260 : 150);
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--dx', Math.cos(a) * d + 'px'); p.style.setProperty('--dy', Math.sin(a) * d - 40 + 'px');
+    p.style.animationDelay = (Math.random() * (kind === 'goal' ? .5 : .15)) + 's';
+    box.appendChild(p);
+  }
+  clearTimeout(celebrate.t); celebrate.t = setTimeout(() => { box.innerHTML = ''; }, kind === 'goal' ? 2600 : 1500);
 }
 
 // ----- 시작 화면 -----
 const startHeroCv = $('startHero');
 let startAnim = 0;
-function startLoop(ts) { if (!$('startScreen').classList.contains('on')) return; drawPortrait(startHeroCv, 120, ts / 1000, { band: false }); startAnim = requestAnimationFrame(startLoop); }
+function startLoop(ts) { if (!$('startScreen').classList.contains('on')) return; drawPortrait(startHeroCv, 120, ts / 1000, { band: false, char: 'sanhae' }); startAnim = requestAnimationFrame(startLoop); }
 function refreshStart() {
   const saved = load();
-  $('continueCard').hidden = !saved || saved.done;
-  if (saved && !saved.done) {
-    $('savedW').textContent = weightOf(saved).toFixed(1) + ' kg';
-    $('savedT').textContent = saved.target + ' kg';
-    $('savedTime').textContent = `던전 ${saved.dun.best}개`;
+  $('continueCard').hidden = !saved;
+  if (saved) {
+    const s = saved.chars[saved.cur] || saved.chars.sanhae, c = CHARS[s.ch || 'sanhae'];
+    setChar(s.ch || 'sanhae');
+    $('savedName').textContent = `${c.name} 체중`;
+    $('savedW').textContent = weightOf(s).toFixed(1) + ' kg';
+    $('savedT').textContent = c.target + ' kg';
+    $('savedTime').textContent = s.goal ? '달성' : `던전 ${s.dun.best}개`;
   }
   cancelAnimationFrame(startAnim); startAnim = requestAnimationFrame(startLoop);
 }
-function readTarget() { return { ok: true, v: CFG.fixedTarget }; }
 $('startBtn').addEventListener('click', () => {
-  const r = readTarget(); if (!r.ok) return;
   const saved = load();
-  const go = () => { clearSave(); S = newState(r.v); save(); applyTheme(); goHub(); };
-  if (saved && !saved.done) { $('confirm').classList.add('on'); $('cYes').onclick = () => { $('confirm').classList.remove('on'); go(); }; }
+  const go = () => { clearSave(); PRO = newProfile(); S = null; useChar('sanhae'); save(); applyTheme(); goHub('Home'); };
+  if (saved) { $('confirm').classList.add('on'); $('cYes').onclick = () => { $('confirm').classList.remove('on'); go(); }; }
   else go();
 });
 $('cNo').addEventListener('click', () => $('confirm').classList.remove('on'));
 $('continueBtn').addEventListener('click', () => {
-  S = load(); if (!S) return;
+  PRO = load(); if (!PRO) return;
+  S = null; useChar(PRO.cur || 'sanhae');
   applyTheme();
-  if (S.migrated) { delete S.migrated; toast('예전 기록을 새 구조로 옮겼습니다.<br>체중·무기·스킬·깬 던전은 그대로이고, 코인과 재료는 칼로리로 바꿨습니다. 목표는 75 kg입니다.', 5000); }
-  if (S.done) { endGame(); return; }
+  if (S.migrated) { delete S.migrated; toast('예전 기록을 새 구조로 옮겼습니다.<br>체중·무기·스킬·깬 던전은 그대로이고, 코인과 재료는 칼로리로 바꿨습니다.', 5000); }
   if (S.inDun) { startBattle(); applyOffline((Date.now() - (S.savedAt || Date.now())) / 1000); }
-  else goHub();
+  else goHub('Home');
 });
 $('toTitle').addEventListener('click', () => { save(); running = false; show('startScreen'); refreshStart(); });
-$('againBtn').addEventListener('click', () => { clearSave(); S = null; applyTheme(); show('startScreen'); refreshStart(); });
+
+// ----- 목표 달성 창 -----
+function nextCharOf(id) { return CHAR_ORDER.find(k => CHARS[k].unlockBy === id); }
+function endGame() { showGoal(); }
+function showGoal() {
+  const c = CH(S), nx = nextCharOf(S.ch);
+  running = false;
+  $('resultModal').classList.remove('on');
+  $('goalTitle').textContent = '목표치 달성!';
+  $('goalSub').textContent = `${c.name}가 ${c.target} kg을 이뤘습니다 · 던전 ${S.dun.best}개 · 모은 칼로리 ${fmtNum(S.calTotal)}`;
+  $('beforeW').textContent = c.start.toFixed(1) + ' kg'; $('afterW').textContent = weightOf(S).toFixed(1) + ' kg';
+  drawPortrait($('beforeC'), c.start, 0, { band: false }); drawPortrait($('afterC'), weightOf(S), 0);
+  if (nx) { PRO.unlocked[nx] = true; $('goalUnlock').innerHTML = `새 캐릭터 해금: <b>${CHARS[nx].name}</b> · ${CHARS[nx].height} cm, ${CHARS[nx].start} kg에서 ${CHARS[nx].target} kg까지 ${CHARS[nx].act}`; }
+  else $('goalUnlock').textContent = '다음 캐릭터는 준비 중입니다.';
+  $('goalNote').textContent = `${c.name}의 체중은 여기서 멈춥니다. 던전·장비·스킬은 계속할 수 있고, 기록은 그대로 남습니다.`;
+  $('goalNext').hidden = !nx; $('goalNext').textContent = nx ? `${CHARS[nx].name}로 시작` : '';
+  $('goalModal').classList.add('on');
+  save();
+}
+$('goalStay').addEventListener('click', () => { $('goalModal').classList.remove('on'); goHub('Home'); });
+$('goalNext').addEventListener('click', () => { const nx = nextCharOf(S.ch); $('goalModal').classList.remove('on'); if (nx) { useChar(nx); save(); goHub('Home'); celebrate(`${CHARS[nx].name} 등장`, `${CHARS[nx].start} kg → ${CHARS[nx].target} kg ${CHARS[nx].act}`, 'unlock'); SFX.play('unlock'); } });
 
 // 자리를 비운 동안: 던전 안에 있었을 때만, 최대 5분까지 자동 전투를 계산한다. 던전이 끝나면 거기서 멈춘다.
 function applyOffline(sec) {
@@ -1247,93 +1565,168 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ----- 정비 화면 -----
-let hubAnim = 0;
+let hubAnim = 0, curPage = 'Home';
 function hubLoop(ts) { if (!$('hubScreen').classList.contains('on')) return; drawPortrait($('hubHeroCv'), weightOf(S), ts / 1000, { weapon: weaponOf(S).id }); hubAnim = requestAnimationFrame(hubLoop); }
-function goHub() {
-  running = false; show('hubScreen'); applyTheme(); panelKey = ''; updateHub();
+function goHub(pg) {
+  running = false; show('hubScreen'); applyTheme(); panelKey = ''; showPage(pg || curPage); updateHub();
   cancelAnimationFrame(hubAnim); hubAnim = requestAnimationFrame(hubLoop);
 }
+// 좌우 단추를 누르면 그 창이 캐릭터 위로 열린다. 'Home'이면 모두 닫는다
+function showPage(pg) {
+  curPage = pg;
+  for (const p of document.querySelectorAll('#hubScreen .sheet')) p.classList.toggle('on', p.id === 'pg' + pg);
+  for (const b of document.querySelectorAll('.sideBtn')) b.classList.toggle('on', b.dataset.pg === pg);
+}
+for (const b of document.querySelectorAll('.sideBtn')) b.addEventListener('click', () => { showPage(curPage === b.dataset.pg ? 'Home' : b.dataset.pg); SFX.play('swing'); updateHub(); });
+for (const b of document.querySelectorAll('.sheetClose')) b.addEventListener('click', () => showPage('Home'));
+// 좌우 단추 그림
+function drawSideIcons() {
+  for (const cv of document.querySelectorAll('.sideIco')) {
+    const c = cv.getContext('2d'); c.clearRect(0, 0, 24, 24); const k = cv.dataset.ico;
+    if (k === 'gear') { const id = weaponOf(S).id; drawWeapon(c, id === 'fist' || id === 'flick' ? (S.ch === 'hyuksu' ? 'spoon' : 'dumbbell') : id, 5, 12, true); }
+    else if (k === 'skill') { for (const [x, y, w] of [[12, 2, 4], [9, 8, 6], [7, 12, 8], [11, 12, 3], [9, 16, 4], [7, 19, 3]]) rect(c, x, y, w, 3, '#7fe3ff'); rect(c, 12, 4, 2, 2, '#fff'); }
+    else if (k === 'burn') { const up = CH(S).dir > 0; ellO(c, 12, 15, 6, 7, up ? '#e3b13e' : '#ff7a3a'); ell(c, 12, 17, 3, 4, up ? '#fff2c0' : '#ffd07a'); rect(c, 11, 4, 2, 4, up ? '#e3b13e' : '#ff7a3a'); }
+    else if (k === 'shop') { for (let y = 0; y < 8; y++) rect(c, 12 - y, 6 + y, y * 2 + 1, 1, '#ff6fbf'); for (let y = 0; y < 8; y++) rect(c, 5 + y, 14 + y, 14 - y * 2, 1, '#d03a90'); rect(c, 10, 8, 2, 2, '#fff'); }
+  }
+}
+// 위 상태 줄: 체중 진행
+function weightBar(prefix) {
+  const c = CH(S), w = prefix === 'hub' ? weightOf(S) : vis.weight, total = totalLoss(S), done = Math.min(1, Math.abs(w - c.start) / total);
+  return { c, w, total, done, left: Math.max(0, Math.abs(c.target - w)) };
+}
 function updateHub() {
-  const w = weightOf(S), total = totalLoss(S), lost = CFG.start - w;
-  $('hubW').textContent = w.toFixed(1); $('hubGoal').textContent = S.target + ' kg';
-  $('hubBar').style.width = (Math.min(1, lost / total) * 100).toFixed(1) + '%';
-  $('hubRemain').textContent = `남은 체중 ${Math.max(0, w - S.target).toFixed(1)} kg`;
-  $('hubPct').textContent = Math.floor(Math.min(1, lost / total) * 100) + '%';
+  const { c, w, done, left } = weightBar('hub');
+  $('tbName').textContent = c.name;
+  $('hubW').textContent = w.toFixed(1); $('hubGoal').textContent = c.target + ' kg';
+  $('hubBar').style.width = (done * 100).toFixed(1) + '%';
+  $('hubStartLbl').textContent = c.start + ' kg';
+  $('hubRemain').textContent = S.goal ? '목표 달성' : `남은 체중 ${left.toFixed(1)} kg`;
+  $('hubPct').textContent = Math.floor(done * 100) + '%';
   $('wCal').textContent = fmtNum(S.cal); $('wGem').textContent = fmtNum(S.gems); $('gemV2').textContent = fmtNum(S.gems);
   $('hubPower').textContent = fmtNum(powerOf(S));
   $('hubWeapon').textContent = `${weaponOf(S).name} +${S.enh}`;
   const items = [];
   if (S.items.boost) items.push(`프로틴 부스터 <b>${S.items.boost}</b>개`);
   if (S.items.time) items.push(`보스 시간 연장권 <b>${S.items.time}</b>개`);
-  $('hubItems').innerHTML = items.length ? items.join('<br>') + '<br>다음 던전에 들어갈 때 하나씩 자동으로 씁니다' : '';
-  const next = S.dun.best + 1, rec = recPowerOf(next), pw = powerOf(S);
-  $('nextInfo').innerHTML = `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>${pw < rec ? ' · 지금은 막힐 수 있습니다' : ''}`;
-  $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.calTotal); updateBurn(); $('killTot').textContent = fmtNum(S.kills);
-  updatePanel();
+  $('hubItems').innerHTML = items.length ? items.join(' · ') + '<br>다음 던전 입장 때 자동 사용' : '';
+  const next = Math.min(CFG.dungeons, S.dun.best + 1), rec = recPowerOf(next), pw = powerOf(S);
+  $('nextInfo').innerHTML = S.dun.best >= CFG.dungeons ? '던전 30개를 모두 깼습니다. 깬 던전에서 칼로리를 모을 수 있습니다.' :
+    `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>`;
+  $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.calTotal); $('killTot').textContent = fmtNum(S.kills);
+  $('navBurn').textContent = c.verb;
+  $('defDesc').textContent = `방어 스킬 · 괴물의 '${c.attack}' 공격(${c.attackFx})을 막음`;
+  renderCharBar(); updateBurn(); updatePanel(); drawSideIcons();
+  const tb = document.querySelector('#hubScreen .topbar'); for (const sh of document.querySelectorAll('.sheet')) sh.style.top = (tb.offsetHeight + 8) + 'px';
+}
+// 캐릭터 고르기 줄
+function renderCharBar() {
+  const html = CHAR_ORDER.map(id => {
+    const c = CHARS[id], open = PRO && PRO.unlocked[id], st = PRO && PRO.chars[id];
+    const state = !open ? `${CHARS[c.unlockBy].name} 목표 달성 시 해금` : st && st.goal ? '달성' : st ? `${(c.start + c.dir * st.burned).toFixed(1)} kg` : '새로 시작';
+    return `<button class="charChip ${S.ch === id ? 'on' : ''} ${open ? '' : 'locked'}" data-ch="${id}" ${open ? '' : 'disabled'}><canvas class="pix" width="64" height="64" data-mini="${id}"></canvas><span><b>${c.name}</b><small>${state}</small></span></button>`;
+  }).join('');
+  if ($('charBar').dataset.k !== html) {
+    $('charBar').innerHTML = html; $('charBar').dataset.k = html;
+    for (const cv of document.querySelectorAll('[data-mini]')) {
+      const id = cv.dataset.mini, st = PRO && PRO.chars[id], c = CHARS[id];
+      const w = st ? c.start + c.dir * st.burned : c.start;
+      const cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64);
+      drawHero(cx, 31, 60, fatOf(w, id), { char: id, band: S && S.cos.band });
+    }
+    for (const b of document.querySelectorAll('.charChip:not([disabled])')) b.onclick = () => { if (b.dataset.ch === S.ch) return; save(); useChar(b.dataset.ch); save(); goHub('Home'); toast(`<b>${CH(S).name}</b>(으)로 바꿨습니다. 다른 캐릭터 기록은 그대로 남아 있습니다.`, 2400); };
+  }
 }
 $('toDungeonBtn').addEventListener('click', () => goDungeons());
-// 칼로리 버닝: 깬 던전 수만큼 한도가 열린다
+// 칼로리 버닝(강산해) / 벌크업(김혁수): 깬 던전 수만큼 한도가 열린다
 function updateBurn() {
-  const total = totalLoss(S), cap = burnCapKg(S), room = burnableKg(S), afford = maxAffordableBurn(S);
-  $('burnLimit').textContent = `지금 한도 ${burnLimitWeight(S).toFixed(1)} kg까지`;
+  const c = CH(S), total = totalLoss(S), room = burnableKg(S), afford = maxAffordableBurn(S), per = kgPer(S);
+  const verbKg = c.dir < 0 ? '뺄' : '찌울';
+  $('burnTitle').textContent = `칼로리 ${c.verb}`;
+  $('burnLimit').textContent = S.goal ? '목표 달성' : `지금 한도 ${burnLimitWeight(S).toFixed(1)} kg까지`;
   $('burnDone').style.width = (S.burned / total * 100).toFixed(1) + '%';
   $('burnRoom').style.width = (room / total * 100).toFixed(1) + '%';
   const step = Math.min(0.5, room), stepCost = step > 0 ? burnCostOf(S, step) : 0;
   let info;
-  if (S.dun.best === 0) info = '던전을 하나 깨면 1.5 kg까지 버닝할 수 있습니다.';
-  else if (room <= 0) info = S.dun.best >= CFG.dungeons ? '목표까지 남은 체중을 모두 뺐습니다.' : `한도에 닿았습니다. <b>다음 던전(${dungeonLabel(S.dun.best + 1)})을 깨면</b> ${CFG.kgPerDungeon} kg 더 뺄 수 있습니다.`;
-  else info = `앞으로 <b>${room.toFixed(1)} kg</b> 더 뺄 수 있습니다 · 1 kg 빠질 때마다 공격 속도 +${Math.round(CFG.speedPerKg * 100)}% · 체중이 낮을수록 버닝 값이 비쌉니다`;
+  if (S.goal) info = `${c.target} kg을 이뤘습니다. 체중은 더 바뀌지 않습니다. 칼로리는 장비·스킬에 계속 쓸 수 있습니다.`;
+  else if (S.dun.best === 0) info = `던전을 하나 깨면 ${per.toFixed(1)} kg까지 ${c.verb}할 수 있습니다.`;
+  else if (room <= 0) info = S.dun.best >= CFG.dungeons ? '한도를 모두 썼습니다.' : `한도에 닿았습니다. <b>다음 던전(${dungeonLabel(S.dun.best + 1)})을 깨면</b> ${per.toFixed(1)} kg 더 ${verbKg} 수 있습니다.`;
+  else info = `앞으로 <b>${room.toFixed(1)} kg</b> 더 ${verbKg} 수 있습니다.`;
   $('burnInfo').innerHTML = info;
   $('burnSmall').disabled = !(step > 0 && stepCost <= S.cal);
-  $('burnSmall').innerHTML = step > 0 ? `${step.toFixed(1)} kg 버닝<small>${fmtNum(stepCost)} kcal</small>` : '버닝<small>한도 없음</small>';
+  $('burnSmall').innerHTML = step > 0 ? `${step.toFixed(1)} kg ${c.verb}<small>${fmtNum(stepCost)} kcal</small>` : `${c.verb}<small>한도 없음</small>`;
   $('burnMax').disabled = !(afford > 0);
-  $('burnMax').innerHTML = afford > 0 ? `최대 ${afford.toFixed(1)} kg<small>${fmtNum(burnCostOf(S, afford))} kcal</small>` : `최대 버닝<small>${room > 0 ? '칼로리 부족' : '한도 없음'}</small>`;
+  $('burnMax').innerHTML = afford > 0 ? `최대 ${afford.toFixed(1)} kg<small>${fmtNum(burnCostOf(S, afford))} kcal</small>` : `최대 ${c.verb}<small>${room > 0 ? '칼로리 부족' : '한도 없음'}</small>`;
+  $('burnHelp').innerHTML = `<b>${c.name}</b>는 ${c.dir < 0 ? '가벼워질수록' : '살이 찔수록'} 공격이 빨라집니다(1 kg마다 +${Math.round(speedPerKg(S) * 100)}%).<br>칼로리는 ${c.verb}·장비·스킬에 나눠 씁니다. ${c.verb} 한도는 던전 하나를 깰 때마다 ${per.toFixed(1)} kg씩 열립니다.<br>${c.dir < 0 ? '체중이 낮을수록' : '체중이 높을수록'} ${c.verb} 값이 비쌉니다.`;
 }
 for (const [id, fn] of [['burnSmall', () => Math.min(0.5, burnableKg(S))], ['burnMax', () => maxAffordableBurn(S)]]) $(id).addEventListener('click', () => {
   if (!S || S.inDun) return;
-  const ev = []; if (burn(S, fn(), ev)) { handleEvents(ev, false); save(); if (!S.done) { panelKey = ''; updateHub(); } }
+  const ev = []; if (burn(S, fn(), ev)) { handleEvents(ev, false); save(); panelKey = ''; updateHub(); }
 });
 $('chargeBtn').addEventListener('click', openCharge);
 $('chargeBtn2').addEventListener('click', openCharge);
 
-// ----- 던전 입장 화면 -----
-let showOld = false, selD = null;
+// ----- 던전 입장 화면: 지역 단추 + 던전 5개 + 고른 던전 정보 -----
+let selD = null, selR = 1;
 function goDungeons() {
-  running = false; show('dungeonScreen'); selD = S.dun.best + 1; renderDungeons();
+  running = false; show('dungeonScreen'); selD = Math.min(CFG.dungeons, S.dun.best + 1); selR = regionOf(selD).no; renderDungeons();
 }
-$('dunBack').addEventListener('click', goHub);
+$('dunBack').addEventListener('click', () => goHub());
 function renderDungeons() {
-  const pw = powerOf(S), best = S.dun.best, next = best + 1;
+  const pw = powerOf(S), best = S.dun.best, next = Math.min(CFG.dungeons, best + 1), nReg = CFG.dungeons / 5;
   $('dunPower').textContent = fmtNum(pw);
   const items = [];
   if (S.items.boost) items.push(`프로틴 부스터(공격력 x5) ${S.items.boost}개`);
   if (S.items.time) items.push(`보스 시간 연장권(+30초) ${S.items.time}개`);
   $('dunItemNote').textContent = items.length ? `들어갈 때 하나씩 자동으로 씁니다: ${items.join(', ')}` : '깬 던전은 다시 들어가 칼로리를 모을 수 있습니다.';
-  const lastRegion = Math.min(CFG.dungeons / 5, Math.floor((Math.min(next, CFG.dungeons) - 1) / 5) + 2); // 다음 던전의 지역과 그다음 지역까지 보여 준다
-  const curRegion = Math.floor((Math.min(next, CFG.dungeons) - 1) / 5) + 1;
-  let html = '';
-  // 다 깬 지난 지역은 접어서 한 줄로 보여 준다
-  if (curRegion > 1 && !showOld) html += `<div class="regionDone"><span>${curRegion > 2 ? `1~${curRegion - 1}지역` : `1. ${regionOf(1).name}`} · 모두 클리어</span><button class="back" id="showOldBtn">지난 던전 보기</button></div>`;
-  for (let r = showOld ? 1 : curRegion; r <= lastRegion; r++) {
-    const d0 = (r - 1) * 5 + 1, cleared = Math.max(0, Math.min(5, best - d0 + 1));
-    const name = regionOf(d0).name;
-    html += `<div class="card region"><div class="regionHead"><b>${r}. ${name}</b><span>클리어 ${cleared}/5</span></div><div class="path">`;
-    for (let d = d0; d < d0 + 5; d++) {
-      const st = d <= best ? 'clear' : d === next ? 'next' : 'lock';
-      const op = overpowerOf(S, d); const cap = st === 'clear' ? `최고 ${S.dun.clears[d] != null ? S.dun.clears[d] + '초' : '-'}${op >= 2 ? `<span class=op>압도 x${op.toFixed(1)}</span>` : ''}` : st === 'next' ? `권장 ${fmtNum(recPowerOf(d))}` : `권장 ${fmtNum(recPowerOf(d))}`;
-      html += `<button class="node ${st} ${d % 5 === 0 ? 'boss' : ''}" data-d="${d}" ${st === 'lock' ? 'disabled' : ''}><span class="dot">${st === 'clear' ? '✓' : st === 'lock' ? '잠김' : dungeonLabel(d)}</span><span class="cap">${dungeonLabel(d)}<br>${cap}</span></button>`;
-    }
-    html += '</div>';
-    if (selD >= d0 && selD < d0 + 5) {
-      const rec = recPowerOf(selD), first = selD > best;
-      html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스(제한 시간 ${CFG.bossTime}초)<br>권장 전투력 <b>${fmtNum(rec)}</b> · 내 전투력 <b>${fmtNum(pw)}</b>${pw < rec ? ' <span class="warnTxt">(부족)</span>' : ''}<br>칼로리 약 ${fmtNum(dungeonKcalOf(selD))}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems} · 버닝 한도 +${CFG.kgPerDungeon} kg` : ''}<button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장</button></div>`;
-    }
-    html += '</div>';
+  let tabs = '';
+  for (let r = 1; r <= nReg; r++) {
+    const d0 = (r - 1) * 5 + 1, cleared = Math.max(0, Math.min(5, best - d0 + 1)), open = d0 <= next;
+    tabs += `<button class="rTab ${r === selR ? 'on' : ''} ${cleared === 5 ? 'done' : ''}" data-r="${r}" ${open ? '' : 'disabled'}><b>${r}</b><small>${cleared === 5 ? '✓' : open ? `${cleared}/5` : '잠김'}</small></button>`;
   }
+  $('regionTabs').innerHTML = tabs;
+  const d0 = (selR - 1) * 5 + 1;
+  drawMap(d0, best, next);
+  let html = '<div class="region">';
+  if (selD >= d0 && selD < d0 + 5) {
+    const rec = recPowerOf(selD), first = selD > best;
+    html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스${selD === CFG.dungeons ? `(마지막: ${CH(S).finalBoss.name})` : ''}, 제한 시간 ${CFG.bossTime}초<br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b><br>칼로리 약 ${fmtNum(dungeonKcalOf(selD))}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems} · ${CH(S).verb} 한도 +${kgPer(S).toFixed(1)} kg` : ''}<button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장</button></div>`;
+  } else html += `<p class="hint center">위에서 던전을 고르세요.</p>`;
+  html += '</div>';
   $('dunMap').innerHTML = html;
-  const ob = $('showOldBtn'); if (ob) ob.onclick = () => { showOld = true; renderDungeons(); };
-  for (const b of document.querySelectorAll('#dunMap .node:not([disabled])')) b.onclick = () => { selD = Number(b.dataset.d); renderDungeons(); };
+  for (const b of document.querySelectorAll('.rTab:not([disabled])')) b.onclick = () => { selR = Number(b.dataset.r); const d0 = (selR - 1) * 5 + 1; selD = Math.min(Math.max(d0, Math.min(next, d0 + 4)), d0 + 4); if (selD > next) selD = d0; renderDungeons(); };
+  for (const b of document.querySelectorAll('#mapNodes .mNode:not([disabled])')) b.onclick = () => { selD = Number(b.dataset.d); SFX.play('swing'); renderDungeons(); };
   const eb = $('enterBtn'); if (eb) eb.onclick = () => { const ev = []; if (enterDungeon(S, selD, ev)) { save(); startBattle(); handleEvents(ev, false); } };
+}
+
+
+// ----- 던전 지도: 지역마다 다른 땅 위에 구불구불한 길, 던전마다 그 던전의 몬스터 그림 -----
+const MAP_PTS = [[18, 86], [50, 66], [84, 80], [114, 52], [140, 26]]; // 160x110 지도 위 던전 다섯 곳
+const MAP_PAL = [['#3d5a3a', '#4f7a4a', '#c9a06a'], ['#5a4a3a', '#7a5f45', '#e0b070'], ['#5a3a52', '#7a4f6e', '#f0b0d0'], ['#2f4a6a', '#3f6a8a', '#9fd3f0'], ['#4a3a2a', '#6b4f35', '#f0c080'], ['#2a1f2f', '#3f2f45', '#ff7a7a']];
+function drawMap(d0, best, next) {
+  const c = $('mapCv').getContext('2d'), r = selR - 1, pal = MAP_PAL[r % MAP_PAL.length];
+  c.imageSmoothingEnabled = false;
+  rect(c, 0, 0, 160, 110, pal[0]);
+  for (let i = 0; i < 70; i++) { const x = (i * 53 + r * 17) % 160, y = (i * 37 + r * 11) % 110; rect(c, x, y, 2, 1, pal[1]); }
+  for (let i = 0; i < 9; i++) { const x = (i * 41 + r * 23) % 150 + 5, y = (i * 29 + r * 7) % 95 + 8; ellO(c, x, y, 3 + (i % 3), 2 + (i % 2), pal[1]); }
+  for (let i = 0; i < 4; i++) {
+    const [x1, y1] = MAP_PTS[i], [x2, y2] = MAP_PTS[i + 1], passed = d0 + i < best + 1;
+    for (let t = 0; t <= 1; t += 0.02) { const x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t + Math.sin(t * Math.PI) * 8; rect(c, x - 1, y - 1, 3, 3, OUT); rect(c, x, y, 2, 1, passed ? pal[2] : '#6b6f80'); }
+  }
+  let nodes = '';
+  for (let i = 0; i < 5; i++) {
+    const d = d0 + i, [x, y] = MAP_PTS[i], st = d <= best ? 'clear' : d === next ? 'next' : 'lock';
+    ellO(c, x, y + 6, 9, 3, st === 'clear' ? '#5cc47e' : st === 'next' ? '#f5c542' : '#3a3f52');
+    const m = monsterOf({ stage: d, idx: i === 4 ? CFG.perStage - 1 : 2, ch: S.ch });
+    const sp = sprite(m.id, 0), sc = (i === 4 ? 26 : 20) / sp.width;
+    c.globalAlpha = st === 'lock' ? 0.35 : 1;
+    c.drawImage(sp, 0, 0, sp.width, sp.height, Math.round(x - sp.width * sc / 2), Math.round(y + 6 - sp.height * sc), Math.round(sp.width * sc), Math.round(sp.height * sc));
+    c.globalAlpha = 1;
+    if (st === 'clear') { rect(c, x + 6, y - 12, 1, 9, '#e8e0d0'); rect(c, x + 7, y - 12, 5, 3, '#5cc47e'); }
+    const cap = st === 'clear' ? '✓ ' + (S.dun.clears[d] != null ? S.dun.clears[d] + '초' : '') : st === 'next' ? '도전' : '권장 ' + fmtNum(recPowerOf(d));
+    nodes += '<button class="mNode ' + st + (d === selD ? ' sel' : '') + '" data-d="' + d + '" style="left:' + (x / 160 * 100) + '%;top:' + ((y + 2) / 110 * 100) + '%" ' + (st === 'lock' ? 'disabled' : '') + '><span>' + dungeonLabel(d) + '</span><small>' + cap + '</small></button>';
+  }
+  $('mapNodes').innerHTML = nodes;
+  $('mapTitle').textContent = selR + '. ' + regionOf(d0).name + ' · 클리어 ' + Math.max(0, Math.min(5, best - d0 + 1)) + '/5';
 }
 
 // ----- 충전 화면 (테스트용) -----
@@ -1369,13 +1762,13 @@ function showResult(e) {
   $('resTitle').classList.toggle('fail', !ok);
   $('resSub').textContent = ok ? `${dungeonLabel(e.d)} ${regionOf(e.d).name}${e.first ? ' · 첫 클리어' : ''} · ${e.time.toFixed(1)}초` :
     e.retreat ? `${dungeonLabel(e.d)}에서 물러났습니다. 지금까지 얻은 것은 그대로 남습니다.` : `보스를 ${CFG.bossTime + (S.run ? S.run.extra : 0)}초 안에 잡지 못했습니다. 지금까지 얻은 것은 그대로 남습니다.`;
-  const rows = [['처치', fmtNum(e.kills) + '마리'], ['칼로리', '+' + fmtNum(e.cal)], ['먹이기로 찐 체중', '+' + Math.max(0, e.fedKg).toFixed(2) + ' kg']];
-  if (e.capKg) rows.push(['버닝 한도', '+' + e.capKg + ' kg']);
+  const rows = [['처치', fmtNum(e.kills) + '마리'], ['칼로리', '+' + fmtNum(e.cal)], [`${CH(S).attack}로 ${CH(S).dir < 0 ? '찐' : '빠진'} 체중`, Math.max(0, e.fedKg).toFixed(2) + ' kg']];
+  if (e.capKg) rows.push([`${CH(S).verb} 한도`, '+' + e.capKg + ' kg']);
   if (e.gems) rows.push(['보석', '+' + fmtNum(e.gems)]);
   $('resList').innerHTML = rows.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
   const rec = recPowerOf(e.d), pw = powerOf(S);
-  $('resTip').innerHTML = ok ? '정비 화면에서 칼로리를 버닝·장비·스킬에 나눠 쓰고 다음 던전으로 가세요.' :
-    `권장 전투력 ${fmtNum(rec)} · 내 전투력 ${fmtNum(pw)}<br>정비에서 칼로리로 무기 강화·스킬 레벨업·버닝을 하거나, 깬 던전을 다시 돌며 칼로리를 모으세요. 보석 상점의 부스터로 바로 뚫을 수도 있습니다.`;
+  $('resTip').innerHTML = ok ? `정비 화면에서 칼로리를 ${CH(S).verb}·장비·스킬에 나눠 쓰고 다음 던전으로 가세요.` :
+    `권장 전투력 ${fmtNum(rec)} · 내 전투력 ${fmtNum(pw)}<br>정비에서 칼로리로 무기 강화·스킬 레벨업·${CH(S).verb}을 하거나, 깬 던전을 다시 돌며 칼로리를 모으세요. 보석 상점의 부스터로 바로 뚫을 수도 있습니다.`;
   $('resultModal').classList.add('on');
 }
 $('resOk').addEventListener('click', () => { $('resultModal').classList.remove('on'); goHub(); });
@@ -1443,6 +1836,9 @@ const SFX = {
       case 'boss': this.tone('sawtooth', 110, 55, 0.6, 0.18); this.noise(0.4, 0.25, 200, 0.7); break;
       case 'round': [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone('square', f, f, 0.12, 0.08, i * 0.09)); break;
       case 'done': [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone('triangle', f, f, 0.3, 0.2, i * 0.12)); break;
+      case 'unlock': [1047, 1319, 1568, 2093].forEach((f, i) => this.tone('square', f, f * 1.01, 0.08, 0.07, i * 0.05)); this.noise(0.3, 0.12, 6000, 0.5, 0.15); break;
+      case 'goal': [523, 523, 523, 659, 784, 659, 784, 1047].forEach((f, i) => this.tone('square', f, f, i === 7 ? 0.6 : 0.13, 0.1, [0, .14, .28, .42, .56, .78, .92, 1.06][i])); [262, 330, 392].forEach(f => this.tone('triangle', f, f, 1.2, 0.12, 1.06)); break;
+      case 'burn': this.noise(0.35, 0.3, 900, 0.6); this.tone('sawtooth', 180, 620, 0.3, 0.08); break;
     }
   },
 };
@@ -1451,7 +1847,7 @@ for (const t of ['pointerdown', 'keydown']) window.addEventListener(t, () => SFX
 function refreshSoundBtn() { const b = $('soundBtn'); if (b) { b.textContent = SFX.on ? '소리 켬' : '소리 끔'; b.classList.toggle('off', !SFX.on); } }
 
 // ===== 타격 이펙트: 전투 캔버스 위에 그리는 짧은 그림들 =====
-const WEAPON_TRAIL = { fist: '#ffffff', rope: '#f4efe6', dumbbell: '#c9d3df', kettle: '#9aa3ad', ball: '#e0a070', barbell: '#c9d3df', gold: '#f5c542' };
+const WEAPON_TRAIL = { flick: '#ffffff', spoon: '#eef2f6', fork: '#eef2f6', chop: '#e0b070', pan: '#9aa3ad', ladle: '#eef2f6', gspoon: '#f5c542', dspoon: '#7fe3ff', diamond: '#7fe3ff', fist: '#ffffff', rope: '#f4efe6', dumbbell: '#c9d3df', kettle: '#9aa3ad', ball: '#e0a070', barbell: '#c9d3df', gold: '#f5c542' };
 function addFx(kind, x, y, o) { vis.fx.push(Object.assign({ kind, x, y, t: 0 }, o || {})); }
 function drawFx(c, dt) {
   for (const f of vis.fx) {
@@ -1513,32 +1909,32 @@ function handleEvents(ev, fromTap) {
       if (e.crit) { if (!reduceMotion) { shake(); vis.hitStop = .07; vis.flash = 1; vis.flashColor = '#fff3c4'; } SFX.play('crit'); }
       else SFX.play(vis.kick ? 'kick' : 'hit');
     } else if (e.t === 'buy') {
-      toast(e.kind === 'w' ? `<b>${e.name} +${e.enh}</b> 장착<br>지금 공격력보다 약해지지 않게 강화 단계를 맞췄습니다` : `<b>${e.name}</b>을 배웠습니다 · 전투에서 자동으로 발동합니다`, 2600);
+      toast(e.kind === 'w' ? `<b>${e.name} +${e.enh}</b> 장착<br>지금 공격력보다 약해지지 않게 강화 단계를 맞췄습니다` : `<b>${e.name}</b>을 배웠습니다 · 전투에서 자동으로 발동합니다`, 2600); celebrate(e.kind === 'w' ? `${e.name} 장착` : `${e.name} 습득`, e.kind === 'w' ? '새 무기' : '새 스킬', 'unlock');
       SFX.play('buy');
     } else if (e.t === 'levelup') {
-      toast(`<b>${e.name}</b> Lv${e.lv}`, 1800); SFX.play('enhance');
+      toast(`<b>${e.name}</b> Lv${e.lv}`, 1800); SFX.play('enhance'); celebrate(`${e.name} Lv${e.lv}`, '스킬 레벨업');
     } else if (e.t === 'gembuy') {
       toast(`<b>${e.name}</b> 구입`, 2000); SFX.play('buy'); applyTheme();
     } else if (e.t === 'charge') {
       toast(`보석 <b>${fmtNum(e.gems)}</b>개를 충전했습니다 (테스트, 결제 없음)`, 2400); SFX.play('round');
     } else if (e.t === 'unlock') {
-      toast(`새로 해금: <b>${e.names.join(', ')}</b><br>정비 화면에서 코인으로 살 수 있습니다`, 3000);
+      toast(`새로 해금: <b>${e.names.join(', ')}</b><br>정비 화면에서 칼로리로 살 수 있습니다`, 3000); SFX.play('unlock'); celebrate('새로 해금!', e.names.join(', '), 'unlock');
     } else if (e.t === 'feed') {
       vis.feedAnim = 1;
-      pop('feed', `먹이기 +${(e.kg * 1000).toFixed(0)} g`, HERO_X + 6, 46);
+      pop('feed', `${CH(S).attack} ${CH(S).dir < 0 ? '+' : '-'}${(e.kg * 1000).toFixed(0)} g`, HERO_X + 6, 46);
       for (let i = 0; i < 6; i++) setTimeout(() => addFx('crumb', MON_X - 14, 76 + Math.random() * 8, { tx: HERO_X + 6, ty: 62, color: ['#e3b13e', '#a8642e', '#c0394b'][i % 3] }), i * 40 + 120);
       setTimeout(() => SFX.play('feed'), 220);
     } else if (e.t === 'dodge') {
-      pop('dodge', '먹이기 피함', HERO_X + 6, 46);
+      pop('dodge', `${CH(S).attack} 피함`, HERO_X + 6, 46);
       SFX.play('dodge');
     } else if (e.t === 'skill') {
       pop('skill', e.name, HERO_X + 4, 30);
       addFx('ring', HERO_X + 4, 82, { r: 20, dur: .35, color: '#5aa0e0' });
       SFX.play('skill');
     } else if (e.t === 'burn') {
-      toast(`칼로리 버닝 <b>-${e.kg.toFixed(1)} kg</b> · ${fmtNum(e.cost)} kcal 사용`, 1800); SFX.play('enhance');
+      toast(`칼로리 ${CH(S).verb} <b>${CH(S).dir < 0 ? '-' : '+'}${e.kg.toFixed(1)} kg</b> · ${fmtNum(e.cost)} kcal 사용`, 1800); SFX.play('burn'); celebrate(`${CH(S).dir < 0 ? '-' : '+'}${e.kg.toFixed(1)} kg`, `${CH(S).verb} · 공격 속도 x${speedOf(S).toFixed(2)}`, 'burn');
     } else if (e.t === 'enhance') {
-      toast(`무기 +${e.enh} · ${fmtNum(e.cost)} kcal 사용`, 1800);
+      toast(`무기 +${e.enh} · ${fmtNum(e.cost)} kcal 사용`, 1800); celebrate(`강화 성공 +${e.enh}`, `${weaponOf(S).name} · 공격력 ${fmtNum(atkOf(S))}`);
       SFX.play('enhance');
     } else if (e.t === 'kill') {
       // 연속 처치 콤보: 1.6초 안에 다음 몬스터를 잡으면 이어진다
@@ -1559,7 +1955,7 @@ function handleEvents(ev, fromTap) {
       if (S.inDun && monsterOf(S).boss) { setTimeout(() => { SFX.play('boss'); addFx('ring', MON_X, 84, { r: 34, dur: .7, color: '#e0605a' }); if (!reduceMotion) { vis.flash = .8; vis.flashColor = '#e0605a'; } }, 350); }
     } else if (e.t === 'clear') { SFX.play('round'); setTimeout(() => showResult(e), 900); }
     else if (e.t === 'fail') { SFX.play('feed'); setTimeout(() => showResult(e), e.retreat ? 0 : 600); }
-    else if (e.t === 'done') { SFX.play('done'); setTimeout(endGame, $('hubScreen').classList.contains('on') ? 300 : 900); }
+    else if (e.t === 'goal') { SFX.play('goal'); celebrate('목표치 달성!', `${CH(S).name} ${CH(S).target} kg`, 'goal'); setTimeout(showGoal, 1600); }
   }
 }
 $('soundBtn').addEventListener('click', () => {
@@ -1571,10 +1967,6 @@ refreshSoundBtn();
 $('enhBtn').addEventListener('click', () => {
   if (!S || S.inDun) return;
   const ev = []; if (enhance(S, ev)) { handleEvents(ev, false); save(); updateHub(); }
-});
-for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => {
-  for (const x of document.querySelectorAll('.tab')) x.classList.toggle('on', x === b);
-  for (const id of ['Weapon', 'Skill', 'Gem']) $('tab' + id).hidden = id !== b.dataset.tab;
 });
 // 정비 화면의 구입·레벨업 단추 (목록을 다시 그리므로 위임으로 받는다)
 for (const id of ['weaponList', 'atkList', 'defList', 'gemPowerList', 'gemLookList']) $(id).addEventListener('click', e => {
@@ -1603,7 +1995,7 @@ function updatePanel() {
   $('enhGain').textContent = S.enh >= CFG.enhMax ? '더 강화할 수 없습니다' : `공격력 ${fmtNum(atkOf(S))} → ${fmtNum(atkOf(S) * (1 + CFG.enhAtk))} · 치명타 +1%p`;
   $('enhCost').textContent = S.enh >= CFG.enhMax ? '더 강한 무기를 구하세요' : `비용: 칼로리 ${fmtNum(cost)} (보유 ${fmtNum(S.cal)})`;
   $('enhWhy').textContent = ce.ok || S.enh >= CFG.enhMax ? '새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.' : ce.why;
-  const lock = at => `해금하려면<br><b>${unlockWeightOf(S, at).toFixed(1)} kg</b>까지 감량하세요`;
+  const lock = at => `해금하려면<br><b>${unlockWeightOf(S, at).toFixed(1)} kg</b>까지 ${CH(S).act}하세요`;
   const coinBtn = (kind, i, x) => { const ok = S.cal >= x.price; return `<button class="buy calBuy" data-buy="${kind}:${i}" ${ok ? '' : 'disabled'}>${fmtNum(x.price)} kcal<small>${ok ? (kind === 'w' ? '구입' : '배우기') : '칼로리 부족'}</small></button>`; };
   $('weaponList').innerHTML = WEAPONS.map((x, i) => {
     if (x.gem) return '';
@@ -1612,7 +2004,7 @@ function updatePanel() {
     else if (S.own.w[i]) st = '<span class="badge">보유</span>';
     else if (!isUnlocked(S, x)) st = lock(x.at);
     else st = coinBtn('w', i, x);
-    return `<li class="item ${isUnlocked(S, x) ? '' : 'locked'}"><span class="nm">${x.name}<span class="ds">공격력 ${x.atk} · 치명타 ${Math.round(x.crit * 100)}%</span></span><span class="st">${st}</span></li>`;
+    return `<li class="gi ${isUnlocked(S, x) ? '' : 'locked'}"><span class="nm">${x.name}<span class="ds">공격력 ${x.atk} · 치명타 ${Math.round(x.crit * 100)}%</span></span><span class="st">${st}</span></li>`;
   }).join('');
   const skillRow = (kind, i, x) => {
     const lv = S.own[kind][i] || 0;
@@ -1637,20 +2029,25 @@ function updatePanel() {
       st = `<button class="buy gemBuy" data-gem="${it.id}">보석 ${fmtNum(it.price)}<small>${ok ? '구입' : '충전하기'}${have ? ` · 보유 ${have}` : ''}</small></button>`;
     }
     const desc = it.id === 'kcalbox' ? `칼로리 +${fmtNum(kcalBoxOf(S))} (다음 던전 3번 돈 만큼)` : it.desc;
-    return `<li class="item"><span class="nm">${it.name}<span class="ds">${desc}</span></span><span class="st">${st}</span></li>`;
+    return `<li class="gi"><span class="nm">${it.name}<span class="ds">${desc}</span></span><span class="st">${st}</span></li>`;
   };
   $('gemPowerList').innerHTML = GEM_SHOP.filter(x => x.kind === 'weapon' || x.kind === 'item').map(gemRow).join('');
   $('gemLookList').innerHTML = GEM_SHOP.filter(x => x.kind === 'theme' || x.kind === 'look').map(gemRow).join('');
 }
 
+// 빨리감기 x1 → x2 → x4 (설정은 기기에 저장)
+let FF = 1; try { FF = Number(localStorage.getItem('gangsanhae-ff')) || 1; } catch (e) {}
+function refreshFF() { $('ffBtn').textContent = 'x' + FF + (FF > 1 ? ' ▶▶' : ' ▶'); $('ffBtn').classList.toggle('on', FF > 1); }
+$('ffBtn').addEventListener('click', () => { FF = FF === 1 ? 2 : FF === 2 ? 4 : 1; refreshFF(); try { localStorage.setItem('gangsanhae-ff', FF); } catch (e) {} });
+refreshFF();
 let saveTimer = 0;
 function loop(ts) {
   if (!running) return;
-  const dt = Math.min(0.1, (ts - lastT) / 1000); lastT = ts;
+  const dt = Math.min(0.1, (ts - lastT) / 1000) * FF; lastT = ts; // 빨리감기: 게임 시간을 FF배로
   vis.time += dt;
   // 히트스톱: 큰 타격 직후 아주 잠깐 전투를 멈춰 묵직하게 보이게 한다
-  if (vis.hitStop > 0) vis.hitStop -= dt;
-  else if (S.inDun) { const ev = []; step(S, dt, ev); handleEvents(ev, false); }
+  if (vis.hitStop > 0) vis.hitStop -= dt / FF;
+  else if (S.inDun) { const ev = []; let left = dt; while (left > 1e-6 && S.inDun) { const d = Math.min(0.05, left); step(S, d, ev); left -= d; } handleEvents(ev, false); }
   saveTimer += dt; if (saveTimer > 3) { saveTimer = 0; save(); }
   render(dt);
   updateHud(dt);
@@ -1677,10 +2074,10 @@ function render(dt) {
   vis.sweat = Math.max(0, vis.sweat - dt * 1.5);
   vis.feedAnim = Math.max(0, vis.feedAnim - dt * 2.2);
   const flinch = vis.feedAnim > 0 && vis.feedAnim < .6 ? Math.sin((.6 - vis.feedAnim) / .6 * Math.PI) * -3 : 0;
-  const fat = fatOf(vis.weight);
+  const fat = fatOf(vis.weight, S.ch);
   const breath = Math.sin(vis.time * 3.2) * .6 + (vis.walk > .1 ? Math.abs(Math.sin(vis.walkPh)) * -1.2 : 0);
   drawHero(c, HERO_X + off + flinch, GROUND, fat, {
-    weapon: weaponOf(S).id, kick: vis.kick, step: Math.sin(vis.walkPh) * vis.walk, band: S.cos.band,
+    weapon: weaponOf(S).id, kick: vis.kick, step: Math.sin(vis.walkPh) * vis.walk, band: S.cos.band, char: S.ch,
     bob: Math.round(breath), punch: ext, blink: (vis.time % 3.2) < .12,
     effort: ext > .3 || flinch < -1, sweat: vis.sweat > 0 ? Math.round((1 - vis.sweat) * 4) : 0,
   });
@@ -1721,12 +2118,13 @@ function updateHud(dt) {
   vis.weight += (w - vis.weight) * Math.min(1, dt * 4);
   if (Math.abs(vis.weight - w) < 0.005) vis.weight = w;
   $('wNum').textContent = vis.weight.toFixed(1);
-  const total = CFG.start - S.target, lost = CFG.start - vis.weight;
-  $('wBar').style.width = (Math.min(1, lost / total) * 100).toFixed(1) + '%';
-  $('remain').textContent = `남은 체중 ${Math.max(0, vis.weight - S.target).toFixed(1)} kg`;
-  $('pct').textContent = Math.floor(Math.min(1, lost / total) * 100) + '%';
+  const wb = weightBar('game');
+  $('wBar').style.width = (wb.done * 100).toFixed(1) + '%';
+  $('remain').textContent = S.goal ? '목표 달성' : `남은 체중 ${wb.left.toFixed(1)} kg`;
+  $('pct').textContent = Math.floor(wb.done * 100) + '%';
+  $('startLbl').textContent = wb.c.start + ' kg';
   const m = monsterOf(S);
-  $('dunName').textContent = `${dungeonLabel(S.stage)} ${regionOf(S.stage).name}`;
+  $('dunName').textContent = `${CH(S).name} · ${dungeonLabel(S.stage)} ${regionOf(S.stage).name}`;
   const rec = recPowerOf(S.stage), pw = powerOf(S) * (S.run ? S.run.boost : 1);
   const pl = `권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>${S.run && S.run.op >= 2 ? ` · 압도 x${S.run.op.toFixed(1)}` : ''}`;
   if ($('powerLine').innerHTML !== pl) $('powerLine').innerHTML = pl;
@@ -1753,17 +2151,6 @@ function updateHud(dt) {
   $('buffLine').textContent = buffs.length ? buffs.join(' · ') : '전투는 자동으로 진행됩니다';
   $('retreatBtn').disabled = !S.inDun;
 }
-function endGame() {
-  running = false; save();
-  $('resultModal').classList.remove('on');
-  show('endScreen');
-  $('endSub').textContent = `강산해가 ${S.target} kg에 도달했습니다 · 던전 ${S.dun.best}개 클리어`;
-  $('afterW').textContent = weightOf(S).toFixed(1) + ' kg';
-  $('endTime').textContent = fmtTime(S.time);
-  $('endKcal').textContent = fmtNum(S.calTotal);
-  $('endKills').textContent = fmtNum(S.kills);
-  drawPortrait($('beforeC'), 120, 0, { band: false }); drawPortrait($('afterC'), weightOf(S), 0);
-}
 
 // ----- 시작 -----
 if (DEMO) {
@@ -1771,13 +2158,14 @@ if (DEMO) {
   // 실제 규칙으로 감량 지점까지 돌린 상태를 쓴다(예시 숫자를 만들지 않음)
   const scr = params.get('screen'), tg = Number(params.get('target') || CFG.fixedTarget), lost = Number(params.get('lost') || 0);
   if (scr) {
-    S = simulate(tg, 'mix', 0, false, 0, lost);
+    PRO = newProfile(); const ch = params.get('char') || 'sanhae'; if (ch !== 'sanhae') PRO.unlocked[ch] = true;
+    S = simulate(ch, 'mix', 0, false, 0, lost); PRO.chars[ch] = S; PRO.cur = ch; PRO.unlocked.hyuksu = PRO.unlocked.hyuksu || params.has('unlock'); setChar(ch);
     S.gems += Number(params.get('gems') || 0);
     for (const id of (params.get('buy') || '').split(',').filter(Boolean)) gemBuy(S, id);
     applyTheme();
-    if (scr === 'hub') { goHub(); if (params.get('tab')) document.querySelector(`.tab[data-tab="${params.get('tab')}"]`).click(); }
+    if (scr === 'hub') { goHub(params.get('tab') || 'Home'); }
     else if (scr === 'dungeon') goDungeons();
-    else if (scr === 'end') { S = simulate(tg, 'mix'); endGame(); }
+    else if (scr === 'end') { S = simulate(S.ch, 'mix'); PRO.chars[S.ch] = S; showGoal(); }
     else if (scr === 'charge') { goHub(); openCharge(); }
     else if (scr === 'game' || scr === 'boss') {
       enterDungeon(S, S.dun.best + 1); startBattle();
