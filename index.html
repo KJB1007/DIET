@@ -420,6 +420,13 @@ html,body{height:100%;overflow:hidden}
 .ff{width:auto;margin:0;padding:0 12px;font-size:14px}
 .ff.on{background:var(--gold);color:#2a1f00}
 .battleBottom{grid-template-columns:1fr 1fr auto auto}
+.gachaCard{display:flex;flex-direction:column;gap:6px;padding:10px}
+.gachaBtn{font-size:16px;padding:10px}
+.gi .ds.rare{color:#9fd3f0} .gi .ds.rare.leg{color:var(--gold)}
+.gacha{text-align:center}
+#gachaCv{width:160px;height:160px;margin:6px auto;background:radial-gradient(circle,#3b4a78 0 55%,transparent 56%)}
+.resTitle.leg{color:var(--gold);text-shadow:0 0 8px #f5c542,3px 3px 0 #000}
+.gacha .row{display:flex;gap:8px} .gacha .row button{flex:1}
 </style>
 </head>
 <body>
@@ -530,6 +537,9 @@ html,body{height:100%;overflow:hidden}
         <div class="gemHead"><span>보유 보석 <b id="gemV2">0</b></span><button class="buy gemBuy" id="chargeBtn2">보석 충전</button></div>
         <p class="sectionK">압도적인 힘</p>
         <ul class="grid2" id="gemPowerList"></ul>
+        <p class="sectionK">스킨 뽑기 · 모양만 바뀝니다</p>
+        <div class="card gachaCard"><button class="buy gemBuy gachaBtn" id="gachaBtn">1회 뽑기<small>보석 100</small></button><p class="hint" id="gachaOdds">전설 15% · 희귀 35% (스킨마다) · 이미 가진 스킨이 나오면 보석 30개를 돌려받습니다</p></div>
+        <ul class="grid2" id="skinList"></ul>
         <p class="sectionK">꾸미기</p>
         <ul class="grid2" id="gemLookList"></ul>
       </div>
@@ -621,6 +631,14 @@ html,body{height:100%;overflow:hidden}
     <p class="testNote">테스트용 화면입니다. 실제 결제는 일어나지 않고, 누르면 바로 보석이 들어옵니다. 가격은 정하지 않았습니다.</p>
     <div class="packs" id="packs"></div>
     <p class="hint" id="chargeHave">보유 보석 0</p>
+  </div>
+</div>
+<div class="confirm" id="gachaModal">
+  <div class="card result gacha">
+    <div class="resTitle" id="gachaTitle">뽑는 중...</div>
+    <canvas id="gachaCv" class="pix" width="64" height="64"></canvas>
+    <p class="resSub" id="gachaSub">-</p>
+    <div class="row"><button class="secondary" id="gachaClose">닫기</button><button class="primary" id="gachaWear">바로 입기</button></div>
   </div>
 </div>
 <div id="celebrate"></div>
@@ -1038,7 +1056,11 @@ function drawHero(c, x, ground, fat, pose) {
   pose = pose || {};
   const HY = pose.char === 'hyuksu';
   const SKIN = HY ? '#f1c9a5' : '#ecbd92', SKIN_D = HY ? '#cf9c7c' : '#c98f6d', SKIN_L = HY ? '#fbe0c6' : '#f7d6b4', HAIR = '#16141a';
-  const SHIRT = HY ? '#6fbf8a' : '#7ea6d6', SHIRT_D = HY ? '#4f9a68' : '#5f86b8', PANTS = HY ? '#5a5f70' : '#4b5e8a';
+  // 스킨: marine(해병, 강산해) · army(육군, 김혁수) · baby(아기, 둘 다)
+  const SK = pose.skin || '', CAMO = SK === 'marine' || SK === 'army', BABY = SK === 'baby';
+  const SHIRT = CAMO ? (SK === 'marine' ? '#6b6a3f' : '#55663f') : BABY ? (HY ? '#f5b5c8' : '#9fd3f0') : (HY ? '#6fbf8a' : '#7ea6d6');
+  const SHIRT_D = CAMO ? '#3f4a2a' : BABY ? (HY ? '#d98aa0' : '#6fb0d8') : (HY ? '#4f9a68' : '#5f86b8');
+  const PANTS = CAMO ? (SK === 'marine' ? '#55522f' : '#46553a') : BABY ? '#f4f1ea' : (HY ? '#5a5f70' : '#4b5e8a');
   const bob = pose.bob || 0, punch = pose.punch || 0, blink = pose.blink;
   const rx = 6 + 10 * fat, ry = 11 + 2.5 * fat;
   const cy = ground - 7 - ry + bob;
@@ -1064,9 +1086,15 @@ function drawHero(c, x, ground, fat, pose) {
     }
   };
   body(1, () => OUT);
-  body(0, dy => dy > ry * 0.45 ? PANTS : dy < -ry * 0.62 ? (HY ? SHIRT : SKIN) : SHIRT);
+  body(0, dy => dy > ry * 0.45 ? PANTS : dy < -ry * 0.62 ? (HY || SK ? SHIRT : SKIN) : SHIRT);
+  if (CAMO) { // 얼룩무늬
+    const blots = SK === 'marine' ? ['#3f4a2a', '#8a7a4a', '#2f3a22'] : ['#3a4a2a', '#7a8a5a', '#2a3520'];
+    for (let i = 0; i < 9; i++) { const bx = x + ((i * 37) % 11 - 5) / 6 * rx, by = cy + ((i * 23) % 9 - 4) / 5 * ry * .7; if (SK === 'army') rect(c, bx, by, 2, 2, blots[i % 3]); else ell(c, bx, by, 1.5, 1, blots[i % 3]); }
+    if (SK === 'marine') { rect(c, x - rx * .5, cy - ry * .35, 4, 2, '#c0394b'); rect(c, x - rx * .5 + 1, cy - ry * .35, 2, 1, '#f5c542'); } // 빨간 명찰
+  }
+  if (BABY) { ellO(c, x + 1, cy - ry * .45, rx * .45, ry * .22, '#fff'); for (let i = -2; i <= 2; i += 2) rect(c, x + 1 + i * rx * .15, cy - ry * .45, 1, 1, HY ? '#f5b5c8' : '#9fd3f0'); } // 턱받이
   // 어깨 근육과 가슴 선
-  if (!HY) { // 강산해: 민소매라 어깨 근육과 가슴 선이 보인다
+  if (!HY && !SK) { // 강산해: 민소매라 어깨 근육과 가슴 선이 보인다
     rect(c, x - rx * 0.92, cy - ry * 0.62, rx * 0.35, 2, SKIN); rect(c, x + rx * 0.57, cy - ry * 0.62, rx * 0.35, 2, SKIN);
     rect(c, x - rx * 0.45, cy - ry * 0.25, rx * 0.35, 1, SHIRT_D); rect(c, x + rx * 0.1, cy - ry * 0.25, rx * 0.35, 1, SHIRT_D);
     rect(c, x, cy - ry * 0.45, 1, ry * 0.25, SHIRT_D);
@@ -1095,11 +1123,24 @@ function drawHero(c, x, ground, fat, pose) {
     rect(c, hx - hr, top + 4, 3, 3, HAIR); rect(c, hx + 1, top + 4, hr - 1, 1, HAIR); rect(c, hx - 2, top - 1, 1, 2, '#3a3440');
   }
   // 머리띠 (강산해 기본, 금빛 머리띠를 사면 두 캐릭터 모두 금색)
-  if (!HY || pose.band) {
+  if ((!HY || pose.band) && !SK) {
     const BAND = pose.band ? '#f5c542' : '#e06b5b';
     rect(c, hx - hr, top + 3, hr * 2 + 1, 2, BAND);
     rect(c, hx - hr - 3, top + 4, 3, 1, BAND); rect(c, hx - hr - 4, top + 5, 2, 1, BAND);
     if (pose.band) { rect(c, hx - 1, top + 3, 1, 1, '#fff6c8'); rect(c, hx + 3, top + 3, 1, 1, '#fff6c8'); }
+  }
+  if (SK === 'marine') { // 팔각모: 납작한 윗면과 각진 옆면, 앞에 빨간 표식
+    rectO(c, hx - hr - 1, top - 3, hr * 2 + 3, 6, '#6b6a3f'); rect(c, hx - hr, top - 4, hr * 2 + 1, 1, '#55522f');
+    for (let i = -hr; i < hr; i += 3) rect(c, hx + i, top - 2 + (i % 2), 2, 1, '#3f4a2a');
+    rectO(c, hx - hr + 1, top + 3, hr * 2 + 4, 2, '#55522f'); rect(c, hx + 1, top - 1, 3, 3, '#c0394b'); rect(c, hx + 2, top, 1, 1, '#f5c542');
+  } else if (SK === 'army') { // 육군 철모
+    ellO(c, hx, top + 1, hr + 2, 5, '#4f5f3a', dy => dy > 2 ? '#3f4a2a' : '#55663f'); rect(c, hx - hr - 2, top + 4, hr * 2 + 5, 2, '#3f4a2a');
+    rect(c, hx - 3, top - 1, 2, 1, '#6b7a4a'); rect(c, hx + 3, top + 1, 2, 1, '#2f3a22');
+    rect(c, hx - hr, top + 6, 1, 5, '#2a2a20'); // 턱끈
+  } else if (BABY) { // 아기 모자(보닛)
+    ellO(c, hx, top + 1, hr + 2, 5, HY ? '#fbe0ea' : '#e0f2fb'); rect(c, hx - hr - 2, top + 4, hr * 2 + 5, 2, HY ? '#f5b5c8' : '#9fd3f0');
+    for (let i = -hr - 1; i <= hr + 1; i += 2) rect(c, hx + i, top + 6, 1, 1, '#fff');
+    rect(c, hx - hr - 1, top + 6, 1, 6, HY ? '#f5b5c8' : '#9fd3f0'); // 끈
   }
   // 눈썹(진하게)
   const e1 = hx + Math.round(hr * 0.15), e2 = e1 + 4;
@@ -1122,6 +1163,7 @@ function drawHero(c, x, ground, fat, pose) {
   // 입
   if (pose.effort) rect(c, e1, hy + 5, 4, 1, OUT);
   else { rect(c, e1, hy + 5, 3, 1, '#a9564a'); rect(c, e1 + 3, hy + 4, 1, 1, '#a9564a'); }
+  if (BABY) { ellO(c, e1 + 2, hy + 5, 2, 1.5, HY ? '#ff8fb0' : '#7fc8f0'); rect(c, e1 + 1, hy + 5, 3, 1, '#fff'); } // 쪽쪽이
   // 땀
   if (pose.sweat) { rect(c, hx - hr + 1, hy - 1 + pose.sweat, 1, 2, '#9fd3f0'); }
   // 발차기: 앞다리를 앞으로 뻗는다
@@ -1437,7 +1479,24 @@ function migrateChar(o) {
   s.migrated = true;
   return s;
 }
-function newProfile() { const s = newState('sanhae'); return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: 0, cos: s.cos, unlocked: { sanhae: true } }; }
+function newProfile() { const s = newState('sanhae'); return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: 0, cos: s.cos, unlocked: { sanhae: true }, skins: {} }; }
+// 스킨 뽑기: 보석 100개로 한 번. 이미 가진 스킨이 나오면 보석 30개를 돌려준다. 스킨은 모양만 바꾼다(능력치 변화 없음)
+const SKINS = [
+  { key: 'sanhae:marine', ch: 'sanhae', skin: 'marine', name: '해병 강산해', rare: '전설', w: 15 },
+  { key: 'hyuksu:army', ch: 'hyuksu', skin: 'army', name: '육군 김혁수', rare: '전설', w: 15 },
+  { key: 'sanhae:baby', ch: 'sanhae', skin: 'baby', name: '아기 강산해', rare: '희귀', w: 35 },
+  { key: 'hyuksu:baby', ch: 'hyuksu', skin: 'baby', name: '아기 김혁수', rare: '희귀', w: 35 },
+];
+const GACHA_COST = 100, GACHA_REFUND = 30;
+function rollSkin() {
+  if (S.gems < GACHA_COST) return null;
+  S.gems -= GACHA_COST; S.gemsSpent = (S.gemsSpent || 0) + GACHA_COST;
+  let r = Math.random() * SKINS.reduce((a, b) => a + b.w, 0), pick = SKINS[0];
+  for (const k of SKINS) { if ((r -= k.w) < 0) { pick = k; break; } }
+  PRO.skins = PRO.skins || {}; const dup = !!PRO.skins[pick.key];
+  if (dup) S.gems += GACHA_REFUND; else PRO.skins[pick.key] = true;
+  return { ...pick, dup };
+}
 function loadProfile(raw) {
   if (!raw) return null;
   if (raw.v === 6) return raw;
@@ -1445,7 +1504,7 @@ function loadProfile(raw) {
   return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: s.gems || 0, cos: s.cos, unlocked: { sanhae: true, hyuksu: !!s.goal } };
 }
 function load() { if (DEMO) return null; try { return loadProfile(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return null; } }
-function syncShared() { if (PRO && S) { PRO.gems = S.gems; PRO.cos = S.cos; PRO.chars[S.ch] = S; PRO.cur = S.ch; } }
+function syncShared() { if (PRO && S) { PRO.gems = S.gems; PRO.cos = S.cos; PRO.chars[S.ch] = S; PRO.cur = S.ch; PRO.skins = PRO.skins || {}; } }
 function save() { if (DEMO || !S || !PRO) return; try { syncShared(); S.savedAt = Date.now(); PRO.savedAt = S.savedAt; localStorage.setItem(SAVE_KEY, JSON.stringify(PRO)); } catch (e) {} }
 function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
 // 캐릭터 바꾸기: 지금 캐릭터 기록은 그대로 두고, 보석·꾸미기만 들고 간다
@@ -1469,7 +1528,7 @@ function applyTheme() { document.body.classList.toggle('theme-gold', !!S && S.co
 function drawPortrait(cv, w, t, extra) {
   const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
   const ch = (extra && extra.char) || (S && S.ch) || 'sanhae';
-  drawHero(c, 31, 60, fatOf(w, ch), Object.assign({ bob: Math.round(Math.sin((t || 0) * 3)), blink: false, band: S && S.cos.band, char: ch }, extra || {}));
+  drawHero(c, 31, 60, fatOf(w, ch), Object.assign({ bob: Math.round(Math.sin((t || 0) * 3)), blink: false, band: S && S.cos.band, char: ch, skin: S && S.ch === ch ? S.skin : '' }, extra || {}));
 }
 // 화면 전체 축하 연출(강화·해금·목표 달성)
 function celebrate(title, sub, kind) {
@@ -1631,7 +1690,7 @@ function renderCharBar() {
       const id = cv.dataset.mini, st = PRO && PRO.chars[id], c = CHARS[id];
       const w = st ? c.start + c.dir * st.burned : c.start;
       const cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64);
-      drawHero(cx, 31, 60, fatOf(w, id), { char: id, band: S && S.cos.band });
+      drawHero(cx, 31, 60, fatOf(w, id), { char: id, band: S && S.cos.band, skin: st ? st.skin : '' });
     }
     for (const b of document.querySelectorAll('.charChip:not([disabled])')) b.onclick = () => { if (b.dataset.ch === S.ch) return; save(); useChar(b.dataset.ch); save(); goHub('Home'); toast(`<b>${CH(S).name}</b>(으)로 바꿨습니다. 다른 캐릭터 기록은 그대로 남아 있습니다.`, 2400); };
   }
@@ -1839,6 +1898,8 @@ const SFX = {
       case 'unlock': [1047, 1319, 1568, 2093].forEach((f, i) => this.tone('square', f, f * 1.01, 0.08, 0.07, i * 0.05)); this.noise(0.3, 0.12, 6000, 0.5, 0.15); break;
       case 'goal': [523, 523, 523, 659, 784, 659, 784, 1047].forEach((f, i) => this.tone('square', f, f, i === 7 ? 0.6 : 0.13, 0.1, [0, .14, .28, .42, .56, .78, .92, 1.06][i])); [262, 330, 392].forEach(f => this.tone('triangle', f, f, 1.2, 0.12, 1.06)); break;
       case 'burn': this.noise(0.35, 0.3, 900, 0.6); this.tone('sawtooth', 180, 620, 0.3, 0.08); break;
+      case 'slam': this.noise(0.4, 0.8, 300, 0.6); this.tone('sine', 90, 30, 0.45, 0.9); this.noise(0.15, 0.4, 2500, 1, 0.02); break;
+      case 'gacha': for (let i = 0; i < 8; i++) this.tone('square', 400 + i * 90, 420 + i * 90, 0.06, 0.06, i * 0.08); break;
     }
   },
 };
@@ -1847,6 +1908,7 @@ for (const t of ['pointerdown', 'keydown']) window.addEventListener(t, () => SFX
 function refreshSoundBtn() { const b = $('soundBtn'); if (b) { b.textContent = SFX.on ? '소리 켬' : '소리 끔'; b.classList.toggle('off', !SFX.on); } }
 
 // ===== 타격 이펙트: 전투 캔버스 위에 그리는 짧은 그림들 =====
+const HEAVY = { kettle: 1, ball: 1, barbell: 1, gold: 1, diamond: 1, pan: 1, ladle: 1, gspoon: 1, dspoon: 1 }; // 무거운 무기: 굵은 궤적·먼지·더 큰 밀림
 const WEAPON_TRAIL = { flick: '#ffffff', spoon: '#eef2f6', fork: '#eef2f6', chop: '#e0b070', pan: '#9aa3ad', ladle: '#eef2f6', gspoon: '#f5c542', dspoon: '#7fe3ff', diamond: '#7fe3ff', fist: '#ffffff', rope: '#f4efe6', dumbbell: '#c9d3df', kettle: '#9aa3ad', ball: '#e0a070', barbell: '#c9d3df', gold: '#f5c542' };
 function addFx(kind, x, y, o) { vis.fx.push(Object.assign({ kind, x, y, t: 0 }, o || {})); }
 function drawFx(c, dt) {
@@ -1862,13 +1924,13 @@ function drawFx(c, dt) {
       }
       if (q < .3) ell(c, f.x, f.y, 3 + (f.crit ? 3 : 1), 3 + (f.crit ? 3 : 1), '#fff');
       c.globalAlpha = 1;
-    } else if (f.kind === 'slash') { // 무기를 휘두른 궤적(반달 모양)
+    } else if (f.kind === 'slash') { // 무기를 휘두른 궤적(반달 모양). 무거운 무기는 굵게
       const q = f.t / .16; if (q >= 1) { f.dead = 1; continue; }
       c.globalAlpha = (1 - q) * .9;
       for (let i = 0; i <= 14; i++) {
         const a = -1.2 + i / 14 * 2.2, r = f.r;
         const px = f.x + Math.cos(a) * r, py = f.y + Math.sin(a) * r * .9;
-        rect(c, px, py, 2, 2, f.color); if (i % 3 === 0) rect(c, px - 1, py, 1, 1, '#fff');
+        rect(c, px, py, f.thick ? 3 : 2, f.thick ? 3 : 2, f.color); if (i % 3 === 0) rect(c, px - 1, py, 1, 1, '#fff');
       }
       c.globalAlpha = 1;
     } else if (f.kind === 'ring') { // 처치·보스 등장 때 퍼지는 고리
@@ -1881,6 +1943,23 @@ function drawFx(c, dt) {
       c.globalAlpha = (1 - q) * .7;
       ell(c, f.x - q * 8, f.y - q * 3, 2 + q * 3, 1 + q * 2, '#c9b28f'); ell(c, f.x + q * 6, f.y - q * 2, 1.5 + q * 2, 1 + q * 1.5, '#c9b28f');
       c.globalAlpha = 1;
+    } else if (f.kind === 'quake') { // 땅 충격파: 넓게 퍼지는 타원 두 겹과 튀는 돌
+      const q = f.t / .45; if (q >= 1) { f.dead = 1; continue; }
+      c.globalAlpha = 1 - q;
+      for (const k of [1, .6]) { const R = f.r * ease.out(q) * k; for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; rect(c, f.x + Math.cos(a) * R, f.y + Math.sin(a) * R * .22, 2, 1, k === 1 ? '#ffd07a' : '#fff'); } }
+      for (let i = 0; i < 6; i++) rect(c, f.x - 20 + i * 8, f.y - Math.sin(q * Math.PI) * (6 + i % 3 * 4), 2, 2, '#8a5a3c');
+      c.globalAlpha = 1;
+    } else if (f.kind === 'pillar') { // 빛기둥
+      const q = f.t / .3; if (q >= 1) { f.dead = 1; continue; }
+      const wdt = 18 * (1 - q); c.globalAlpha = (1 - q) * .8; rect(c, f.x - wdt / 2, 0, wdt, GROUND, f.color); c.globalAlpha = (1 - q); rect(c, f.x - wdt / 6, 0, wdt / 3, GROUND, '#fff'); c.globalAlpha = 1;
+    } else if (f.kind === 'slash2') { // 반대 방향 궤적
+      const q = f.t / .18; if (q >= 1) { f.dead = 1; continue; }
+      c.globalAlpha = (1 - q) * .9;
+      for (let i = 0; i <= 14; i++) { const a = 1.2 - i / 14 * 2.2; const px = f.x + Math.cos(a) * f.r, py = f.y + Math.sin(a) * f.r * .9; rect(c, px, py, 2, 2, f.color); }
+      c.globalAlpha = 1;
+    } else if (f.kind === 'shield') { // 피함: 방패 막
+      const q = f.t / .5; if (q >= 1) { f.dead = 1; continue; }
+      c.globalAlpha = (1 - q) * .8; for (let i = 0; i < 30; i++) { const a = i / 30 * Math.PI * 2; rect(c, f.x + Math.cos(a) * 16, f.y + Math.sin(a) * 20 - 6, 2, 2, i % 2 ? '#9fd3f0' : '#fff'); } c.globalAlpha = 1;
     } else if (f.kind === 'crumb') { // 먹이기: 음식 부스러기가 주인공 입으로 날아감
       const q = f.t / .4; if (q >= 1) { f.dead = 1; continue; }
       const x = f.x + (f.tx - f.x) * ease.inOut(q), y = f.y + (f.ty - f.y) * q - Math.sin(q * Math.PI) * 12;
@@ -1902,8 +1981,16 @@ function handleEvents(ev, fromTap) {
       vis.mFlash = 1; vis.mKnock = e.crit ? 7 : 3; vis.mSquash = e.crit ? 1.5 : 1;
       const hx = MON_X - 8 + Math.random() * 6, hy = 78 + Math.random() * 10;
       addFx('impact', hx, hy, { crit: e.crit, rot: Math.random() * Math.PI });
-      if (!vis.kick || e.tag) addFx('slash', HERO_X + 14, 82, { r: 10, color: WEAPON_TRAIL[weaponOf(S).id] || '#fff' });
+      const heavy = HEAVY[weaponOf(S).id];
+      if (e.tag === 'burpee') { // 강타 스킬: 땅을 내리찍는 충격파 + 빛기둥
+        addFx('quake', MON_X - 4, GROUND, { r: 46 }); addFx('pillar', MON_X, 0, { color: CH(S).dir < 0 ? '#ff9a5a' : '#fff6e0' });
+        burst(MON_X, 84, 18, ['#fff', '#ffd07a', '#ff7a3a']); if (!reduceMotion) { shake(); vis.hitStop = .1; vis.flash = .9; vis.flashColor = CH(S).dir < 0 ? '#ffcf9a' : '#fff6e0'; }
+        pop('crit', `${fmtNum(e.dmg)}!`, MON_X, 50); SFX.play('slam');
+      } else if (e.tag === 'double') { // 연타 스킬: 엇갈린 두 번째 궤적
+        addFx('slash2', HERO_X + 16, 80, { r: 12, color: '#7fe3ff' }); pop('skill', '연타!', MON_X - 14, 40);
+      } else if (!vis.kick) addFx('slash', HERO_X + 14, 82, { r: heavy ? 13 : 10, color: WEAPON_TRAIL[weaponOf(S).id] || '#fff', thick: heavy });
       else addFx('dust', HERO_X + 14, GROUND);
+      if (heavy && !e.tag) { addFx('dust', MON_X - 6, GROUND); vis.mKnock += 3; }
       burst(hx, hy, e.crit ? 8 : 3, ['#fff', '#ffe9b0']);
       pop(e.crit ? 'crit' : 'dmg', (e.crit ? '치명타 ' : '') + fmtNum(e.dmg), MON_X + (Math.random() * 16 - 8), 58 + Math.random() * 10);
       if (e.crit) { if (!reduceMotion) { shake(); vis.hitStop = .07; vis.flash = 1; vis.flashColor = '#fff3c4'; } SFX.play('crit'); }
@@ -1925,11 +2012,12 @@ function handleEvents(ev, fromTap) {
       for (let i = 0; i < 6; i++) setTimeout(() => addFx('crumb', MON_X - 14, 76 + Math.random() * 8, { tx: HERO_X + 6, ty: 62, color: ['#e3b13e', '#a8642e', '#c0394b'][i % 3] }), i * 40 + 120);
       setTimeout(() => SFX.play('feed'), 220);
     } else if (e.t === 'dodge') {
-      pop('dodge', `${CH(S).attack} 피함`, HERO_X + 6, 46);
+      pop('dodge', `${CH(S).attack} 피함`, HERO_X + 6, 46); addFx('shield', HERO_X + 2, 80, {});
       SFX.play('dodge');
     } else if (e.t === 'skill') {
-      pop('skill', e.name, HERO_X + 4, 30);
-      addFx('ring', HERO_X + 4, 82, { r: 20, dur: .35, color: '#5aa0e0' });
+      pop('skill', SHOP.a.find(x => x.id === 'burpee').name, HERO_X + 4, 26);
+      vis.jump = 1; // 주인공이 뛰어올랐다가 내리찍는다
+      addFx('ring', HERO_X + 4, GROUND, { r: 22, dur: .35, color: '#f5c542' });
       SFX.play('skill');
     } else if (e.t === 'burn') {
       toast(`칼로리 ${CH(S).verb} <b>${CH(S).dir < 0 ? '-' : '+'}${e.kg.toFixed(1)} kg</b> · ${fmtNum(e.cost)} kcal 사용`, 1800); SFX.play('burn'); celebrate(`${CH(S).dir < 0 ? '-' : '+'}${e.kg.toFixed(1)} kg`, `${CH(S).verb} · 공격 속도 x${speedOf(S).toFixed(2)}`, 'burn');
@@ -1969,6 +2057,28 @@ $('enhBtn').addEventListener('click', () => {
   const ev = []; if (enhance(S, ev)) { handleEvents(ev, false); save(); updateHub(); }
 });
 // 정비 화면의 구입·레벨업 단추 (목록을 다시 그리므로 위임으로 받는다)
+$('skinList').addEventListener('click', e => { const b = e.target.closest('button[data-skin]'); if (!b || !S) return; S.skin = b.dataset.skin; save(); panelKey = ''; updateHub(); if (S.skin) { celebrate('스킨 장착', SKINS.find(k => k.ch === S.ch && k.skin === S.skin).name, 'unlock'); SFX.play('buy'); } });
+let lastRoll = null;
+$('gachaBtn').addEventListener('click', () => {
+  if (!S) return; if (S.gems < GACHA_COST) { openCharge(); return; }
+  const r = rollSkin(); if (!r) return; lastRoll = r; save(); panelKey = ''; updateHub();
+  $('gachaTitle').textContent = '두근두근...'; $('gachaTitle').className = 'resTitle'; $('gachaSub').textContent = ''; $('gachaWear').hidden = true;
+  const cv = $('gachaCv'), c = cv.getContext('2d'); $('gachaModal').classList.add('on'); SFX.play('gacha');
+  let t0 = performance.now();
+  const spin = ts => { // 캡슐이 흔들리다 열린다
+    const k = (ts - t0) / 900; c.clearRect(0, 0, 64, 64);
+    if (k < 1) { const sx = Math.sin(k * 40) * 3 * k; ellO(c, 32 + sx, 34, 16, 16, '#ff6fbf', dy => dy < 0 ? '#ff6fbf' : '#f4efe6'); rect(c, 16 + sx, 33, 33, 2, OUT); rect(c, 26 + sx, 24, 4, 3, '#fff'); requestAnimationFrame(spin); return; }
+    drawHero(c, 31, 60, fatOf(r.ch === 'hyuksu' ? 70 : 100, r.ch), { char: r.ch, skin: r.skin });
+    $('gachaTitle').textContent = r.name; $('gachaTitle').className = 'resTitle' + (r.rare === '전설' ? ' leg' : '');
+    $('gachaSub').textContent = r.dup ? `이미 가진 스킨 · 보석 ${GACHA_REFUND}개를 돌려받았습니다` : `${r.rare} 스킨 획득! ${CHARS[r.ch].name} 전용`;
+    $('gachaWear').hidden = r.dup || r.ch !== S.ch;
+    celebrate(r.dup ? '중복' : (r.rare === '전설' ? '전설 획득!' : '희귀 획득!'), r.name, r.rare === '전설' && !r.dup ? 'goal' : 'unlock'); SFX.play(r.rare === '전설' && !r.dup ? 'goal' : 'unlock');
+    panelKey = ''; updateHub();
+  };
+  requestAnimationFrame(spin);
+});
+$('gachaClose').addEventListener('click', () => $('gachaModal').classList.remove('on'));
+$('gachaWear').addEventListener('click', () => { if (lastRoll && lastRoll.ch === S.ch) { S.skin = lastRoll.skin; save(); } $('gachaModal').classList.remove('on'); panelKey = ''; updateHub(); });
 for (const id of ['weaponList', 'atkList', 'defList', 'gemPowerList', 'gemLookList']) $(id).addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !S || S.inDun) return;
   const ev = [];
@@ -1985,7 +2095,7 @@ for (const id of ['weaponList', 'atkList', 'defList', 'gemPowerList', 'gemLookLi
 let panelKey = '';
 function updatePanel() {
   const w = weaponOf(S), ce = canEnhance(S), cost = enhCostOf(S);
-  const key = JSON.stringify([S.weapon, S.enh, ce, cost, Math.floor(S.burned * 10), S.cal, S.gems, S.own, S.items, S.cos]);
+  const key = JSON.stringify([S.weapon, S.enh, ce, cost, Math.floor(S.burned * 10), S.cal, S.gems, S.own, S.items, S.cos, S.skin, PRO && PRO.skins]);
   if (key === panelKey) return; panelKey = key;
   $('wName').textContent = `${w.name} +${S.enh}`;
   $('wStat').textContent = `공격력 ${fmtNum(atkOf(S))} · 치명타 ${Math.round(critOf(S) * 100)}%`;
@@ -2033,6 +2143,13 @@ function updatePanel() {
   };
   $('gemPowerList').innerHTML = GEM_SHOP.filter(x => x.kind === 'weapon' || x.kind === 'item').map(gemRow).join('');
   $('gemLookList').innerHTML = GEM_SHOP.filter(x => x.kind === 'theme' || x.kind === 'look').map(gemRow).join('');
+  $('gachaBtn').disabled = false; $('gachaBtn').innerHTML = S.gems >= GACHA_COST ? '1회 뽑기<small>보석 100</small>' : '1회 뽑기<small>보석 부족 · 충전하기</small>';
+  const sk = (PRO && PRO.skins) || {};
+  $('skinList').innerHTML = SKINS.map(k => {
+    const own = sk[k.key], mine = k.ch === S.ch, wearing = mine && S.skin === k.skin;
+    const st = !own ? '<span class="badge">미보유</span>' : !mine ? `<span class="hint">${CHARS[k.ch].name} 전용</span>` : `<button class="buy" data-skin="${wearing ? '' : k.skin}">${wearing ? '벗기' : '입기'}<small>${wearing ? '입는 중' : '보유'}</small></button>`;
+    return `<li class="gi ${own ? '' : 'locked'}"><span class="nm">${k.name}<span class="ds rare${k.rare === '전설' ? ' leg' : ''}">${k.rare}</span></span><span class="st">${st}</span></li>`;
+  }).join('');
 }
 
 // 빨리감기 x1 → x2 → x4 (설정은 기기에 저장)
@@ -2076,7 +2193,11 @@ function render(dt) {
   const flinch = vis.feedAnim > 0 && vis.feedAnim < .6 ? Math.sin((.6 - vis.feedAnim) / .6 * Math.PI) * -3 : 0;
   const fat = fatOf(vis.weight, S.ch);
   const breath = Math.sin(vis.time * 3.2) * .6 + (vis.walk > .1 ? Math.abs(Math.sin(vis.walkPh)) * -1.2 : 0);
-  drawHero(c, HERO_X + off + flinch, GROUND, fat, {
+  vis.jump = Math.max(0, (vis.jump || 0) - dt * 3.2);
+  const jumpY = vis.jump > 0 ? -Math.round(Math.sin((1 - vis.jump) * Math.PI) * 14) : 0;
+  if (squatOn(S)) { c.globalAlpha = .5 + Math.sin(vis.time * 20) * .2; for (let i = 0; i < 16; i++) { const a = vis.time * 3 + i / 16 * Math.PI * 2; rect(c, HERO_X + Math.cos(a) * 15, GROUND - 16 + Math.sin(a) * 18 + jumpY, 2, 2, i % 2 ? '#f5c542' : '#fff'); } c.globalAlpha = 1; }
+  drawHero(c, HERO_X + off + flinch, GROUND + jumpY, fat, {
+    skin: S.skin,
     weapon: weaponOf(S).id, kick: vis.kick, step: Math.sin(vis.walkPh) * vis.walk, band: S.cos.band, char: S.ch,
     bob: Math.round(breath), punch: ext, blink: (vis.time % 3.2) < .12,
     effort: ext > .3 || flinch < -1, sweat: vis.sweat > 0 ? Math.round((1 - vis.sweat) * 4) : 0,
