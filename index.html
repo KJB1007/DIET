@@ -138,7 +138,7 @@ label{font-size:14px;font-weight:700}
 .note{font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 0;line-height:1.7}
 .bottomBar{display:flex;justify-content:center;gap:16px;margin-top:6px}
 #soundBtn.off{color:#6d6a7e}
-#toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;transition:opacity .2s,transform .2s;
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top, 0px) + 128px);bottom:auto;transform:translate(-50%,-12px);opacity:0;transition:opacity .2s,transform .2s;
   background:#0d0f15;color:var(--ink);padding:11px 14px;border:3px solid var(--gold-d);border-radius:4px;font-size:13px;
   width:min(400px,calc(100% - 32px));z-index:10;line-height:1.6;pointer-events:none;box-shadow:0 4px 0 #000}
 #toast b{color:var(--gold)}
@@ -445,6 +445,8 @@ html,body{height:100%;overflow:hidden}
 .monName .trait{font-size:10px;color:#ff9a8f;font-weight:400}
 .tbWallet{gap:4px} .tbWallet .cur{padding:3px 4px;gap:3px} .tbWallet b{font-size:13px} .tbWeight b{font-size:22px} .tbWallet .stamC small{display:none}
 @media (min-width:400px){ .tbWallet .stamC small{display:inline} }
+#buffLine.note{color:var(--ink);background:rgba(245,197,66,.14);border:2px solid var(--gold-d);padding:4px 6px;line-height:1.5}
+#buffLine.note b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -1927,14 +1929,20 @@ let AUTO = false; try { AUTO = localStorage.getItem('gangsanhae-auto') === 'on';
 function refreshAuto() { $('autoBtn').innerHTML = '자동<br>' + (AUTO ? '켬' : '끔'); $('autoBtn').classList.toggle('on', AUTO); }
 $('autoBtn').addEventListener('click', () => { AUTO = !AUTO; refreshAuto(); try { localStorage.setItem('gangsanhae-auto', AUTO ? 'on' : 'off'); } catch (e) {} toast(AUTO ? '자동 진행 켬: 던전이 끝나면 체력이 있는 한 다음 던전으로 들어갑니다' : '자동 진행 끔', 2200); });
 refreshAuto();
+// 전투 중 알림: 전투 장면 바로 아래 줄에 잠깐 띄운다(아래 단추를 가리지 않음)
+let noteUntil = 0;
+function bnote(html, ms) {
+  const el = $('buffLine'); if (!el) return;
+  el.innerHTML = html; el.classList.add('note'); noteUntil = performance.now() + (ms || 2400);
+}
 function autoNext(e) { // 끝난 던전 결과를 받아 다음 입장을 정한다. 들어가면 true
   if (!AUTO || S.goal && false) return false;
   const d = e.t === 'clear' ? Math.min(CFG.dungeons, S.dun.best + 1) : Math.max(1, Math.min(S.dun.best, e.d));
   if (!canEnter(S, d)) return false;
   if (stamNow() < CFG.stamCost) { toast('체력이 모자라 자동 진행을 멈췄습니다', 2600); return false; }
   stamUse(CFG.stamCost); refreshStam();
-  toast(`${e.t === 'clear' ? dungeonLabel(e.d) + ' 클리어' : dungeonLabel(e.d) + ' 실패'} · 칼로리 +${fmtNum(e.cal)} → 자동으로 ${dungeonLabel(d)} 입장`, 2200);
-  const ev = []; enterDungeon(S, d, ev); save(); startBattle(); handleEvents(ev, false);
+  const msg = `${e.t === 'clear' ? dungeonLabel(e.d) + ' 클리어' : dungeonLabel(e.d) + ' 실패'} · 칼로리 +${fmtNum(e.cal)} → 자동으로 ${dungeonLabel(d)} 입장`;
+  const ev = []; enterDungeon(S, d, ev); save(); startBattle(); handleEvents(ev, false); bnote(msg, 2600);
   return true;
 }
 
@@ -2171,7 +2179,7 @@ function handleEvents(ev, fromTap) {
       vis.hurt = 1; pop('hurt', '-' + fmtNum(e.dmg), HERO_X + (Math.random() * 8 - 4), 60);
       if (e.boss && !reduceMotion) shake(); SFX.play('hurt');
     } else if (e.t === 'newmon') {
-      toast(`새 몬스터 등장: <b>${e.name}</b>${e.trait ? `<br>${e.trait}` : ''}`, 2600); if (!e.boss) celebrate('새 몬스터!', e.name + (e.trait ? ' · ' + e.trait : ''), 'unlock');
+      bnote(`<b>새 몬스터!</b> ${e.name}${e.trait ? ` · ${e.trait}` : ''}`, 2800); SFX.play('unlock');
     } else if (e.t === 'dodge') {
       pop('dodge', `${CH(S).attack} 피함`, HERO_X + 6, 46); addFx('shield', HERO_X + 2, 80, {});
       SFX.play('dodge');
@@ -2200,7 +2208,7 @@ function handleEvents(ev, fromTap) {
       SFX.play('kill', { combo: vis.combo });
       if (e.boss && !reduceMotion) { shake(); vis.hitStop = .12; vis.flash = 1; vis.flashColor = '#ffffff'; }
     } else if (e.t === 'spawn' || e.t === 'enter') {
-      if (e.t === 'enter') { vis.combo = 0; toast(`<b>${dungeonLabel(e.d)} ${regionOf(e.d).name}</b> 입장${e.op >= 2 ? ` · <b>압도 x${e.op.toFixed(1)}</b> 몬스터가 몰려옵니다` : ''}${S.run.boost > 1 ? ' · 프로틴 부스터 사용(공격력 x5)' : ''}${S.run.extra ? ' · 보스 시간 +30초' : ''}`, 2200); }
+      if (e.t === 'enter') { vis.combo = 0; bnote(`<b>${dungeonLabel(e.d)} ${regionOf(e.d).name}</b> 입장${e.op >= 2 ? ` · <b>압도 x${e.op.toFixed(1)}</b> 몬스터가 몰려옵니다` : ''}${S.run.boost > 1 ? ' · 프로틴 부스터 사용(공격력 x5)' : ''}${S.run.extra ? ' · 보스 시간 +30초' : ''}`, 2200); }
       if (S.inDun && monsterOf(S).boss) { setTimeout(() => { SFX.play('boss'); addFx('ring', MON_X, 84, { r: 34, dur: .7, color: '#e0605a' }); if (!reduceMotion) { vis.flash = .8; vis.flashColor = '#e0605a'; } }, 350); }
     } else if (e.t === 'clear') { SFX.play('round'); setTimeout(() => { if (!autoNext(e)) showResult(e); }, 900); }
     else if (e.t === 'fail') { SFX.play(e.dead ? 'dead' : 'feed'); if (e.dead) { vis.deadHero = 1; addFx('ring', HERO_X, GROUND, { r: 30, dur: .6, color: '#e0605a' }); } stamAdd(CFG.stamRefund); refreshStam(); setTimeout(() => { if (e.retreat || !autoNext(e)) showResult(e); }, e.retreat ? 0 : 600); }
@@ -2442,7 +2450,7 @@ function updateHud(dt) {
   if (S.run && S.run.boost > 1) buffs.push('프로틴 부스터: 공격력 x5');
   if (S.run && S.run.extra) buffs.push('보스 시간 +30초');
   if (squatOn(S)) buffs.push('스쿼트 점프: 치명타 상승');
-  $('buffLine').textContent = buffs.length ? buffs.join(' · ') : '전투는 자동으로 진행됩니다';
+  if (performance.now() > noteUntil) { $('buffLine').classList.remove('note'); $('buffLine').textContent = buffs.length ? buffs.join(' · ') : '전투는 자동으로 진행됩니다'; }
   $('retreatBtn').disabled = !S.inDun;
 }
 
