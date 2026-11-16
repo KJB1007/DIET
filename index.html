@@ -763,11 +763,11 @@ const CFG = {
   firstClearGems: 5,  // 처음 깬 던전마다 보석
   skillMax: 5,
   respawn: 0.5, offlineCap: 300,
-  // 물량전: 던전마다 잔몹 무리(1던전 12마리, 던전마다 +0.6마리) 뒤에 보스. 잔몹을 다 잡거나 잔몹 제한 시간이 끝나면 보스가 나온다
-  // 잔몹 무리 전체의 HP·칼로리는 예전 잔몹 7마리 합과 같다. 맨 앞 3마리만 주인공을 때린다(한 마리 공격력 = 예전의 1/3)
-  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnEvery: 0.3, mobCap: 16, meleeMax: 3,
-  lane: { hero: 40, front: 58, gap: 9, spawn: 250, speed: 75 }, // 전투 화면(240x180) 위의 자리
-  fireDur: 3, firePct: 0.2, pushPx: 14, stagger: 0.4, // 화염: 3초 동안 초마다 공격력의 20% / 물결: 뒤로 밀고 0.4초 못 때림
+  // 방어전: 던전마다 잔몹 무리(1던전 12마리, 던전마다 +0.6마리)가 오른쪽 끝에서 20초에 걸쳐 나와 걸어온다. 다 처리하거나 잔몹 제한 시간이 끝나면 보스
+  // 잔몹 무리 전체의 HP·칼로리는 예전 잔몹 7마리 합과 같다. 잔몹이 주인공에게 닿으면 부딪혀 피해를 주고 사라진다(칼로리 없음). 보스는 붙어서 계속 때린다
+  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, mobCap: 24, meleeMax: 3, leakMul: 1, feedLeakMax: 10,
+  lane: { hero: 24, contact: 38, spawn: 252, speed: 30, range: 234 }, // 전투 화면(240x180) 위의 자리
+  knock: 4, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
   // 주인공 HP: 깬 던전·무기 강화·방어 스킬로 오른다. 몬스터는 1.6초마다 때린다. 던전 안에서는 회복하지 않고(보스를 깨야 끝), HP 0이면 쓰러져 던전 실패
   heroHp0: 300, heroHpGrow: 1.17, hpPerEnh: 0.06, hpPerDef: 0.08, monAtk0: 7, monAtkGrow: 1.21, monAtkEvery: 1.6, bossAtkMul: 1.5, healOnKill: 0,
   // 체력: 최대 60, 던전 입장 6, 1분에 1 회복(꺼 둔 동안도), 실패·후퇴 때 3 반환, 보석 30개로 가득. 두 캐릭터가 함께 씀
@@ -806,7 +806,7 @@ let DEFENSE_SKILLS = [
 ];
 // 보석(유료 화폐) 상점
 const GEM_SHOP = [
-  { id: 'diamond', name: '다이아 바벨', price: 300, kind: 'weapon', desc: '보석 전용 무기 · 공격력 180 · 치명타 25% · 동시 공격 6명 · 관통·화염·물결' },
+  { id: 'diamond', name: '다이아 바벨', price: 300, kind: 'weapon', desc: '보석 전용 무기 · 공격력 180 · 치명타 25% · 동시 공격 6명 · 넉백·물·불·번개·바람' },
   { id: 'boost', name: '프로틴 부스터', price: 40, kind: 'item', desc: '다음 던전 한 번 공격력 x5' },
   { id: 'time', name: '보스 시간 연장권', price: 20, kind: 'item', desc: '다음 던전 보스 제한 시간 +30초' },
   { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '보관했다가 던전 입장 화면에서 씁니다' },
@@ -863,7 +863,7 @@ function setChar(id) {
   const c = CHARS[id]; CUR = id;
   REGIONS = c.regions; WEAPONS = c.weapons; ATTACK_SKILLS = c.atkSkills; DEFENSE_SKILLS = c.defSkills; MONSTERS = c.monsters; BOSSES = c.bosses;
   SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
-  const g = GEM_SHOP.find(x => x.id === 'diamond'); g.name = c.gemWeapon; g.desc = `보석 전용 무기 · 공격력 ${WEAPONS[7].atk} · 치명타 ${Math.round(WEAPONS[7].crit * 100)}% · 동시 공격 ${WEAPON_TG[7]}명 · 관통·화염·물결`;
+  const g = GEM_SHOP.find(x => x.id === 'diamond'); g.name = c.gemWeapon; g.desc = `보석 전용 무기 · 공격력 ${WEAPONS[7].atk} · 치명타 ${Math.round(WEAPONS[7].crit * 100)}% · 동시 공격 ${WEAPON_TG[7]}명 · ${effectsOf(7).join('·')}`;
 }
 function totalLoss(s) { const c = CH(s); return Math.abs(c.target - c.start); }   // 목표까지 바꿀 체중(강산해 45kg, 김혁수 30kg)
 function kgPer(s) { return totalLoss(s) / CFG.dungeons; }                          // 던전 하나당 열리는 버닝·벌크업 한도
@@ -946,10 +946,12 @@ function monsterOf(s) {
 // 무기 단계(목록 순서)마다 한 번에 때리는 적 수와 속성. 강화 +5마다 1명 더
 const WEAPON_TG = [1, 2, 2, 3, 3, 4, 5, 6];
 function targetsOf(s) { return (WEAPON_TG[s.weapon] || 1) + Math.min(4, Math.floor(s.enh / 5)); }
-function pierceOn(s) { return s.weapon >= 2; } // 관통: 잡고 남은 피해가 뒤 적에게 넘어간다
-function fireOn(s) { return s.weapon >= 4; }   // 화염: 맞은 적이 3초 동안 탄다
-function pushOn(s) { return s.weapon >= 6; }   // 물결: 맞은 적을 뒤로 밀고 잠깐 못 때리게 한다
-function effectsOf(i) { const t = []; if (i >= 2) t.push('관통'); if (i >= 4) t.push('화염'); if (i >= 6) t.push('물결'); return t; }
+function waterOn(s) { return s.weapon >= 2; } // 물: 맞은 적이 2초 동안 절반 속도로 걷는다
+function fireOn(s) { return s.weapon >= 3; }  // 불: 맞은 적이 3초 동안 탄다(초마다 공격력의 20%, 강화마다 +1%p)
+function boltOn(s) { return s.weapon >= 4; }  // 번개: 휘두를 때 25%(강화마다 +1%p) 확률로 근처 적 3마리(강화 +10마다 1마리 더)에게 번진다
+function windOn(s) { return s.weapon >= 5; }  // 바람: 5초마다 화면의 적을 모두 뒤로 밀어낸다
+function knockOf(s) { return CFG.knock + CFG.knockPerEnh * s.enh; } // 넉백: 모든 무기. 강화할수록 멀리
+function effectsOf(i) { const t = ['넉백']; if (i >= 2) t.push('물'); if (i >= 3) t.push('불'); if (i >= 4) t.push('번개'); if (i >= 5) t.push('바람'); return t; }
 // 주인공 최대 HP
 function maxHpOf(s) {
   const defLv = (s.own.d || []).reduce((a, b) => a + (b || 0), 0);
@@ -1103,15 +1105,15 @@ function newlyUnlocked(s, before) {
   return names;
 }
 function startWave(s) {
-  s.mobs = []; s.wave = { n: waveNOf(s.stage), i: 0, spawnT: CFG.spawnEvery, t: CFG.waveTime, killed: 0 };
-  s.run.phase = 'wave'; s.run.bossT = 0;
+  s.mobs = []; s.wave = { n: waveNOf(s.stage), i: 0, spawnT: 99, t: CFG.waveTime, killed: 0 };
+  s.run.phase = 'wave'; s.run.bossT = 0; s.run.leaks = 0; s.run.leakFeeds = 0; s.windT = 0;
 }
 function spawnMob(s, boss, ev) {
   const d = s.stage, k = boss ? 0 : mobKindOf(d, s.wave.i);
   s.uid = (s.uid || 0) + 1;
-  const m = { u: s.uid, k, boss, hp: 0, x: CFG.lane.spawn + (boss ? 10 : (s.uid % 3) * 5), row: boss ? 0 : s.uid % 3, at: 0, burn: 0, fire: 0, fa: 0, st: 0 };
+  const m = { u: s.uid, k, boss, hp: 0, x: CFG.lane.spawn + (boss ? 6 : (s.uid % 3) * 4), row: boss ? 0 : s.uid % 3, at: 0, burn: 0, fire: 0, fa: 0, slowT: 0 };
   const def = defOf(s, m); m.hp = def.hp;
-  if (boss) s.mobs.unshift(m); else { s.mobs.push(m); s.wave.i++; }
+  s.mobs.push(m); if (!boss) s.wave.i++;
   noteMonster(s, ev, def);
   if (ev) ev.push({ t: 'spawn', u: m.u, boss });
 }
@@ -1130,7 +1132,6 @@ function killMob(s, mob, dmg, ev, tag) {
   if (ev) ev.push({ t: 'kill', cal: kc, boss: m.boss, name: m.name, id: m.id, u: mob.u, x: mob.x, row: mob.row, oneShot: dmg >= m.hp, over: dmg / m.hp, tag });
   if (m.boss) endRun(s, true, ev);
 }
-// 한 적에게 피해. 잡으면 남은 피해(관통에 씀)를 돌려준다
 function hurtMob(s, mob, dmg, crit, ev, tag) {
   if (!s.inDun || mob.hp <= 0) return 0;
   const before = mob.hp; mob.hp -= dmg;
@@ -1138,37 +1139,48 @@ function hurtMob(s, mob, dmg, crit, ev, tag) {
   if (mob.hp <= 0) { killMob(s, mob, dmg, ev, tag); return dmg - before; }
   return 0;
 }
+// 맞은 적에게 속성을 건다: 넉백·물·불
+function applyHit(s, m, dmg, crit, ev, tag) {
+  hurtMob(s, m, dmg, crit, ev, tag);
+  if (m.hp <= 0 || !s.inDun) return;
+  const L = CFG.lane;
+  if (tag !== 'fire') m.x = Math.min(L.spawn, m.x + knockOf(s) * (m.boss ? 0.25 : 1));
+  if (waterOn(s)) m.slowT = CFG.slowDur;
+  if (fireOn(s)) { m.burn = CFG.fireDur; m.fire = atkOf(s) * (CFG.firePct + 0.01 * s.enh); }
+}
 function hit(s, dmg, crit, ev, tag) { const m = s.mobs && s.mobs[0]; if (m) hurtMob(s, m, dmg, crit, ev, tag); } // 예전 시험용
-// 한 번 휘두르기: 앞에서부터 동시 공격 수만큼 때린다
+// 잔몹이 주인공에게 닿으면: 피해를 주고 사라진다(칼로리 없음). 먹이기도 한 번(던전마다 최대 10번)
+function leak(s, m, ev, rnd) {
+  const md = defOf(s, m), dmg = Math.round(md.atk * CFG.meleeMax * CFG.leakMul);
+  const i = s.mobs.indexOf(m); if (i >= 0) s.mobs.splice(i, 1);
+  s.wave.killed++; s.run.leaks++;
+  s.heroHp = (s.heroHp == null ? maxHpOf(s) : s.heroHp) - dmg;
+  if (md.trait.poison) { s.poisonT = 3; s.poisonAtk = md.atk; }
+  if (ev) ev.push({ t: 'leak', dmg, u: m.u, x: m.x, row: m.row, id: md.id });
+  if (s.run.leakFeeds < CFG.feedLeakMax) { s.run.leakFeeds++; feed(s, ev, rnd, false); }
+}
+// 한 번 공격: 가까운 적부터 동시 공격 수만큼 원거리로 맞힌다
 function swing(s, ev, rnd, tag) {
-  const L = CFG.lane, n = targetsOf(s), reach = L.front + (n + 1) * L.gap;
-  const tg = s.mobs.filter(m => m.x <= reach).slice(0, n);
+  const R = rnd || Math.random, n = targetsOf(s);
+  const tg = s.mobs.filter(m => m.x <= CFG.lane.range).sort((a, b) => a.x - b.x).slice(0, n);
   if (!tg.length) return;
   const r = rollDamage(s, 1, rnd);
-  if (ev) ev.push({ t: 'swing', n: tg.length, tag, crit: r.crit, reach: Math.max(...tg.map(m => m.x)) });
-  let spill = 0;
-  for (const m of tg) {
-    if (!s.inDun) return;
-    const left = hurtMob(s, m, r.dmg, r.crit, ev, tag);
-    if (m.hp > 0) {
-      if (fireOn(s)) { m.burn = CFG.fireDur; m.fire = atkOf(s) * CFG.firePct; }
-      if (pushOn(s) && !m.boss) { m.x += CFG.pushPx; m.st = CFG.stagger; }
-    } else if (pierceOn(s)) spill += left;
-  }
-  let guard = 0; // 관통: 잡고 남은 피해가 뒤에 선 적에게 넘어간다
-  while (spill >= 1 && s.inDun && guard++ < 8) {
-    const next = s.mobs.find(m => !tg.includes(m) && m.x <= reach + 60);
-    if (!next) break;
-    tg.push(next);
-    const left = hurtMob(s, next, Math.round(spill), false, ev, 'pierce');
-    spill = next.hp <= 0 ? left : 0;
+  if (ev) ev.push({ t: 'swing', n: tg.length, tag, crit: r.crit, xs: tg.map(m => [m.x, m.row, m.boss ? 1 : 0]) });
+  for (const m of tg) { if (!s.inDun) return; applyHit(s, m, r.dmg, r.crit, ev, tag); }
+  // 번개: 맞힌 적 근처로 번진다
+  if (s.inDun && boltOn(s) && R() < CFG.chainChance + 0.01 * s.enh) {
+    const from = tg[0], rest = s.mobs.filter(m => !tg.includes(m) && m.x <= CFG.lane.range).sort((a, b) => Math.abs(a.x - from.x) - Math.abs(b.x - from.x)).slice(0, CFG.chainN + Math.floor(s.enh / 10));
+    if (rest.length) {
+      if (ev) ev.push({ t: 'bolt', pts: [[from.x, from.row]].concat(rest.map(m => [m.x, m.row])) });
+      for (const m of rest) { if (!s.inDun) return; applyHit(s, m, Math.max(1, Math.round(r.dmg * CFG.chainPct)), false, ev, 'bolt'); }
+    }
   }
 }
 function rollDamage(s, rate, rnd) {
   const crit = (rnd || Math.random)() < critOf(s);
   return { dmg: Math.max(1, Math.round(atkOf(s) * (rate || 1) * (crit ? CFG.critMul : 1))), crit };
 }
-// 먹이기 공격: 음식 몬스터가 강산해에게 음식을 먹여 체중을 다시 늘린다(120kg을 넘지 않음). 적이 붙어 있는 동안 4초마다
+// 먹이기 공격: 음식 몬스터가 강산해에게 음식을 먹여 체중을 다시 늘린다(120kg을 넘지 않음). 잔몹이 닿을 때, 보스가 붙어 있는 동안 4초마다
 function feed(s, ev, rnd, boss) {
   const dl = lvOf(s, 'd', 'diary'), wl = lvOf(s, 'd', 'water'), pl = lvOf(s, 'd', 'protein');
   if (dl && (rnd || Math.random)() < 0.25 + (dl - 1) * 0.07) { s.dodged++; if (ev) ev.push({ t: 'dodge' }); return; }
@@ -1182,61 +1194,66 @@ function feed(s, ev, rnd, boss) {
 }
 function step(s, dt, ev, rnd) {
   if (s.done || !s.inDun) return;
-  if (!s.mobs || !s.wave || !s.run.phase) startWave(s); // 예전 저장에서 던전 안이었던 경우
+  if (!s.mobs || !s.wave || !s.run.phase || s.run.leaks == null) startWave(s); // 예전 저장에서 던전 안이었던 경우
   const L = CFG.lane;
   s.time += dt; s.squatT += dt;
-  // 1) 잔몹이 몰려오고, 다 잡거나 제한 시간이 끝나면 보스
+  // 1) 잔몹이 오른쪽 끝에서 나온다. 다 처리하거나 제한 시간이 끝나면 보스
   if (s.run.phase === 'wave') {
     s.wave.t -= dt; s.wave.spawnT += dt * (s.run.op || 1);
-    while (s.wave.spawnT >= CFG.spawnEvery && s.wave.i < s.wave.n && s.mobs.length < CFG.mobCap) { s.wave.spawnT -= CFG.spawnEvery; spawnMob(s, false, ev); }
-    if (s.wave.spawnT > CFG.spawnEvery) s.wave.spawnT = CFG.spawnEvery;
+    const every = CFG.spawnSpan / s.wave.n;
+    while (s.wave.spawnT >= every && s.wave.i < s.wave.n && s.mobs.length < CFG.mobCap) { s.wave.spawnT -= every; spawnMob(s, false, ev); }
+    if (s.wave.spawnT > every * 2) s.wave.spawnT = every * 2;
     if ((s.wave.i >= s.wave.n && !s.mobs.length) || s.wave.t <= 0) spawnBoss(s, ev);
   } else {
     s.run.bossT -= dt;
     if (s.run.bossT <= 0) { s.run.bossT = 0; endRun(s, false, ev); return; }
   }
-  // 2) 줄 선 자리까지 걸어온다
-  for (let i = 0; i < s.mobs.length; i++) { const m = s.mobs[i], tx = L.front + i * L.gap; if (m.x > tx) m.x = Math.max(tx, m.x - L.speed * dt * (m.boss ? 1.6 : 1)); if (m.st > 0) m.st -= dt; }
-  const touching = s.mobs.filter((m, i) => i < CFG.meleeMax && m.x <= L.front + i * L.gap + 0.5);
-  // 3) 적의 공격: HP가 0이 되면 쓰러진다
-  let slow = 1, bossTouch = false;
-  for (const m of touching) {
-    const md = defOf(s, m); if (md.trait.slow) slow = md.trait.slow; if (m.boss) bossTouch = true;
-    if (m.st > 0) continue;
-    m.at = (m.at || 0) + dt;
-    if (m.at >= md.atkEvery) {
-      m.at -= md.atkEvery;
-      s.heroHp = (s.heroHp == null ? maxHpOf(s) : s.heroHp) - md.atk;
-      if (md.trait.poison) { s.poisonT = 3; s.poisonAtk = md.atk; }
-      if (ev) ev.push({ t: 'hurt', dmg: md.atk, boss: m.boss, u: m.u });
-    }
+  // 2) 걸어온다. 물에 맞으면 느려진다. 잔몹이 닿으면 부딪힌다
+  let slow = 1;
+  for (const m of s.mobs.slice()) {
+    const md = defOf(s, m); if (md.trait.slow) slow = md.trait.slow;
+    if (m.slowT > 0) m.slowT -= dt;
+    const stopX = L.contact + (m.boss ? 8 : 0);
+    if (m.x > stopX) m.x = Math.max(stopX, m.x - L.speed * (m.boss ? 0.75 : 1) * (m.slowT > 0 ? CFG.slowMul : 1) * dt);
+    if (!m.boss && m.x <= stopX) { leak(s, m, ev, rnd); if (s.heroHp <= 0) { s.heroHp = 0; endRun(s, false, ev, 'dead'); return; } }
+  }
+  // 3) 보스가 붙으면 계속 때리고 먹인다
+  const boss = s.mobs.find(m => m.boss && m.x <= L.contact + 8.5);
+  if (boss) {
+    const md = defOf(s, boss); boss.at = (boss.at || 0) + dt;
+    if (boss.at >= md.atkEvery) { boss.at -= md.atkEvery; s.heroHp = (s.heroHp == null ? maxHpOf(s) : s.heroHp) - md.atk; if (md.trait.poison) { s.poisonT = 3; s.poisonAtk = md.atk; } if (ev) ev.push({ t: 'hurt', dmg: md.atk, boss: true, u: boss.u }); }
+    s.feedT += dt; if (s.feedT >= CFG.feedEvery) { s.feedT -= CFG.feedEvery; feed(s, ev, rnd, true); }
   }
   if (s.poisonT > 0) { // 독: 초마다 맞은 공격력의 30%
     s.poisonT -= dt; s.poisonAcc = (s.poisonAcc || 0) + (s.poisonAtk || 0) * 0.3 * dt;
     if (s.poisonAcc >= 1) { const p = Math.floor(s.poisonAcc); s.poisonAcc -= p; s.heroHp -= p; if (ev) ev.push({ t: 'hurt', dmg: p, poison: true }); }
   }
   if (s.heroHp <= 0) { s.heroHp = 0; endRun(s, false, ev, 'dead'); return; }
-  if (touching.length) { s.feedT += dt; if (s.feedT >= CFG.feedEvery) { s.feedT -= CFG.feedEvery; feed(s, ev, rnd, bossTouch); } }
-  // 4) 화염: 0.5초마다 탄 피해
+  // 4) 불: 0.5초마다 탄 피해
   for (const m of s.mobs.slice()) {
     if (!(m.burn > 0)) continue;
     m.burn -= dt; m.fa += dt;
     if (m.fa >= 0.5) { m.fa -= 0.5; hurtMob(s, m, Math.max(1, Math.round(m.fire * 0.5)), false, ev, 'fire'); if (!s.inDun) return; }
   }
-  // 5) 버피 강타: 6초마다 앞쪽 적 전부를 내리찍는다
+  const inRange = s.mobs.some(m => m.x <= L.range);
+  // 5) 바람: 5초마다 화면의 적을 모두 밀어낸다(보스는 조금)
+  if (windOn(s) && inRange) {
+    s.windT = (s.windT || 0) + dt;
+    if (s.windT >= CFG.windEvery) { s.windT = 0; const push = CFG.windPush + s.enh; for (const m of s.mobs) if (m.x <= L.range) m.x = Math.min(L.spawn, m.x + push * (m.boss ? 0.25 : 1)); if (ev) ev.push({ t: 'wind' }); }
+  }
+  // 6) 버피 강타: 6초마다 주인공 앞 절반의 적을 모두 내리찍는다
   if (burpeeMul(s)) {
     s.burpeeT += dt;
-    if (s.burpeeT >= 6 && touching.length) {
+    if (s.burpeeT >= 6 && s.mobs.some(m => m.x <= L.hero + 130)) {
       s.burpeeT = 0; if (ev) ev.push({ t: 'skill', name: '버피 강타' });
       const r = rollDamage(s, burpeeMul(s), rnd);
-      for (const m of s.mobs.filter(m => m.x <= L.front + 90)) { hurtMob(s, m, r.dmg, r.crit, ev, 'burpee'); if (!s.inDun) return; }
+      for (const m of s.mobs.filter(m => m.x <= L.hero + 130)) { applyHit(s, m, r.dmg, r.crit, ev, 'burpee'); if (!s.inDun) return; }
     }
   }
-  // 6) 주인공 공격: 닿는 적이 있을 때 휘두른다
+  // 7) 주인공 공격: 화면 안에 적이 있으면 원거리로 맞힌다
   const iv = 1 / (speedOf(s) * slow);
   s.atk += dt;
-  const reachable = s.mobs.some(m => m.x <= L.front + L.gap * 2 + 1);
-  if (!reachable) { s.atk = Math.min(s.atk, iv); return; }
+  if (!inRange) { s.atk = Math.min(s.atk, iv); return; }
   while (s.atk >= iv && s.inDun) {
     s.atk -= iv; s.swing++;
     if (ev) ev.push({ t: 'attack', kick: s.weapon === 0 && s.swing % 2 === 0 });
@@ -1710,7 +1727,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794836499067';
+const BUILD_ID = '1794836915216';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2162,7 +2179,7 @@ $('packs').addEventListener('click', e => {
 // ----- 전투 화면 -----
 const scene = $('scene'), ctx = scene.getContext('2d');
 const SCW = 240, SCH = 180; // 전투 화면 크기(도트). 키울수록 캐릭터가 작아 보인다
-const HERO_X = CFG.lane.hero, MON_X = CFG.lane.front + 14, GROUND = 154;
+const HERO_X = CFG.lane.hero, MON_X = 120, GROUND = 154;
 ctx.imageSmoothingEnabled = false;
 function startBattle() {
   show('gameScreen'); vis.weight = weightOf(S); vis.hpShown = 1; vis.dead = null; vis.particles = []; vis.fx = []; vis.hitStop = 0; vis.mv = {}; vis.corpses = []; vis.combo = 0;
@@ -2186,6 +2203,7 @@ function showResult(e) {
     e.retreat ? `${dungeonLabel(e.d)}에서 물러났습니다. 지금까지 얻은 것은 그대로 남습니다.` : e.dead ? `${CH(S).name}의 HP가 바닥났습니다. 지금까지 얻은 것은 그대로 남습니다.` : `보스를 ${CFG.bossTime + (S.run ? S.run.extra : 0)}초 안에 잡지 못했습니다. 지금까지 얻은 것은 그대로 남습니다.`;
   const rows = [['처치', fmtNum(e.kills) + '마리'], ['칼로리', '+' + fmtNum(e.cal)], [`${CH(S).attack}로 ${CH(S).dir < 0 ? '찐' : '빠진'} 체중`, Math.max(0, e.fedKg).toFixed(2) + ' kg']];
   if (e.capKg) rows.push([`${CH(S).verb} 한도`, '+' + e.capKg + ' kg']);
+  if (S.run && S.run.leaks) rows.push(['닿은 잔몹', S.run.leaks + '마리']);
   rows.push(['근피로도', `${CFG.stamMax - stamNow()}/${CFG.stamMax}${ok ? '' : ` (실패라 ${CFG.stamRefund} 덜 쌓임)`}`]);
   if (e.gems) rows.push(['보석', '+' + fmtNum(e.gems)]);
   $('resList').innerHTML = rows.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
@@ -2347,6 +2365,22 @@ function drawFx(c, dt) {
       c.globalAlpha = (1 - q) * .8;
       for (let k = 0; k < 3; k++) { const x = f.x + q * f.len - k * 6; for (let y = -10; y <= 4; y += 2) rect(c, x + Math.sin((y + k) * .8) * 2, f.y + y, 2, 2, k ? '#5fb7ff' : '#d8f2ff'); }
       c.globalAlpha = 1;
+    } else if (f.kind === 'shot') { // 원거리 탄: 0.1초 동안 날아가며 꼬리를 남긴다
+      const q = f.t / .1; if (q >= 1.6) { f.dead = 1; continue; }
+      const u = Math.min(1, q), x = f.x + (f.tx - f.x) * u, y = f.y + (f.ty - f.y) * u - Math.sin(u * Math.PI) * 6;
+      c.globalAlpha = q < 1 ? 1 : Math.max(0, 1.6 - q) / .6;
+      for (let k = 1; k <= 5; k++) { const v = Math.max(0, u - k * .05); rect(c, f.x + (f.tx - f.x) * v, f.y + (f.ty - f.y) * v - Math.sin(v * Math.PI) * 6, 1, 1, f.color); }
+      if (q < 1) rect(c, x - 1, y - 1, f.thick ? 4 : 3, f.thick ? 4 : 3, '#fff'); c.globalAlpha = 1;
+    } else if (f.kind === 'zap') { // 번개: 적과 적 사이를 지그재그로
+      const q = f.t / .22; if (q >= 1) { f.dead = 1; continue; }
+      c.globalAlpha = 1 - q;
+      for (let i = 0; i + 1 < f.pts.length; i++) { const [x0, y0] = f.pts[i], [x1, y1] = f.pts[i + 1]; for (let k = 0; k <= 8; k++) { const u = k / 8; rect(c, x0 + (x1 - x0) * u, y0 + (y1 - y0) * u + (k % 2 ? -3 : 3) * (k && k < 8 ? 1 : 0), 2, 2, k % 2 ? '#fff' : '#ffe14a'); } }
+      c.globalAlpha = 1;
+    } else if (f.kind === 'gust') { // 바람: 화면을 가로지르는 줄
+      const q = f.t / .4; if (q >= 1) { f.dead = 1; continue; }
+      c.globalAlpha = (1 - q) * .8;
+      for (let i = 0; i < 7; i++) { const x = f.x + q * 200 + (i % 3) * 12, y = f.y - 26 + i * 8; rect(c, x, y, 18 - (i % 3) * 4, 1, '#d8f2ff'); }
+      c.globalAlpha = 1;
     } else if (f.kind === 'crumb') { // 먹이기: 음식 부스러기가 주인공 입으로 날아감
       const q = f.t / .4; if (q >= 1) { f.dead = 1; continue; }
       const x = f.x + (f.tx - f.x) * ease.inOut(q), y = f.y + (f.ty - f.y) * q - Math.sin(q * Math.PI) * 12;
@@ -2367,11 +2401,18 @@ function handleEvents(ev, fromTap) {
       vis.atkT = 0; vis.atkDur = Math.min(.34, .9 / speedOf(S)); vis.kick = !!e.kick;
       SFX.play('swing');
     }
-    else if (e.t === 'swing') { // 휘두름: 동시 공격 수만큼 넓게
-      const len = Math.max(18, (e.reach || MON_X) - HERO_X + 6), heavy = HEAVY[weaponOf(S).id];
-      addFx('sweep', HERO_X + 8, GROUND - 16, { len, color: e.tag === 'double' ? '#7fe3ff' : (WEAPON_TRAIL[weaponOf(S).id] || '#fff'), thick: heavy || e.n >= 4, flip: e.tag === 'double' });
-      if (pushOn(S)) addFx('ripple', HERO_X + 10, GROUND - 4, { len });
-      if (e.n >= 4 && !reduceMotion) { vis.hitStop = Math.max(vis.hitStop, .03); }
+    else if (e.t === 'swing') { // 원거리 공격: 맞힌 적마다 탄이 날아간다
+      const col = e.tag === 'double' ? '#7fe3ff' : (WEAPON_TRAIL[weaponOf(S).id] || '#fff'), heavy = HEAVY[weaponOf(S).id];
+      for (const [x, row, boss] of e.xs || []) addFx('shot', HERO_X + 8, GROUND - 22, { tx: x, ty: mobY(row) - (boss ? 26 : 12), color: col, thick: heavy || e.crit });
+      if (e.xs && e.xs[0]) vis.lastTx = e.xs[0][0];
+      if (e.n >= 4 && !reduceMotion) vis.hitStop = Math.max(vis.hitStop, .02);
+    }
+    else if (e.t === 'bolt') { addFx('zap', 0, 0, { pts: e.pts.map(([x, row]) => [x, mobY(row) - 14]) }); if (!B.zapSfx) { B.zapSfx = 1; SFX.play('crit'); } }
+    else if (e.t === 'wind') { addFx('gust', HERO_X + 10, GROUND - 30, {}); SFX.play('dodge'); }
+    else if (e.t === 'leak') { // 잔몹이 닿았다: 부딪히는 충격
+      B.hurt += e.dmg; vis.hurt = 1; burst(HERO_X + 10, GROUND - 18, 8, ['#e0605a', '#fff', '#ffb3a8']); addFx('ring', HERO_X + 8, GROUND - 14, { r: 16, dur: .3, color: '#e0605a' });
+      if (!reduceMotion) shake();
+      vis.corpses.push({ id: e.id, x: HERO_X + 14, y: mobY(e.row) - 12, vx: 40, vy: -60, rot: 0, vr: 8, t: 0.3, sc: 0.62 });
     }
     else if (e.t === 'hit') {
       const vm = (vis.mv[e.u] = vis.mv[e.u] || { flash: 0, knock: 0, squash: 0 });
@@ -2382,7 +2423,6 @@ function handleEvents(ev, fromTap) {
         continue;
       }
       addFx('impact', hx, hy, { crit: e.crit, rot: Math.random() * Math.PI });
-      if (e.tag === 'pierce') addFx('streak', HERO_X + 10, hy, { tx: hx });
       if (e.tag === 'burpee') { // 강타 스킬: 땅을 내리찍는 충격파 + 빛기둥
         if (!B.burpee) { B.burpee = 1; addFx('quake', MON_X + 10, GROUND, { r: 70 }); addFx('pillar', MON_X, 0, { color: CH(S).dir < 0 ? '#ff9a5a' : '#fff6e0' });
           burst(MON_X, GROUND - 20, 22, ['#fff', '#ffd07a', '#ff7a3a']); if (!reduceMotion) { shake(); vis.hitStop = .1; vis.flash = .9; vis.flashColor = CH(S).dir < 0 ? '#ffcf9a' : '#fff6e0'; } SFX.play('slam'); }
@@ -2457,7 +2497,7 @@ function handleEvents(ev, fromTap) {
   if (B.kcal) { vis.kcalAcc = (vis.kcalAcc || 0) + B.kcal; SFX.play('kill', { combo: vis.combo }); }
   if (vis.kcalAcc && (vis.time - (vis.lastKcal || -9) > .6 || B.bossKill)) { popSlot('kcal', 'kcal', `+${fmtNum(vis.kcalAcc)} kcal`, SCW - 44, 16); vis.kcalAcc = 0; vis.lastKcal = vis.time; setTimeout(() => SFX.play('coin'), 120); } // 칼로리는 모아서 0.6초마다
   // 피해: 한 번 휘두른 총 피해 하나(0.3초 간격), 처치: 'N킬!' 또는 콤보를 위쪽 가운데 한 자리에
-  if (B.dmg && vis.time - (vis.lastPop || -9) > .3) { popSlot('dmg', B.crit ? 'crit' : 'dmg', (B.crit ? '치명타 ' : '') + fmtNum(B.dmg), MON_X + 14, GROUND - 56); vis.lastPop = vis.time; }
+  if (B.dmg && vis.time - (vis.lastPop || -9) > .3) { popSlot('dmg', B.crit ? 'crit' : 'dmg', (B.crit ? '치명타 ' : '') + fmtNum(B.dmg), Math.min(SCW - 30, (vis.lastTx || MON_X) + 4), GROUND - 50); vis.lastPop = vis.time; }
   if (B.kills < 3 && vis.combo >= 10 && B.kills && vis.combo % 10 < B.kills) popSlot('kill', 'combo', `${vis.combo - vis.combo % 10} 콤보!`, SCW / 2, 16);
   if (B.kills >= 3) { popSlot('kill', 'oneshot', `${B.kills}킬!` + (vis.combo >= 10 ? ` · ${vis.combo}콤보` : ''), SCW / 2, 16); if (!reduceMotion) { shake(); vis.hitStop = Math.max(vis.hitStop, .05); } SFX.play('crit'); }
   if (B.hurt) { popSlot('hurt', 'hurt', '-' + fmtNum(B.hurt), HERO_X - 12, GROUND - 40); SFX.play('hurt'); }
@@ -2591,7 +2631,7 @@ function loop(ts) {
 function render(dt) {
   const c = ctx; c.clearRect(0, 0, SCW, SCH);
   // 다음 몬스터로 걸어가는 동안(리스폰) 배경이 흐르고 다리가 움직인다
-  const walking = !!(S.inDun && S.mobs && !S.mobs.some(m => m.x <= CFG.lane.front + CFG.lane.gap * 2 + 1));
+  const walking = false; // 방어전: 주인공은 제자리에서 싸운다
   vis.walk += ((walking ? 1 : 0) - vis.walk) * Math.min(1, dt * 10);
   vis.scroll += dt * 70 * vis.walk;
   vis.walkPh += dt * 14 * vis.walk;
@@ -2636,11 +2676,12 @@ function render(dt) {
     vm.flash = Math.max(0, vm.flash - dt * 8); vm.knock = Math.max(0, vm.knock - dt * 30); vm.squash = Math.max(0, vm.squash - dt * 7); vm.hop = Math.max(0, (vm.hop || 0) - dt * 3);
     if (m.flee) vm.run = (vm.run || 0) + dt * 140;
     const id = defOf(S, m).id, sc = m.boss ? 0.95 : 0.62;
-    const moving = m.x > CFG.lane.front + 0.5 + (S.mobs.indexOf(m)) * CFG.lane.gap || m.flee;
+    const moving = m.x > CFG.lane.contact + (m.boss ? 8 : 0) + 0.5 || m.flee;
     const hop = moving ? Math.abs(Math.sin(vis.time * 16 + m.u)) * -2 : 0, jump = vm.hop > 0 ? -Math.sin((1 - vm.hop) * Math.PI) * 10 : 0;
-    const breathe = Math.sin(vis.time * 5 + m.u) * .04, sq = vm.squash * .18, shakeX = m.st > 0 ? (Math.random() * 2 - 1) : 0;
+    const breathe = Math.sin(vis.time * 5 + m.u) * .04, sq = vm.squash * .18, shakeX = 0;
     const x = m.x + vm.knock + shakeX + (vm.run || 0), y = mobY(m.row) + hop + jump;
     drawSprite(c, id, x, y, vis.time, vm.flash, sc * (1 - breathe + sq), sc * (1 + breathe - sq), m.flee ? Math.max(0, 1 - (vm.run || 0) / 120) : 1);
+    if (m.slowT > 0) for (let i = 0; i < 3; i++) rect(c, x - 6 + i * 6, y - 4 - ((vis.time * 20 + i * 5 + m.u) % 8), 1, 2, '#7fd0ff'); // 물: 물방울
     if (m.burn > 0) for (let i = 0; i < 3; i++) { const fx = x - 5 + i * 5, fy = y - (m.boss ? 50 : 26) - ((vis.time * 30 + i * 7 + m.u) % 6); rect(c, fx, fy, 2, 2, i % 2 ? '#ffd07a' : '#ff6a2a'); }
     // 체력 줄: 보스는 크게, 잔몹은 맞은 것만 작게
     const md = defOf(S, m), r2 = Math.max(0, m.hp / md.hp);
