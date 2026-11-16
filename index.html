@@ -872,20 +872,21 @@ function canEnter(s, d) { return !s.done && d >= 1 && d <= Math.min(s.dun.best +
 // ----- 칼로리 버닝 -----
 function burnCapKg(s) { return Math.min(totalLoss(s), s.dun.best * kgPer(s)); }   // 지금까지 바꿀 수 있는 총량
 function burnLimitWeight(s) { const c = CH(s); return c.start + c.dir * burnCapKg(s); }
-function burnableKg(s) { if (s.goal) return 0; return Math.max(0, Math.floor((burnCapKg(s) - s.burned) * 10 + 1e-6) / 10); } // 0.1kg 단위
+function burnableKg(s) { if (s.goal) return 0; return Math.max(0, Math.round((burnCapKg(s) - s.burned) * 1000) / 1000); } // 남은 만큼 정확히(먹이기로 0.001kg 단위가 생길 수 있음)
 // b(kg)만큼 이미 뺀 상태에서 x(kg)를 더 빼는 값. 0.1kg 단위로 더한다
 function burnCostOf(s, x) {
   let cost = 0, b = s.burned;
-  for (let k = 0; k < Math.round(x * 10) - 1e-9; k++) { cost += 0.1 * CFG.burn0 * Math.pow(CFG.burnGrow, (b + k * 0.1) / kgPer(s)); }
+  for (let k = 0; k < Math.ceil(x * 10 - 1e-9); k++) { cost += 0.1 * CFG.burn0 * Math.pow(CFG.burnGrow, (b + k * 0.1) / kgPer(s)); }
   return Math.ceil(cost);
 }
 function maxAffordableBurn(s) { // 칼로리와 한도 안에서 뺄 수 있는 최대 kg (0.1 단위)
   let x = 0; const lim = burnableKg(s);
   while (x + 0.1 <= lim + 1e-9 && burnCostOf(s, x + 0.1) <= s.cal) x = Math.round((x + 0.1) * 10) / 10;
+  if (lim - x > 1e-9 && lim - x < 0.1 && burnCostOf(s, lim) <= s.cal) x = lim; // 0.1kg보다 적게 남은 끝자리
   return x;
 }
 function burn(s, x, ev) {
-  x = Math.min(x, burnableKg(s)); x = Math.floor(x * 10 + 1e-9) / 10;
+  const room = burnableKg(s); x = Math.min(x, room); x = room - x < 0.1 ? room : Math.floor(x * 10 + 1e-9) / 10; // 끝자리는 남은 만큼
   if (x <= 0) return false;
   const cost = burnCostOf(s, x); if (cost > s.cal) return false;
   s.cal -= cost; s.burned = Math.round((s.burned + x) * 100) / 100; s.maxBurned = Math.max(s.maxBurned, s.burned);
