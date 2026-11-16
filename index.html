@@ -481,6 +481,11 @@ html,body{height:100%;overflow:hidden}
 .boosts .buy{padding:10px 6px;font-size:14px}
 .retreatRow{display:flex;gap:8px} .retreatRow button{flex:1}
 .primary.danger{background:#e0605a;color:#fff;box-shadow:inset 0 -4px 0 #8c2f2b,inset 0 3px 0 #ff9a8f}
+.enterRow{display:flex;gap:6px;margin-top:12px;align-items:stretch}
+.enterRow .primary{flex:1;margin:0}
+.enterRow .primary small{display:block;font-size:12px;font-weight:400;opacity:.85}
+.kUse{flex:none;width:118px;font-size:15px;padding:6px 4px;line-height:1.3}
+.kUse small{display:block;font-size:10px;font-weight:400}
 </style>
 </head>
 <body>
@@ -518,7 +523,7 @@ html,body{height:100%;overflow:hidden}
         <div class="tbWeight"><span class="tbName" id="tbName">강산해</span><b id="hubW">120.0</b><small>kg</small><span class="tbGoal">목표 <b id="hubGoal">75 kg</b></span></div>
         <div class="tbWallet">
           <span class="cur calC"><span class="ico cal"></span><b id="wCal">0</b></span>
-          <span class="cur stamC" id="stamChip" title="근손실: 던전에 들어갈 때마다 쌓이고 1분에 1씩 회복"><span class="lbl">근손실</span><b id="wStam">0</b><small id="wStamT"></small></span>
+          <span class="cur stamC" id="stamChip" title="근피로도: 던전에 들어갈 때마다 쌓이고 1분에 1씩 줄어듦"><span class="lbl">근피로도</span><b id="wStam">0</b><small id="wStamT"></small></span>
           <span class="cur gemC"><span class="ico gem"></span><b id="wGem">0</b><button class="plus" id="chargeBtn" aria-label="보석 충전">+</button></span>
         </div>
       </div>
@@ -591,7 +596,7 @@ html,body{height:100%;overflow:hidden}
       <div class="sheetHead"><b>스킨 뽑기</b><button class="back sheetClose">닫기</button></div>
       <div class="sheetBody">
         <div class="gemHead"><span>보유 보석 <b id="gemV3">0</b></span><button class="buy gemBuy" id="chargeBtn3">보석 충전</button></div>
-        <p class="hint">스킨은 모양만 바꿉니다. 뽑은 스킨은 아래에서 입고 벗을 수 있습니다.</p>
+        <p class="hint">스킨을 입으면 능력치가 붙습니다. 전설은 공격력·최대 HP +20%, 희귀는 몬스터 칼로리 +20%입니다. 뽑은 스킨은 아래에서 입고 벗을 수 있습니다.</p>
         <div class="card gachaCard"><button class="buy gemBuy gachaBtn" id="gachaBtn">1회 뽑기<small>보석 100</small></button><p class="hint" id="gachaOdds">전설 15% · 희귀 35% (스킨마다) · 이미 가진 스킨이 나오면 보석 30개를 돌려받습니다</p></div>
         <ul class="grid2" id="skinList"></ul>
       </div>
@@ -613,7 +618,7 @@ html,body{height:100%;overflow:hidden}
     <div class="dunHead">
       <button class="back" id="dunBack">‹ 정비</button>
       <div class="dunTitle">던전 입장</div>
-      <div class="myPower"><span class="k">근손실 <b id="dunStam">0</b>/60</span><span class="k">내 전투력</span><b id="dunPower">0</b></div>
+      <div class="myPower"><span class="k">근피로도 <b id="dunStam">0</b>/60</span><span class="k">내 전투력</span><b id="dunPower">0</b></div>
     </div>
     <div class="regionTabs" id="regionTabs"></div>
     <div class="mapWrap" id="mapWrap"><canvas id="mapCv" class="pix" width="160" height="110"></canvas><div id="mapNodes"></div><div class="mapTitle" id="mapTitle">-</div></div>
@@ -628,7 +633,7 @@ html,body{height:100%;overflow:hidden}
         <div class="tbWeight"><b id="wNum">120.0</b><small>kg</small><span class="tbGoal">목표 <b id="goalV">-</b></span></div>
         <div class="dunName" id="dunName">-</div>
       </div>
-      <div class="gStam">근손실 <b id="gStam">0</b>/60 <small id="gStamT"></small></div>
+      <div class="gStam">근피로도 <b id="gStam">0</b>/60 <small id="gStamT"></small></div>
       <div class="bar thin"><div id="wBar"></div></div>
       <div class="barLabels"><span id="startLbl">120 kg</span><span id="remain">남은 체중 -</span><span id="pct">0%</span></div>
     </div>
@@ -715,10 +720,10 @@ html,body{height:100%;overflow:hidden}
 </div>
 <div class="confirm" id="stamModal">
   <div class="card result stamCard">
-    <div class="resTitle" id="stamTitle">근손실</div>
+    <div class="resTitle" id="stamTitle">근피로도</div>
     <div class="stamBig"><b id="stamBigV">0</b><span>/60</span></div>
     <p class="resSub" id="stamSub">-</p>
-    <p class="sectionK">보석으로 회복 촉진</p>
+    <p class="sectionK">보석으로 바로 줄이기</p>
     <div class="boosts" id="boosts"></div>
     <button class="secondary" id="stamClose">닫기</button>
   </div>
@@ -726,7 +731,7 @@ html,body{height:100%;overflow:hidden}
 <div class="confirm" id="retreatModal">
   <div class="card result">
     <div class="resTitle fail">후퇴할까요?</div>
-    <p class="resSub">지금까지 얻은 칼로리는 남고, 실패로 쳐서 근손실은 3 덜 쌓입니다. 던전은 다시 처음부터입니다.</p>
+    <p class="resSub">지금까지 얻은 칼로리는 남고, 실패로 쳐서 근피로도는 3 덜 쌓입니다. 던전은 다시 처음부터입니다.</p>
     <div class="row retreatRow"><button class="secondary" id="retreatNo">취소</button><button class="primary danger" id="retreatYes">후퇴</button></div>
   </div>
 </div>
@@ -795,8 +800,8 @@ const GEM_SHOP = [
   { id: 'diamond', name: '다이아 바벨', price: 300, kind: 'weapon', desc: '보석 전용 무기 · 공격력 250 · 치명타 25%' },
   { id: 'boost', name: '프로틴 부스터', price: 40, kind: 'item', desc: '다음 던전 한 번 공격력 x5' },
   { id: 'time', name: '보스 시간 연장권', price: 20, kind: 'item', desc: '다음 던전 보스 제한 시간 +30초' },
-  { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '칼로리 +(다음 던전 3번 돈 만큼)' },
-  { id: 'stam', name: '근손실 회복 촉진', price: 20, kind: 'item', desc: '1시간 동안 근손실이 2배 빨리 줄어듭니다' },
+  { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '보관했다가 던전 입장 화면에서 씁니다' },
+  { id: 'stam', name: '근피로도 회복', price: 10, kind: 'item', desc: '보석으로 근피로도를 바로 20 또는 40 줄입니다' },
   { id: 'gold', name: '황금 테마', price: 120, kind: 'theme', desc: '화면 색을 금빛으로 바꿉니다' },
   { id: 'neon', name: '네온 테마', price: 120, kind: 'theme', desc: '화면 색을 네온으로 바꿉니다' },
   { id: 'band', name: '금빛 머리띠', price: 60, kind: 'look', desc: '강산해의 머리띠가 금빛으로 바뀝니다' },
@@ -860,7 +865,7 @@ function newState(ch) {
   ch = typeof ch === 'string' ? ch : 'sanhae'; setChar(ch);
   const s = { v: 5, ch, target: CHARS[ch].target, goal: false, cal: 0, calTotal: 0, burned: 0, maxBurned: 0, weapon: 0, enh: 0, enhCount: 0,
     gems: 0, gemsSpent: 0, charged: 0,
-    own: { w: [true], a: [0, 0, 0], d: [0, 0, 0] }, items: { boost: 0, time: 0 }, cos: { owned: {}, theme: '', band: false },
+    own: { w: [true], a: [0, 0, 0], d: [0, 0, 0] }, items: { boost: 0, time: 0, kcal: 0 }, cos: { owned: {}, theme: '', band: false },
     dun: { best: 0, clears: {}, fails: 0 }, inDun: false, run: null,
     burpeeT: 0, squatT: 0, feedT: 0, feeds: 0, fed: 0, dodged: 0,
     kills: 0, stage: 1, idx: 0, hp: 0, atk: 0, swing: 0, respawn: 0, time: 0, done: false };
@@ -875,7 +880,11 @@ function weaponOf(s) { return WEAPONS[s.weapon]; }
 function lvOf(s, kind, id) { const i = SHOP[kind].findIndex(x => x.id === id); return s.own[kind][i] || 0; }
 function has(s, kind, id) { return lvOf(s, kind, id) > 0; }
 function boostOf(s) { return s.inDun && s.run ? s.run.boost : 1; }
-function baseAtkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh); }
+// 스킨 능력치(입고 있을 때만): 전설(해병·육군)은 공격력·최대 HP +20%, 희귀(아기)는 몬스터 칼로리 +20%
+const SKIN_BONUS = { marine: { atk: 0.2, hp: 0.2 }, army: { atk: 0.2, hp: 0.2 }, baby: { kcal: 0.2 } };
+function skinBonus(s, k) { const b = s.skin && SKIN_BONUS[s.skin]; return (b && b[k]) || 0; }
+function skinBonusText(skin) { const b = SKIN_BONUS[skin] || {}, t = []; if (b.atk) t.push(`공격력 +${Math.round(b.atk * 100)}%`); if (b.hp) t.push(`최대 HP +${Math.round(b.hp * 100)}%`); if (b.kcal) t.push(`몬스터 칼로리 +${Math.round(b.kcal * 100)}%`); return t.join(', '); }
+function baseAtkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh) * (1 + skinBonus(s, 'atk')); }
 function atkOf(s) { return baseAtkOf(s) * boostOf(s); }
 function squatBonus(s) { const lv = lvOf(s, 'a', 'squat'); return lv ? 0.15 + (lv - 1) * 0.05 : 0; }
 function squatOn(s) { return squatBonus(s) > 0 && (s.squatT % 10) < 5; }
@@ -919,7 +928,7 @@ function monsterOf(s) {
 // 주인공 최대 HP
 function maxHpOf(s) {
   const defLv = (s.own.d || []).reduce((a, b) => a + (b || 0), 0);
-  return Math.round(CFG.heroHp0 * Math.pow(CFG.heroHpGrow, s.dun.best) * (1 + CFG.hpPerEnh * s.enh) * (1 + CFG.hpPerDef * defLv));
+  return Math.round(CFG.heroHp0 * Math.pow(CFG.heroHpGrow, s.dun.best) * (1 + CFG.hpPerEnh * s.enh) * (1 + CFG.hpPerDef * defLv) * (1 + skinBonus(s, 'hp')));
 }
 // 던전 정보
 function regionOf(d) { const r = Math.floor((d - 1) / 5); return { no: r + 1, sub: (d - 1) % 5 + 1, name: REGIONS[Math.min(r, REGIONS.length - 1)] }; }
@@ -1023,11 +1032,17 @@ function gemBuy(s, id, ev) {
   if (id === 'diamond') { s.own.w[7] = true; const prev = baseAtkOf(s); s.weapon = 7; s.enh = 0; while (baseAtkOf(s) < prev && s.enh < CFG.enhMax) s.enh++; }
   else if (id === 'boost') s.items.boost++;
   else if (id === 'time') s.items.time++;
-  else if (id === 'kcalbox') s.cal += kcalBoxOf(s);
-  else if (id === 'stam') { /* 체력은 화면 쪽(프로필)에 있어 그쪽에서 채운다 */ }
+  else if (id === 'kcalbox') s.items.kcal = (s.items.kcal || 0) + 1; // 보관했다가 던전 입장 화면에서 쓴다
+  else if (id === 'stam') { /* 근피로도는 화면 쪽(프로필)에 있어 근피로도 창에서 줄인다 */ }
   else if (it.kind === 'theme') { s.cos.owned[id] = true; s.cos.theme = id; }
   else if (id === 'band') { s.cos.owned.band = true; s.cos.band = true; }
   if (ev) ev.push({ t: 'gembuy', name: it.name, id });
+  return true;
+}
+function useKcalBox(s, ev) { // 칼로리 상자 하나 열기: 쓰는 때의 진행도 기준(다음 던전 3번 돈 만큼)
+  if (!(s.items.kcal > 0) || s.inDun) return false;
+  const k = kcalBoxOf(s); s.items.kcal--; s.cal += k;
+  if (ev) ev.push({ t: 'kcalbox', kcal: k });
   return true;
 }
 function charge(s, i, ev) { const p = CHARGE_PACKS[i]; s.gems += p.gems + p.bonus; s.charged += p.gems + p.bonus; if (ev) ev.push({ t: 'charge', gems: p.gems + p.bonus }); }
@@ -1067,11 +1082,11 @@ function hit(s, dmg, crit, ev, tag) {
   s.hp -= dmg;
   if (ev) ev.push({ t: 'hit', dmg, crit, tag });
   if (s.hp <= 0) {
-    const m = monsterOf(s), oneShot = dmg >= m.hp;
-    s.cal += m.kcal; s.calTotal += m.kcal; s.kills++;
-    s.run.kills++; s.run.cal += m.kcal;
+    const m = monsterOf(s), oneShot = dmg >= m.hp, kc = Math.round(m.kcal * (1 + skinBonus(s, 'kcal')));
+    s.cal += kc; s.calTotal += kc; s.kills++;
+    s.run.kills++; s.run.cal += kc;
     // HP는 던전이 끝날 때까지 회복하지 않는다
-    if (ev) ev.push({ t: 'kill', cal: m.kcal, boss: m.boss, name: m.name, id: m.id, oneShot });
+    if (ev) ev.push({ t: 'kill', cal: kc, boss: m.boss, name: m.name, id: m.id, oneShot });
     if (m.boss) { endRun(s, true, ev); return; }
     s.idx++;
     s.hp = monsterOf(s).hp;
@@ -1609,7 +1624,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794822900888';
+const BUILD_ID = '1794834123674';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -1649,7 +1664,7 @@ function migrateChar(o) {
   return s;
 }
 function newProfile() { const s = newState('sanhae'); return { v: 6, cur: 'sanhae', chars: { sanhae: s }, gems: 0, cos: s.cos, unlocked: { sanhae: true }, skins: {}, stam: { v: CFG.stamMax, t: Date.now() } }; }
-// 스킨 뽑기: 보석 100개로 한 번. 이미 가진 스킨이 나오면 보석 30개를 돌려준다. 스킨은 모양만 바꾼다(능력치 변화 없음)
+// 스킨 뽑기: 보석 100개로 한 번. 이미 가진 스킨이 나오면 보석 30개를 돌려준다. 입고 있으면 능력치가 붙는다(SKIN_BONUS)
 const SKINS = [
   { key: 'sanhae:marine', ch: 'sanhae', skin: 'marine', name: '해병 강산해', rare: '전설', w: 15 },
   { key: 'hyuksu:army', ch: 'hyuksu', skin: 'army', name: '육군 김혁수', rare: '전설', w: 15 },
@@ -1837,7 +1852,7 @@ function updateHub() {
   const items = [];
   if (S.items.boost) items.push(`프로틴 부스터 <b>${S.items.boost}</b>개`);
   if (S.items.time) items.push(`보스 시간 연장권 <b>${S.items.time}</b>개`);
-  $('hubItems').innerHTML = items.length ? items.join(' · ') + '<br>다음 던전 입장 때 자동 사용' : '';
+  $('hubItems').innerHTML = (items.length ? items.join(' · ') + '<br>다음 던전 입장 때 자동 사용' : '') + (S.items.kcal > 0 ? `${items.length ? '<br>' : ''}칼로리 상자 <b>${S.items.kcal}</b>개 · 던전 입장 화면에서 사용` : '');
   const next = Math.min(CFG.dungeons, S.dun.best + 1), rec = recPowerOf(next), pw = powerOf(S);
   $('nextInfo').innerHTML = S.dun.best >= CFG.dungeons ? '던전 30개를 모두 깼습니다. 깬 던전에서 칼로리를 모을 수 있습니다.' :
     `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>`;
@@ -1901,12 +1916,17 @@ function goDungeons() {
   running = false; show('dungeonScreen'); selD = Math.min(CFG.dungeons, S.dun.best + 1); selR = regionOf(selD).no; renderDungeons();
 }
 $('dunBack').addEventListener('click', () => goHub());
+$('dunMap').addEventListener('click', e => {
+  if (!e.target.closest('#useKcal') || !S) return;
+  const ev = []; if (useKcalBox(S, ev)) { handleEvents(ev, false); save(); renderDungeons(); }
+});
 function renderDungeons() {
   const pw = powerOf(S), best = S.dun.best, next = Math.min(CFG.dungeons, best + 1), nReg = CFG.dungeons / 5;
   $('dunPower').textContent = fmtNum(pw);
   const items = [];
   if (S.items.boost) items.push(`프로틴 부스터(공격력 x5) ${S.items.boost}개`);
   if (S.items.time) items.push(`보스 시간 연장권(+30초) ${S.items.time}개`);
+  const kBtn = S.items.kcal > 0 ? `<button class="buy kUse" id="useKcal">사용하기<small>칼로리 상자 ${S.items.kcal}개<br>+${fmtNum(kcalBoxOf(S))} kcal</small></button>` : '';
   $('dunItemNote').textContent = items.length ? `들어갈 때 하나씩 자동으로 씁니다: ${items.join(', ')}` : '깬 던전은 다시 들어가 칼로리를 모을 수 있습니다.';
   let tabs = '';
   for (let r = 1; r <= nReg; r++) {
@@ -1919,7 +1939,7 @@ function renderDungeons() {
   let html = '<div class="region">';
   if (selD >= d0 && selD < d0 + 5) {
     const rec = recPowerOf(selD), first = selD > best;
-    html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스${selD === CFG.dungeons ? `(마지막: ${CH(S).finalBoss.name})` : ''}, 제한 시간 ${CFG.bossTime}초<br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b> · HP <b class=${maxHpOf(S) >= bossDangerOf(selD) ? 'ok' : 'low'}>${fmtNum(maxHpOf(S))}</b>(이 던전에서 버텨야 할 양 약 ${fmtNum(bossDangerOf(selD))}, 던전 안에서는 회복 없음)<br>칼로리 약 ${fmtNum(dungeonKcalOf(selD))}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems} · ${CH(S).verb} 한도 +${kgPer(S).toFixed(1)} kg` : ''}<button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장 · 근손실 +${CFG.stamCost}</button></div>`;
+    html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스${selD === CFG.dungeons ? `(마지막: ${CH(S).finalBoss.name})` : ''}, 제한 시간 ${CFG.bossTime}초<br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b> · HP <b class=${maxHpOf(S) >= bossDangerOf(selD) ? 'ok' : 'low'}>${fmtNum(maxHpOf(S))}</b>(이 던전에서 버텨야 할 양 약 ${fmtNum(bossDangerOf(selD))}, 던전 안에서는 회복 없음)<br>칼로리 약 ${fmtNum(dungeonKcalOf(selD))}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems} · ${CH(S).verb} 한도 +${kgPer(S).toFixed(1)} kg` : ''}<div class="enterRow"><button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장<small>근피로도 +${CFG.stamCost}</small></button>${kBtn}</div></div>`;
   } else html += `<p class="hint center">위에서 던전을 고르세요.</p>`;
   html += '</div>';
   $('dunMap').innerHTML = html;
@@ -1961,72 +1981,66 @@ function drawMap(d0, best, next) {
 }
 
 // ----- 체력: 프로필에 하나(두 캐릭터가 함께 씀). 마지막 계산 시각부터 흐른 시간만큼 회복 -----
-// 내부 값 v는 '남은 여유'(화면의 근손실 = 최대 - v). acc는 다음 1 회복까지 쌓인 시간(촉진 배율을 곱한 값)
-const BOOSTS = [{ mul: 2, hours: 1, gems: 20 }, { mul: 4, hours: 1, gems: 50 }];
-function effMs(a, b) { // a~b 사이 실제 시간을 촉진 배율을 곱한 시간으로
-  const bo = PRO && PRO.stamBoost; if (!bo || bo.until <= a) return b - a;
-  const mid = Math.min(b, bo.until); return (mid - a) * bo.mul + Math.max(0, b - mid);
-}
+// 내부 값 v는 '남은 여유'(화면의 근피로도 = 최대 - v). acc는 다음 1 회복까지 쌓인 시간
+const STAM_PACKS = [{ n: 20, gems: 10 }, { n: 40, gems: 18 }]; // 보석으로 근피로도를 바로 줄이는 양
 function stamNow() {
   if (!PRO) return CFG.stamMax;
   const now = Date.now();
   if (!PRO.stam) PRO.stam = { v: CFG.stamMax, t: now };
   const st = PRO.stam; if (st.last == null) { st.last = st.t || now; st.acc = 0; }
   if (st.v >= CFG.stamMax) { st.v = CFG.stamMax; st.acc = 0; st.last = now; return st.v; }
-  st.acc += effMs(st.last, now); st.last = now;
+  st.acc += now - st.last; st.last = now;
   const gain = Math.floor(st.acc / CFG.stamRegenMs);
   if (gain > 0) { st.v = Math.min(CFG.stamMax, st.v + gain); st.acc -= gain * CFG.stamRegenMs; if (st.v >= CFG.stamMax) st.acc = 0; }
   return st.v;
 }
-function boostMul() { const bo = PRO && PRO.stamBoost; return bo && bo.until > Date.now() ? bo.mul : 1; }
-function stamNextSec() { if (!PRO || !PRO.stam || stamNow() >= CFG.stamMax) return 0; return Math.ceil((CFG.stamRegenMs - PRO.stam.acc) / boostMul() / 1000); }
+function stamNextSec() { if (!PRO || !PRO.stam || stamNow() >= CFG.stamMax) return 0; return Math.ceil((CFG.stamRegenMs - PRO.stam.acc) / 1000); }
 function stamUse(n) { const v = stamNow(); if (v < n) return false; PRO.stam.v = v - n; save(); return true; }
 function stamAdd(n) { stamNow(); PRO.stam.v = Math.min(CFG.stamMax, PRO.stam.v + n); save(); }
-function buyBoost(i) { // 보석으로 회복 촉진: 같은 배율이면 시간 연장, 더 높은 배율이면 바꾼다
-  const b = BOOSTS[i]; if (S.gems < b.gems) return false;
-  stamNow(); S.gems -= b.gems; S.gemsSpent = (S.gemsSpent || 0) + b.gems;
-  const now = Date.now(), bo = PRO.stamBoost && PRO.stamBoost.until > now ? PRO.stamBoost : null;
-  PRO.stamBoost = bo && bo.mul === b.mul ? { mul: b.mul, until: bo.until + b.hours * 3600000 } : { mul: Math.max(b.mul, bo ? bo.mul : 1), until: (bo && bo.mul > b.mul ? bo.until : now) + b.hours * 3600000 };
-  save(); return true;
+function buyStamPack(i) { // 보석으로 근피로도를 바로 줄인다(0 아래로는 안 내려감)
+  const p = STAM_PACKS[i]; if (S.gems < p.gems || stamNow() >= CFG.stamMax) return false;
+  S.gems -= p.gems; S.gemsSpent = (S.gemsSpent || 0) + p.gems; stamAdd(p.n); return true;
 }
 function fmtMS(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function refreshStam() {
   if (!PRO) return;
   const v = stamNow(), nx = stamNextSec();
-  const loss = CFG.stamMax - v; // 화면에는 쌓인 근손실로 보여 준다
-  if ($('wStam')) { $('wStam').textContent = loss + '/' + CFG.stamMax; $('wStamT').textContent = (boostMul() > 1 ? 'x' + boostMul() + ' ' : '') + (nx ? '-1 ' + fmtMS(nx) : ''); $('stamChip').classList.toggle('full', v < CFG.stamCost); }
+  const loss = CFG.stamMax - v; // 화면에는 쌓인 근피로도로 보여 준다
+  if ($('wStam')) { $('wStam').textContent = loss + '/' + CFG.stamMax; $('wStamT').textContent = nx ? '-1 ' + fmtMS(nx) : ''; $('stamChip').classList.toggle('full', v < CFG.stamCost); }
   if ($('dunStam')) $('dunStam').textContent = loss;
   if ($('gStam')) { $('gStam').textContent = loss; $('gStamT').textContent = nx ? '(1 회복까지 ' + fmtMS(nx) + ')' : ''; }
 }
 setInterval(refreshStam, 1000);
-// 근손실 창: 상단 근손실 칸을 누르거나, 근손실이 다 차서 못 들어갈 때 연다
+// 근피로도 창: 상단 근피로도 칸을 누르거나, 근피로도가 다 차서 못 들어갈 때 연다
 function openStam(blocked) {
-  const loss = CFG.stamMax - stamNow(), mul = boostMul(), bo = PRO.stamBoost;
-  $('stamTitle').textContent = blocked ? '근손실이 너무 쌓였다' : '근손실';
+  const loss = CFG.stamMax - stamNow();
+  $('stamTitle').textContent = blocked ? '근피로도가 너무 쌓였다' : '근피로도';
   $('stamTitle').classList.toggle('fail', !!blocked);
   $('stamBigV').textContent = loss;
-  const wait = blocked ? Math.max(0, Math.ceil(((CFG.stamCost - stamNow() - 1) * CFG.stamRegenMs / mul) / 1000) + stamNextSec()) : 0;
-  $('stamSub').innerHTML = (blocked ? `던전에 한 번 들어가면 근손실이 ${CFG.stamCost} 쌓이고, ${CFG.stamMax}이 넘으면 들어갈 수 없습니다. 약 <b>${fmtMS(wait)}</b> 뒤 들어갈 수 있습니다.<br>` : `던전에 한 번 들어가면 ${CFG.stamCost} 쌓입니다. 앱을 닫아 둔 동안에도 줄어듭니다.<br>`)
-    + `회복 속도: <b>시간당 ${60 * mul}</b>${mul > 1 ? ` (촉진 x${mul}, 남은 시간 ${fmtMS(Math.ceil((bo.until - Date.now()) / 1000))})` : ''}${loss > 0 ? ` · 다음 1 회복까지 ${fmtMS(stamNextSec())}` : ''}`;
-  $('boosts').innerHTML = BOOSTS.map((b, i) => `<button class="buy gemBuy" data-boost="${i}">${b.hours}시간 회복 ${b.mul}배<small>보석 ${b.gems}${S.gems < b.gems ? ' · 충전하기' : ''}</small></button>`).join('');
+  const wait = blocked ? Math.max(0, Math.ceil(((CFG.stamCost - stamNow() - 1) * CFG.stamRegenMs) / 1000) + stamNextSec()) : 0;
+  $('stamSub').innerHTML = (blocked ? `던전에 한 번 들어가면 근피로도가 ${CFG.stamCost} 쌓이고, ${CFG.stamMax}이 넘으면 들어갈 수 없습니다. 약 <b>${fmtMS(wait)}</b> 뒤 들어갈 수 있습니다.<br>` : `던전에 한 번 들어가면 ${CFG.stamCost} 쌓입니다. 앱을 닫아 둔 동안에도 줄어듭니다.<br>`)
+    + `1분에 1씩 줄어듭니다${loss > 0 ? ` · 다음 1 회복까지 ${fmtMS(stamNextSec())}` : ''}`;
+  $('boosts').innerHTML = STAM_PACKS.map((p, i) => `<button class="buy gemBuy" data-boost="${i}" ${loss > 0 ? '' : 'disabled'}>근피로도 -${p.n}<small>보석 ${p.gems}${loss <= 0 ? ' · 줄일 것 없음' : S.gems < p.gems ? ' · 충전하기' : ''}</small></button>`).join('');
   $('stamModal').classList.add('on');
 }
-function needStam(onOk) { // 근손실이 들어갈 만큼 남았으면 쌓고 onOk, 아니면 근손실 창
+function needStam(onOk) { // 근피로도가 들어갈 만큼 남았으면 쌓고 onOk, 아니면 근피로도 창
   if (stamUse(CFG.stamCost)) { refreshStam(); onOk(); return true; }
   openStam(true); return false;
 }
 $('stamClose').addEventListener('click', () => $('stamModal').classList.remove('on'));
 $('stamChip').addEventListener('click', () => openStam(false));
 $('boosts').addEventListener('click', e => {
-  const b = e.target.closest('button[data-boost]'); if (!b) return;
-  const i = Number(b.dataset.boost);
-  if (S.gems < BOOSTS[i].gems) { $('stamModal').classList.remove('on'); openCharge(); return; }
-  if (buyBoost(i)) { refreshStam(); celebrate(`회복 ${BOOSTS[i].mul}배`, `${BOOSTS[i].hours}시간 동안 근손실이 빨리 줄어듭니다`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
+  const b = e.target.closest('button[data-boost]'); if (!b || b.disabled) return;
+  const i = Number(b.dataset.boost), p = STAM_PACKS[i];
+  if (S.gems < p.gems) { $('stamModal').classList.remove('on'); openCharge(); return; }
+  const before = CFG.stamMax - stamNow();
+  if (buyStamPack(i)) { const after = CFG.stamMax - stamNow(); refreshStam(); celebrate(`근피로도 -${before - after}`, `${before}에서 ${after}로`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
+
 });
-// 자동 진행: 클리어하면 다음 던전, 실패하면 마지막으로 깬 던전을 반복. 근손실이 다 차면 멈춘다
+// 자동 진행: 클리어하면 다음 던전, 실패하면 마지막으로 깬 던전을 반복. 근피로도가 다 차면 멈춘다
 let AUTO = false; try { AUTO = localStorage.getItem('gangsanhae-auto') === 'on'; } catch (e) {}
 function refreshAuto() { $('autoBtn').innerHTML = '자동<br>' + (AUTO ? '켬' : '끔'); $('autoBtn').classList.toggle('on', AUTO); }
-$('autoBtn').addEventListener('click', () => { AUTO = !AUTO; refreshAuto(); try { localStorage.setItem('gangsanhae-auto', AUTO ? 'on' : 'off'); } catch (e) {} toast(AUTO ? '자동 진행 켬: 던전이 끝나면 근손실이 다 차기 전까지 다음 던전으로 들어갑니다' : '자동 진행 끔', 2200); });
+$('autoBtn').addEventListener('click', () => { AUTO = !AUTO; refreshAuto(); try { localStorage.setItem('gangsanhae-auto', AUTO ? 'on' : 'off'); } catch (e) {} toast(AUTO ? '자동 진행 켬: 던전이 끝나면 근피로도가 다 차기 전까지 다음 던전으로 들어갑니다' : '자동 진행 끔', 2200); });
 refreshAuto();
 // 전투 중 알림: 전투 장면 바로 아래 줄에 잠깐 띄운다(아래 단추를 가리지 않음)
 let noteUntil = 0;
@@ -2038,7 +2052,7 @@ function autoNext(e) { // 끝난 던전 결과를 받아 다음 입장을 정한
   if (!AUTO || S.goal && false) return false;
   const d = e.t === 'clear' ? Math.min(CFG.dungeons, S.dun.best + 1) : Math.max(1, Math.min(S.dun.best, e.d));
   if (!canEnter(S, d)) return false;
-  if (stamNow() < CFG.stamCost) { toast('근손실이 너무 쌓여 자동 진행을 멈췄습니다', 2600); return false; }
+  if (stamNow() < CFG.stamCost) { toast('근피로도가 너무 쌓여 자동 진행을 멈췄습니다', 2600); return false; }
   stamUse(CFG.stamCost); refreshStam();
   const msg = `${e.t === 'clear' ? dungeonLabel(e.d) + ' 클리어' : dungeonLabel(e.d) + ' 실패'} · 칼로리 +${fmtNum(e.cal)} → 자동으로 ${dungeonLabel(d)} 입장`;
   const ev = []; enterDungeon(S, d, ev); save(); startBattle(); handleEvents(ev, false); bnote(msg, 2600);
@@ -2084,7 +2098,7 @@ function showResult(e) {
     e.retreat ? `${dungeonLabel(e.d)}에서 물러났습니다. 지금까지 얻은 것은 그대로 남습니다.` : e.dead ? `${CH(S).name}의 HP가 바닥났습니다. 지금까지 얻은 것은 그대로 남습니다.` : `보스를 ${CFG.bossTime + (S.run ? S.run.extra : 0)}초 안에 잡지 못했습니다. 지금까지 얻은 것은 그대로 남습니다.`;
   const rows = [['처치', fmtNum(e.kills) + '마리'], ['칼로리', '+' + fmtNum(e.cal)], [`${CH(S).attack}로 ${CH(S).dir < 0 ? '찐' : '빠진'} 체중`, Math.max(0, e.fedKg).toFixed(2) + ' kg']];
   if (e.capKg) rows.push([`${CH(S).verb} 한도`, '+' + e.capKg + ' kg']);
-  rows.push(['근손실', `${CFG.stamMax - stamNow()}/${CFG.stamMax}${ok ? '' : ` (실패라 ${CFG.stamRefund} 덜 쌓임)`}`]);
+  rows.push(['근피로도', `${CFG.stamMax - stamNow()}/${CFG.stamMax}${ok ? '' : ` (실패라 ${CFG.stamRefund} 덜 쌓임)`}`]);
   if (e.gems) rows.push(['보석', '+' + fmtNum(e.gems)]);
   $('resList').innerHTML = rows.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
   const rec = recPowerOf(e.d), pw = powerOf(S);
@@ -2264,10 +2278,10 @@ function handleEvents(ev, fromTap) {
       SFX.play('buy');
     } else if (e.t === 'levelup') {
       toast(`<b>${e.name}</b> Lv${e.lv}`, 1800); SFX.play('enhance'); celebrate(`${e.name} Lv${e.lv}`, '스킬 레벨업');
-    } else if (e.t === 'gembuy' && e.id === 'stam') {
-      S.gems += 20; buyBoost(0); refreshStam(); toast('1시간 동안 근손실이 2배 빨리 줄어듭니다', 2000); SFX.play('buy'); celebrate('회복 2배', '1시간', 'unlock');
+    } else if (e.t === 'kcalbox') {
+      toast(`칼로리 상자를 열었습니다 · 칼로리 <b>+${fmtNum(e.kcal)}</b>`, 2000); SFX.play('coin'); celebrate(`칼로리 +${fmtNum(e.kcal)}`, '칼로리 상자', 'unlock');
     } else if (e.t === 'gembuy') {
-      toast(`<b>${e.name}</b> 구입`, 2000); SFX.play('buy'); applyTheme();
+      toast(`<b>${e.name}</b> 구입${e.id === 'kcalbox' ? '<br>던전 입장 화면에서 사용하기를 누르면 열립니다' : ''}`, 2400); SFX.play('buy'); applyTheme();
     } else if (e.t === 'charge') {
       toast(`보석 <b>${fmtNum(e.gems)}</b>개를 충전했습니다 (테스트, 결제 없음)`, 2400); SFX.play('round');
     } else if (e.t === 'unlock') {
@@ -2328,7 +2342,7 @@ $('enhBtn').addEventListener('click', () => {
   const ev = []; if (enhance(S, ev)) { handleEvents(ev, false); save(); updateHub(); }
 });
 // 정비 화면의 구입·레벨업 단추 (목록을 다시 그리므로 위임으로 받는다)
-$('skinList').addEventListener('click', e => { const b = e.target.closest('button[data-skin]'); if (!b || !S) return; S.skin = b.dataset.skin; save(); panelKey = ''; updateHub(); if (S.skin) { celebrate('스킨 장착', SKINS.find(k => k.ch === S.ch && k.skin === S.skin).name, 'unlock'); SFX.play('buy'); } });
+$('skinList').addEventListener('click', e => { const b = e.target.closest('button[data-skin]'); if (!b || !S) return; S.skin = b.dataset.skin; save(); panelKey = ''; updateHub(); if (S.skin) { celebrate('스킨 장착', SKINS.find(k => k.ch === S.ch && k.skin === S.skin).name + ' · ' + skinBonusText(S.skin), 'unlock'); SFX.play('buy'); } });
 let lastRoll = null;
 $('gachaBtn').addEventListener('click', () => {
   if (!S) return; if (S.gems < GACHA_COST) { openCharge(); return; }
@@ -2341,7 +2355,7 @@ $('gachaBtn').addEventListener('click', () => {
     if (k < 1) { const sx = Math.sin(k * 40) * 3 * k; ellO(c, 32 + sx, 34, 16, 16, '#ff6fbf', dy => dy < 0 ? '#ff6fbf' : '#f4efe6'); rect(c, 16 + sx, 33, 33, 2, OUT); rect(c, 26 + sx, 24, 4, 3, '#fff'); requestAnimationFrame(spin); return; }
     drawHero(c, 31, 60, fatOf(r.ch === 'hyuksu' ? 70 : 100, r.ch), { char: r.ch, skin: r.skin });
     $('gachaTitle').textContent = r.name; $('gachaTitle').className = 'resTitle' + (r.rare === '전설' ? ' leg' : '');
-    $('gachaSub').textContent = r.dup ? `이미 가진 스킨 · 보석 ${GACHA_REFUND}개를 돌려받았습니다` : `${r.rare} 스킨 획득! ${CHARS[r.ch].name} 전용`;
+    $('gachaSub').textContent = r.dup ? `이미 가진 스킨 · 보석 ${GACHA_REFUND}개를 돌려받았습니다` : `${r.rare} 스킨 획득! ${CHARS[r.ch].name} 전용 · 입으면 ${skinBonusText(r.skin)}`;
     $('gachaWear').hidden = r.dup || r.ch !== S.ch;
     celebrate(r.dup ? '중복' : (r.rare === '전설' ? '전설 획득!' : '희귀 획득!'), r.name, r.rare === '전설' && !r.dup ? 'goal' : 'unlock'); SFX.play(r.rare === '전설' && !r.dup ? 'goal' : 'unlock');
     panelKey = ''; updateHub();
@@ -2356,6 +2370,7 @@ for (const id of ['weaponList', 'atkList', 'defList', 'gemPowerList', 'gemLookLi
   if (b.dataset.buy) { const [kind, i] = b.dataset.buy.split(':'); buy(S, kind, Number(i), ev); }
   else if (b.dataset.lv) { const [kind, i] = b.dataset.lv.split(':'); levelUp(S, kind, Number(i), ev); }
   else if (b.dataset.gem) {
+    if (b.dataset.gem === 'stam') { openStam(false); return; }
     if (canGemBuy(S, b.dataset.gem).why === 'gems') { openCharge(); return; }
     gemBuy(S, b.dataset.gem, ev);
   }
@@ -2406,10 +2421,11 @@ function updatePanel() {
       else st = S.weapon === 7 ? '<span class="badge now">사용 중</span>' : '<span class="badge">보유</span>';
     } else {
       const ok = S.gems >= it.price;
-      const have = it.id === 'boost' ? S.items.boost : it.id === 'time' ? S.items.time : 0;
-      st = `<button class="buy gemBuy" data-gem="${it.id}">보석 ${fmtNum(it.price)}<small>${ok ? '구입' : '충전하기'}${have ? ` · 보유 ${have}` : ''}</small></button>`;
+      const have = it.id === 'boost' ? S.items.boost : it.id === 'time' ? S.items.time : it.id === 'kcalbox' ? (S.items.kcal || 0) : 0;
+      st = it.id === 'stam' ? `<button class="buy gemBuy" data-gem="stam">보석 ${STAM_PACKS[0].gems}부터<small>고르기</small></button>`
+        : `<button class="buy gemBuy" data-gem="${it.id}">보석 ${fmtNum(it.price)}<small>${ok ? '구입' : '충전하기'}${have ? ` · 보유 ${have}` : ''}</small></button>`;
     }
-    const desc = it.id === 'kcalbox' ? `칼로리 +${fmtNum(kcalBoxOf(S))} (다음 던전 3번 돈 만큼)` : it.desc;
+    const desc = it.id === 'kcalbox' ? `보관했다가 던전 입장 화면에서 씁니다 · 지금 쓰면 칼로리 +${fmtNum(kcalBoxOf(S))}(다음 던전 3번 돈 만큼)` : it.desc;
     return `<li class="gi"><span class="nm">${it.name}<span class="ds">${desc}</span></span><span class="st">${st}</span></li>`;
   };
   $('gemPowerList').innerHTML = GEM_SHOP.filter(x => x.kind === 'weapon' || x.kind === 'item').map(gemRow).join('');
@@ -2419,7 +2435,7 @@ function updatePanel() {
   $('skinList').innerHTML = SKINS.map(k => {
     const own = sk[k.key], mine = k.ch === S.ch, wearing = mine && S.skin === k.skin;
     const st = !own ? '<span class="badge">미보유</span>' : !mine ? `<span class="hint">${CHARS[k.ch].name} 전용</span>` : `<button class="buy" data-skin="${wearing ? '' : k.skin}">${wearing ? '벗기' : '입기'}<small>${wearing ? '입는 중' : '보유'}</small></button>`;
-    return `<li class="gi ${own ? '' : 'locked'}"><span class="nm">${k.name}<span class="ds rare${k.rare === '전설' ? ' leg' : ''}">${k.rare}</span></span><span class="st">${st}</span></li>`;
+    return `<li class="gi ${own ? '' : 'locked'}"><span class="nm">${k.name}<span class="ds rare${k.rare === '전설' ? ' leg' : ''}">${k.rare}</span><span class="ds">입으면 ${skinBonusText(k.skin)}</span></span><span class="st">${st}</span></li>`;
   }).join('');
 }
 
