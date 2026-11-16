@@ -474,6 +474,13 @@ html,body{height:100%;overflow:hidden}
 .gachaSide.on{background:#ff6fbf;color:#2a0018;box-shadow:inset 0 -4px 0 #b03a80,inset 0 3px 0 #ffb3df}
 .gi .ds{display:block;margin-top:2px}
 #updateBar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top, 0px) + 6px);z-index:60;background:var(--gold);color:#2a1f00;font-weight:700;font-size:13px;padding:8px 14px;border:3px solid var(--edge);box-shadow:0 3px 0 #000;animation:pulseN 1s steps(2) infinite}
+#stamChip{cursor:pointer}
+.stamCard{text-align:center}
+.stamBig{font-size:40px;font-weight:700;color:#ff9a8f;text-shadow:3px 3px 0 #000} .stamBig span{font-size:16px;color:var(--sub)}
+.boosts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 10px}
+.boosts .buy{padding:10px 6px;font-size:14px}
+.retreatRow{display:flex;gap:8px} .retreatRow button{flex:1}
+.primary.danger{background:#e0605a;color:#fff;box-shadow:inset 0 -4px 0 #8c2f2b,inset 0 3px 0 #ff9a8f}
 </style>
 </head>
 <body>
@@ -707,10 +714,20 @@ html,body{height:100%;overflow:hidden}
   </div>
 </div>
 <div class="confirm" id="stamModal">
-  <div class="card result">
-    <div class="resTitle fail">근손실이 너무 쌓였다</div>
+  <div class="card result stamCard">
+    <div class="resTitle" id="stamTitle">근손실</div>
+    <div class="stamBig"><b id="stamBigV">0</b><span>/60</span></div>
     <p class="resSub" id="stamSub">-</p>
-    <div class="row stamRow"><button class="secondary" id="stamClose">기다리기</button><button class="primary gemFill" id="stamFill">보석 30개로 근손실 회복</button></div>
+    <p class="sectionK">보석으로 회복 촉진</p>
+    <div class="boosts" id="boosts"></div>
+    <button class="secondary" id="stamClose">닫기</button>
+  </div>
+</div>
+<div class="confirm" id="retreatModal">
+  <div class="card result">
+    <div class="resTitle fail">후퇴할까요?</div>
+    <p class="resSub">지금까지 얻은 칼로리는 남고, 실패로 쳐서 근손실은 3 덜 쌓입니다. 던전은 다시 처음부터입니다.</p>
+    <div class="row retreatRow"><button class="secondary" id="retreatNo">취소</button><button class="primary danger" id="retreatYes">후퇴</button></div>
   </div>
 </div>
 <button id="updateBar" hidden>새 버전이 있습니다 · 눌러서 새로고침</button>
@@ -779,7 +796,7 @@ const GEM_SHOP = [
   { id: 'boost', name: '프로틴 부스터', price: 40, kind: 'item', desc: '다음 던전 한 번 공격력 x5' },
   { id: 'time', name: '보스 시간 연장권', price: 20, kind: 'item', desc: '다음 던전 보스 제한 시간 +30초' },
   { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '칼로리 +(다음 던전 3번 돈 만큼)' },
-  { id: 'stam', name: '근손실 회복', price: 30, kind: 'item', desc: '쌓인 근손실을 바로 0으로 되돌립니다' },
+  { id: 'stam', name: '근손실 회복 촉진', price: 20, kind: 'item', desc: '1시간 동안 근손실이 2배 빨리 줄어듭니다' },
   { id: 'gold', name: '황금 테마', price: 120, kind: 'theme', desc: '화면 색을 금빛으로 바꿉니다' },
   { id: 'neon', name: '네온 테마', price: 120, kind: 'theme', desc: '화면 색을 네온으로 바꿉니다' },
   { id: 'band', name: '금빛 머리띠', price: 60, kind: 'look', desc: '강산해의 머리띠가 금빛으로 바뀝니다' },
@@ -1592,7 +1609,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794822709345';
+const BUILD_ID = '1794822900888';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -1944,43 +1961,67 @@ function drawMap(d0, best, next) {
 }
 
 // ----- 체력: 프로필에 하나(두 캐릭터가 함께 씀). 마지막 계산 시각부터 흐른 시간만큼 회복 -----
+// 내부 값 v는 '남은 여유'(화면의 근손실 = 최대 - v). acc는 다음 1 회복까지 쌓인 시간(촉진 배율을 곱한 값)
+const BOOSTS = [{ mul: 2, hours: 1, gems: 20 }, { mul: 4, hours: 1, gems: 50 }];
+function effMs(a, b) { // a~b 사이 실제 시간을 촉진 배율을 곱한 시간으로
+  const bo = PRO && PRO.stamBoost; if (!bo || bo.until <= a) return b - a;
+  const mid = Math.min(b, bo.until); return (mid - a) * bo.mul + Math.max(0, b - mid);
+}
 function stamNow() {
   if (!PRO) return CFG.stamMax;
   const now = Date.now();
   if (!PRO.stam) PRO.stam = { v: CFG.stamMax, t: now };
-  const st = PRO.stam;
-  if (st.v >= CFG.stamMax) { st.v = CFG.stamMax; st.t = now; return st.v; }
-  const gain = Math.floor((now - st.t) / CFG.stamRegenMs);
-  if (gain > 0) { st.v = Math.min(CFG.stamMax, st.v + gain); st.t += gain * CFG.stamRegenMs; if (st.v >= CFG.stamMax) st.t = now; }
+  const st = PRO.stam; if (st.last == null) { st.last = st.t || now; st.acc = 0; }
+  if (st.v >= CFG.stamMax) { st.v = CFG.stamMax; st.acc = 0; st.last = now; return st.v; }
+  st.acc += effMs(st.last, now); st.last = now;
+  const gain = Math.floor(st.acc / CFG.stamRegenMs);
+  if (gain > 0) { st.v = Math.min(CFG.stamMax, st.v + gain); st.acc -= gain * CFG.stamRegenMs; if (st.v >= CFG.stamMax) st.acc = 0; }
   return st.v;
 }
-function stamNextSec() { if (!PRO || !PRO.stam || stamNow() >= CFG.stamMax) return 0; return Math.ceil((CFG.stamRegenMs - (Date.now() - PRO.stam.t)) / 1000); }
-function stamUse(n) { const v = stamNow(); if (v < n) return false; if (v >= CFG.stamMax) PRO.stam.t = Date.now(); PRO.stam.v = v - n; save(); return true; }
+function boostMul() { const bo = PRO && PRO.stamBoost; return bo && bo.until > Date.now() ? bo.mul : 1; }
+function stamNextSec() { if (!PRO || !PRO.stam || stamNow() >= CFG.stamMax) return 0; return Math.ceil((CFG.stamRegenMs - PRO.stam.acc) / boostMul() / 1000); }
+function stamUse(n) { const v = stamNow(); if (v < n) return false; PRO.stam.v = v - n; save(); return true; }
 function stamAdd(n) { stamNow(); PRO.stam.v = Math.min(CFG.stamMax, PRO.stam.v + n); save(); }
-function stamFull() { stamNow(); PRO.stam.v = CFG.stamMax; PRO.stam.t = Date.now(); save(); }
+function buyBoost(i) { // 보석으로 회복 촉진: 같은 배율이면 시간 연장, 더 높은 배율이면 바꾼다
+  const b = BOOSTS[i]; if (S.gems < b.gems) return false;
+  stamNow(); S.gems -= b.gems; S.gemsSpent = (S.gemsSpent || 0) + b.gems;
+  const now = Date.now(), bo = PRO.stamBoost && PRO.stamBoost.until > now ? PRO.stamBoost : null;
+  PRO.stamBoost = bo && bo.mul === b.mul ? { mul: b.mul, until: bo.until + b.hours * 3600000 } : { mul: Math.max(b.mul, bo ? bo.mul : 1), until: (bo && bo.mul > b.mul ? bo.until : now) + b.hours * 3600000 };
+  save(); return true;
+}
 function fmtMS(sec) { return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function refreshStam() {
   if (!PRO) return;
   const v = stamNow(), nx = stamNextSec();
   const loss = CFG.stamMax - v; // 화면에는 쌓인 근손실로 보여 준다
-  if ($('wStam')) { $('wStam').textContent = loss + '/' + CFG.stamMax; $('wStamT').textContent = nx ? '-1 ' + fmtMS(nx) : ''; $('stamChip').classList.toggle('full', v < CFG.stamCost); }
+  if ($('wStam')) { $('wStam').textContent = loss + '/' + CFG.stamMax; $('wStamT').textContent = (boostMul() > 1 ? 'x' + boostMul() + ' ' : '') + (nx ? '-1 ' + fmtMS(nx) : ''); $('stamChip').classList.toggle('full', v < CFG.stamCost); }
   if ($('dunStam')) $('dunStam').textContent = loss;
   if ($('gStam')) { $('gStam').textContent = loss; $('gStamT').textContent = nx ? '(1 회복까지 ' + fmtMS(nx) + ')' : ''; }
 }
 setInterval(refreshStam, 1000);
-function needStam(onOk) { // 체력이 있으면 쓰고 onOk, 없으면 안내 창
+// 근손실 창: 상단 근손실 칸을 누르거나, 근손실이 다 차서 못 들어갈 때 연다
+function openStam(blocked) {
+  const loss = CFG.stamMax - stamNow(), mul = boostMul(), bo = PRO.stamBoost;
+  $('stamTitle').textContent = blocked ? '근손실이 너무 쌓였다' : '근손실';
+  $('stamTitle').classList.toggle('fail', !!blocked);
+  $('stamBigV').textContent = loss;
+  const wait = blocked ? Math.max(0, Math.ceil(((CFG.stamCost - stamNow() - 1) * CFG.stamRegenMs / mul) / 1000) + stamNextSec()) : 0;
+  $('stamSub').innerHTML = (blocked ? `던전에 한 번 들어가면 근손실이 ${CFG.stamCost} 쌓이고, ${CFG.stamMax}이 넘으면 들어갈 수 없습니다. 약 <b>${fmtMS(wait)}</b> 뒤 들어갈 수 있습니다.<br>` : `던전에 한 번 들어가면 ${CFG.stamCost} 쌓입니다. 앱을 닫아 둔 동안에도 줄어듭니다.<br>`)
+    + `회복 속도: <b>시간당 ${60 * mul}</b>${mul > 1 ? ` (촉진 x${mul}, 남은 시간 ${fmtMS(Math.ceil((bo.until - Date.now()) / 1000))})` : ''}${loss > 0 ? ` · 다음 1 회복까지 ${fmtMS(stamNextSec())}` : ''}`;
+  $('boosts').innerHTML = BOOSTS.map((b, i) => `<button class="buy gemBuy" data-boost="${i}">${b.hours}시간 회복 ${b.mul}배<small>보석 ${b.gems}${S.gems < b.gems ? ' · 충전하기' : ''}</small></button>`).join('');
+  $('stamModal').classList.add('on');
+}
+function needStam(onOk) { // 근손실이 들어갈 만큼 남았으면 쌓고 onOk, 아니면 근손실 창
   if (stamUse(CFG.stamCost)) { refreshStam(); onOk(); return true; }
-  const lack = CFG.stamCost - stamNow(), wait = Math.max(0, (lack - 1) * 60 + stamNextSec());
-  $('stamSub').innerHTML = `던전에 한 번 들어가면 근손실이 ${CFG.stamCost} 쌓이고, ${CFG.stamMax}을 넘으면 들어갈 수 없습니다(지금 ${CFG.stamMax - stamNow()}/${CFG.stamMax}). 약 ${fmtMS(wait)} 뒤 들어갈 수 있습니다.<br>근손실은 1분에 1씩 회복되고, 앱을 닫아 둔 동안에도 줄어듭니다.`;
-  $('stamFill').disabled = false; $('stamFill').textContent = S.gems >= CFG.stamGem ? `보석 ${CFG.stamGem}개로 근손실 회복` : '보석 충전하기';
-  $('stamModal').classList.add('on'); return false;
+  openStam(true); return false;
 }
 $('stamClose').addEventListener('click', () => $('stamModal').classList.remove('on'));
-$('stamFill').addEventListener('click', () => {
-  if (S.gems < CFG.stamGem) { $('stamModal').classList.remove('on'); openCharge(); return; }
-  S.gems -= CFG.stamGem; S.gemsSpent = (S.gemsSpent || 0) + CFG.stamGem; stamFull(); refreshStam(); save();
-  $('stamModal').classList.remove('on'); celebrate('근손실 회복', `0/${CFG.stamMax}`, 'unlock'); SFX.play('buy');
-  if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } else if ($('dungeonScreen').classList.contains('on')) renderDungeons();
+$('stamChip').addEventListener('click', () => openStam(false));
+$('boosts').addEventListener('click', e => {
+  const b = e.target.closest('button[data-boost]'); if (!b) return;
+  const i = Number(b.dataset.boost);
+  if (S.gems < BOOSTS[i].gems) { $('stamModal').classList.remove('on'); openCharge(); return; }
+  if (buyBoost(i)) { refreshStam(); celebrate(`회복 ${BOOSTS[i].mul}배`, `${BOOSTS[i].hours}시간 동안 근손실이 빨리 줄어듭니다`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
 });
 // 자동 진행: 클리어하면 다음 던전, 실패하면 마지막으로 깬 던전을 반복. 근손실이 다 차면 멈춘다
 let AUTO = false; try { AUTO = localStorage.getItem('gangsanhae-auto') === 'on'; } catch (e) {}
@@ -2027,7 +2068,10 @@ function startBattle() {
   $('resultModal').classList.remove('on');
   running = true; lastT = performance.now(); requestAnimationFrame(loop);
 }
-$('retreatBtn').addEventListener('click', () => {
+$('retreatBtn').addEventListener('click', () => { if (S && S.inDun) $('retreatModal').classList.add('on'); });
+$('retreatNo').addEventListener('click', () => $('retreatModal').classList.remove('on'));
+$('retreatYes').addEventListener('click', () => {
+  $('retreatModal').classList.remove('on');
   if (!S || !S.inDun) return;
   const ev = []; endRun(S, false, ev); ev[ev.length - 1].retreat = true; handleEvents(ev, false); save();
 });
@@ -2221,7 +2265,7 @@ function handleEvents(ev, fromTap) {
     } else if (e.t === 'levelup') {
       toast(`<b>${e.name}</b> Lv${e.lv}`, 1800); SFX.play('enhance'); celebrate(`${e.name} Lv${e.lv}`, '스킬 레벨업');
     } else if (e.t === 'gembuy' && e.id === 'stam') {
-      stamFull(); refreshStam(); toast('근손실을 0으로 되돌렸습니다', 1800); SFX.play('buy'); celebrate('근손실 회복', `0/${CFG.stamMax}`, 'unlock');
+      S.gems += 20; buyBoost(0); refreshStam(); toast('1시간 동안 근손실이 2배 빨리 줄어듭니다', 2000); SFX.play('buy'); celebrate('회복 2배', '1시간', 'unlock');
     } else if (e.t === 'gembuy') {
       toast(`<b>${e.name}</b> 구입`, 2000); SFX.play('buy'); applyTheme();
     } else if (e.t === 'charge') {
@@ -2391,7 +2435,7 @@ function loop(ts) {
   vis.time += dt;
   // 히트스톱: 큰 타격 직후 아주 잠깐 전투를 멈춰 묵직하게 보이게 한다
   if (vis.hitStop > 0) vis.hitStop -= dt / FF;
-  else if (S.inDun) { const ev = []; let left = dt; while (left > 1e-6 && S.inDun) { const d = Math.min(0.05, left); step(S, d, ev); left -= d; } handleEvents(ev, false); }
+  else if (S.inDun && !$('retreatModal').classList.contains('on')) { const ev = []; let left = dt; while (left > 1e-6 && S.inDun) { const d = Math.min(0.05, left); step(S, d, ev); left -= d; } handleEvents(ev, false); }
   saveTimer += dt; if (saveTimer > 3) { saveTimer = 0; save(); }
   render(dt);
   updateHud(dt);
