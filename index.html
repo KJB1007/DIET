@@ -765,9 +765,10 @@ const CFG = {
   respawn: 0.5, offlineCap: 300,
   // 방어전: 던전마다 잔몹 무리(1던전 12마리, 던전마다 +0.6마리)가 오른쪽 끝에서 20초에 걸쳐 나와 걸어온다. 다 처리하거나 잔몹 제한 시간이 끝나면 보스
   // 잔몹 무리 전체의 HP·칼로리는 예전 잔몹 7마리 합과 같다. 잔몹이 주인공에게 닿으면 부딪혀 피해를 주고 사라진다(칼로리 없음). 보스는 붙어서 계속 때린다
-  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, mobCap: 24, meleeMax: 3, leakMul: 1, feedLeakMax: 10,
-  lane: { hero: 24, contact: 38, spawn: 252, speed: 30, range: 234 }, // 전투 화면(240x180) 위의 자리
-  knock: 6, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
+  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, waveHp: 5, // 잔몹 무리 HP 합은 잔몹 5마리분(칼로리는 7마리분): 권장 전투력이면 대부분 막을 수 있게
+  mobCap: 24, meleeMax: 3, leakMul: 1, feedLeakMax: 10,
+  lane: { hero: 24, contact: 38, spawn: 252, speed: 24, range: 234 }, // 전투 화면(240x180) 위의 자리
+  knock: 8, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
   // 주인공 HP: 깬 던전·무기 강화·방어 스킬로 오른다. 몬스터는 1.6초마다 때린다. 던전 안에서는 회복하지 않고(보스를 깨야 끝), HP 0이면 쓰러져 던전 실패
   heroHp0: 300, heroHpGrow: 1.17, hpPerEnh: 0.06, hpPerDef: 0.08, monAtk0: 7, monAtkGrow: 1.21, monAtkEvery: 1.6, bossAtkMul: 1.5, healOnKill: 0,
   // 체력: 최대 60, 던전 입장 6, 1분에 1 회복(꺼 둔 동안도), 실패·후퇴 때 3 반환, 보석 30개로 가득. 두 캐릭터가 함께 씀
@@ -927,9 +928,9 @@ function mobDef(d, k, boss, ch) {
   let m = boss ? BOSSES[(d - 1) % BOSSES.length] : MONSTERS[k % MONSTERS.length];
   if (boss && d === CFG.dungeons) m = CHARS[ch || 'sanhae'].finalBoss;
   const name = boss || !tier ? m.name : VARIANTS[tier] + m.name;
-  const share = boss ? CFG.bossMul : (CFG.perStage - 1) / waveNOf(d);
+  const share = boss ? CFG.bossMul : (CFG.perStage - 1) / waveNOf(d), hpShare = boss ? CFG.bossMul : CFG.waveHp / waveNOf(d);
   return { ...m, name, base: m.id, id: tier ? m.id + '#' + tier : m.id, tier, boss, trait: tr,
-    hp: Math.max(1, Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, d - 1) * share * (tr.hpMul || 1))),
+    hp: Math.max(1, Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, d - 1) * hpShare * (tr.hpMul || 1))),
     kcal: Math.max(1, Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, d - 1) * share * (tr.kcalMul || 1))),
     atk: Math.max(1, Math.round(CFG.monAtk0 * Math.pow(CFG.monAtkGrow, d - 1) * (boss ? CFG.bossAtkMul : 1 / CFG.meleeMax) * (tr.atkMul || 1))),
     atkEvery: CFG.monAtkEvery * (tr.atkEvery ? tr.atkEvery / 1.6 : 1) };
@@ -1144,7 +1145,7 @@ function applyHit(s, m, dmg, crit, ev, tag) {
   hurtMob(s, m, dmg, crit, ev, tag);
   if (m.hp <= 0 || !s.inDun) return;
   const L = CFG.lane;
-  if (tag !== 'fire') m.x = Math.min(L.spawn, m.x + knockOf(s) * (m.boss ? 0.25 : 1));
+  if (tag !== 'fire') m.x = Math.min(L.range - 6, m.x + knockOf(s) * (m.boss ? 0.25 : 1));
   if (waterOn(s)) m.slowT = CFG.slowDur;
   if (fireOn(s)) { m.burn = CFG.fireDur; m.fire = atkOf(s) * (CFG.firePct + 0.01 * s.enh); }
 }
@@ -1239,7 +1240,7 @@ function step(s, dt, ev, rnd) {
   // 5) 바람: 5초마다 화면의 적을 모두 밀어낸다(보스는 조금)
   if (windOn(s) && inRange) {
     s.windT = (s.windT || 0) + dt;
-    if (s.windT >= CFG.windEvery) { s.windT = 0; const push = CFG.windPush + s.enh; for (const m of s.mobs) if (m.x <= L.range) m.x = Math.min(L.spawn, m.x + push * (m.boss ? 0.25 : 1)); if (ev) ev.push({ t: 'wind' }); }
+    if (s.windT >= CFG.windEvery) { s.windT = 0; const push = CFG.windPush + s.enh; for (const m of s.mobs) if (m.x <= L.range) m.x = Math.min(L.range - 6, m.x + push * (m.boss ? 0.25 : 1)); if (ev) ev.push({ t: 'wind' }); }
   }
   // 6) 버피 강타: 6초마다 주인공 앞 절반의 적을 모두 내리찍는다
   if (burpeeMul(s)) {
@@ -1727,7 +1728,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794837145016';
+const BUILD_ID = '1794837317875';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
