@@ -767,7 +767,7 @@ const CFG = {
   // 잔몹 무리 전체의 HP·칼로리는 예전 잔몹 7마리 합과 같다. 잔몹이 주인공에게 닿으면 부딪혀 피해를 주고 사라진다(칼로리 없음). 보스는 붙어서 계속 때린다
   waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, mobCap: 24, meleeMax: 3, leakMul: 1, feedLeakMax: 10,
   lane: { hero: 24, contact: 38, spawn: 252, speed: 30, range: 234 }, // 전투 화면(240x180) 위의 자리
-  knock: 4, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
+  knock: 6, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
   // 주인공 HP: 깬 던전·무기 강화·방어 스킬로 오른다. 몬스터는 1.6초마다 때린다. 던전 안에서는 회복하지 않고(보스를 깨야 끝), HP 0이면 쓰러져 던전 실패
   heroHp0: 300, heroHpGrow: 1.17, hpPerEnh: 0.06, hpPerDef: 0.08, monAtk0: 7, monAtkGrow: 1.21, monAtkEvery: 1.6, bossAtkMul: 1.5, healOnKill: 0,
   // 체력: 최대 60, 던전 입장 6, 1분에 1 회복(꺼 둔 동안도), 실패·후퇴 때 3 반환, 보석 30개로 가득. 두 캐릭터가 함께 씀
@@ -1105,7 +1105,7 @@ function newlyUnlocked(s, before) {
   return names;
 }
 function startWave(s) {
-  s.mobs = []; s.wave = { n: waveNOf(s.stage), i: 0, spawnT: 99, t: CFG.waveTime, killed: 0 };
+  s.mobs = []; s.wave = { n: waveNOf(s.stage), i: 0, spawnT: CFG.spawnSpan / waveNOf(s.stage), t: CFG.waveTime, killed: 0 }; // 첫 마리는 바로, 나머지는 간격을 두고
   s.run.phase = 'wave'; s.run.bossT = 0; s.run.leaks = 0; s.run.leakFeeds = 0; s.windT = 0;
 }
 function spawnMob(s, boss, ev) {
@@ -1199,8 +1199,8 @@ function step(s, dt, ev, rnd) {
   s.time += dt; s.squatT += dt;
   // 1) 잔몹이 오른쪽 끝에서 나온다. 다 처리하거나 제한 시간이 끝나면 보스
   if (s.run.phase === 'wave') {
-    s.wave.t -= dt; s.wave.spawnT += dt * (s.run.op || 1);
-    const every = CFG.spawnSpan / s.wave.n;
+    s.wave.t -= dt; s.wave.spawnT += dt * Math.min(s.run.op || 1, 1 + (targetsOf(s) - 1) * 0.5); // 압도하면 빨리 몰려온다(한 번에 맞히는 수가 적으면 덜)
+    const every = CFG.spawnSpan / s.wave.n; if (s.wave.spawnT > every * 2) s.wave.spawnT = every * 2;
     while (s.wave.spawnT >= every && s.wave.i < s.wave.n && s.mobs.length < CFG.mobCap) { s.wave.spawnT -= every; spawnMob(s, false, ev); }
     if (s.wave.spawnT > every * 2) s.wave.spawnT = every * 2;
     if ((s.wave.i >= s.wave.n && !s.mobs.length) || s.wave.t <= 0) spawnBoss(s, ev);
@@ -1727,7 +1727,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794836915216';
+const BUILD_ID = '1794837145016';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2485,7 +2485,7 @@ function handleEvents(ev, fromTap) {
       if (e.boss) { B.bossKill = true; if (!reduceMotion) { shake(); vis.hitStop = .14; vis.flash = 1; vis.flashColor = '#ffffff'; } }
     } else if (e.t === 'enter') {
       vis.combo = 0; vis.mv = {}; vis.corpses = [];
-      bnote(`<b>${dungeonLabel(e.d)} ${regionOf(e.d).name}</b> · 잔몹 ${e.n}마리가 몰려옵니다${e.op >= 2 ? ` · <b>압도 x${e.op.toFixed(1)}</b> 더 빨리 몰려옵니다` : ''}${S.run.boost > 1 ? ' · 프로틴 부스터(공격력 x5)' : ''}${S.run.extra ? ' · 보스 시간 +30초' : ''}`, 2400);
+      bnote(`<b>${dungeonLabel(e.d)} ${regionOf(e.d).name}</b> · 잔몹 ${e.n}마리가 몰려옵니다${e.op >= 2 ? ` · <b>압도 x${e.op.toFixed(1)}</b>` : ''}${S.run.boost > 1 ? ' · 프로틴 부스터(공격력 x5)' : ''}${S.run.extra ? ' · 보스 시간 +30초' : ''}`, 2400);
     } else if (e.t === 'bossin') {
       const bd = S.mobs && S.mobs[0] ? defOf(S, S.mobs[0]) : monsterOf(S);
       bnote(`<b>보스 등장!</b> ${bd.name}${e.left ? ` · 남은 잔몹 ${e.left}마리와 함께` : ''} · ${CFG.bossTime + (S.run ? S.run.extra : 0)}초 안에 잡으세요`, 2600);
