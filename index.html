@@ -161,7 +161,22 @@ label{font-size:14px;font-weight:700}
 .fixedGoal{display:flex;justify-content:space-between;align-items:center;background:var(--bar-bg);border:3px solid var(--edge);padding:12px 14px;font-size:14px}
 .fixedGoal b{font-size:24px;color:var(--gold)}
 /* 정비 화면 */
-.wallet{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:6px;margin-top:10px}
+.burnCard{margin-top:12px}
+.burnHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.burnHead b{font-size:16px;color:#ff9a5a}
+.burnHead span{font-size:12px;color:var(--sub)}
+.burnBar{display:flex;height:14px;background:var(--bar-bg);border:3px solid var(--edge);margin-top:8px}
+.burnBar div{height:100%}
+#burnDone{background:var(--green)}
+#burnRoom{background:repeating-linear-gradient(90deg,#ff7a3a 0 4px,#b8481a 4px 8px)}
+.burnInfo{font-size:12px;color:var(--sub);margin:8px 0 0;line-height:1.6;word-break:keep-all}
+.burnInfo b{color:var(--ink)}
+.burnBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.buy.burnBtn{background:#ff7a3a;color:#2a0d00;box-shadow:inset 0 -3px 0 #b8481a,inset 0 2px 0 #ffb98f;padding:8px}
+.buy.calBuy{background:#ff9a5a;color:#2a0d00;box-shadow:inset 0 -3px 0 #b8481a,inset 0 2px 0 #ffc49a}
+.wallet{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.wallet .calC b{color:#ff9a5a}
+.ico.cal{background:#ff7a3a;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:inset -2px -2px 0 #b8481a}
 .wallet .cur{display:flex;align-items:center;gap:7px;background:var(--panel);border:3px solid var(--edge);border-radius:4px;padding:7px 8px;box-shadow:inset 0 3px 0 var(--hi),0 3px 0 #000;min-width:0}
 .wallet .k{font-size:10px;color:var(--sub)}
 .wallet b{font-size:15px;display:block;margin-top:2px;font-variant-numeric:tabular-nums}
@@ -278,7 +293,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
         <div><div class="k">시작 체중</div><div class="v">120 kg</div></div>
       </div>
       <div class="fixedGoal"><span>목표 체중</span><b>75 kg</b></div>
-      <p class="hint">음식 괴물 던전을 하나씩 깨며 120 kg에서 75 kg까지 줄입니다. 막히는 던전은 정비 화면에서 무기와 스킬을 키워 뚫으세요.</p>
+      <p class="hint">음식 괴물을 잡아 칼로리를 모으고, 정비 화면에서 칼로리를 버닝·장비·스킬에 나눠 씁니다. 던전 30개를 깨며 120 kg에서 75 kg까지 줄이세요.</p>
       <button class="primary" id="startBtn">새로 시작</button>
     </div>
     <div class="card" id="continueCard" hidden>
@@ -310,8 +325,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
     </div>
 
     <div class="wallet">
-      <div class="cur coinC"><span class="ico coin"></span><div><div class="k">코인</div><b id="wCoin">0</b></div></div>
-      <div class="cur matC"><span class="ico mat"></span><div><div class="k">재료</div><b id="wMat">0</b></div></div>
+      <div class="cur calC"><span class="ico cal"></span><div><div class="k">칼로리</div><b id="wCal">0</b></div></div>
       <div class="cur gemC"><span class="ico gem"></span><div><div class="k">보석</div><b id="wGem">0</b></div><button class="plus" id="chargeBtn" aria-label="보석 충전">충전</button></div>
     </div>
 
@@ -323,6 +337,12 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
         <div class="hubWeapon" id="hubWeapon">-</div>
         <div class="hubItems" id="hubItems"></div>
       </div>
+    </div>
+    <div class="card burnCard">
+      <div class="burnHead"><b>칼로리 버닝</b><span id="burnLimit">-</span></div>
+      <div class="burnBar"><div id="burnDone"></div><div id="burnRoom"></div></div>
+      <p class="burnInfo" id="burnInfo">-</p>
+      <div class="burnBtns"><button class="buy burnBtn" id="burnSmall">-</button><button class="buy burnBtn" id="burnMax">-</button></div>
     </div>
     <button class="primary big" id="toDungeonBtn">던전 입장</button>
     <p class="nextInfo" id="nextInfo">-</p>
@@ -344,11 +364,11 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
           <span class="enhCost" id="enhCost">-</span>
         </button>
         <p class="hint" id="enhWhy">새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.</p>
-        <p class="sectionK">무기 · 코인으로 구입</p>
+        <p class="sectionK">무기 · 칼로리로 구입</p>
         <ul class="list" id="weaponList"></ul>
       </div>
       <div class="tabBody" id="tabSkill" hidden>
-        <p class="draft">스킬은 코인으로 배우고, 던전을 깨면 나오는 재료로 레벨을 올립니다(최대 Lv5). 배운 스킬은 전투에서 자동으로 발동합니다.</p>
+        <p class="draft">스킬은 칼로리로 배우고 칼로리로 레벨을 올립니다(최대 Lv5). 배운 스킬은 전투에서 자동으로 발동합니다.</p>
         <p class="sectionK">공격 스킬</p>
         <ul class="list" id="atkList"></ul>
         <p class="sectionK">방어 스킬 · 음식 몬스터의 '먹이기' 공격(체중이 다시 늘어남)을 막습니다</p>
@@ -365,7 +385,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
 
     <div class="stats">
       <div class="stat"><div class="k">깬 던전</div><div class="v" id="hubBest">0</div></div>
-      <div class="stat"><div class="k">총 소모</div><div class="v" id="kcalTot">0</div></div>
+      <div class="stat"><div class="k">모은 칼로리</div><div class="v" id="kcalTot">0</div></div>
       <div class="stat"><div class="k">처치</div><div class="v" id="killTot">0</div></div>
     </div>
     <p class="note">칼로리와 체중 변화는 게임용 수치입니다.<br>체중이 줄수록 몸이 가벼워져 공격이 빨라집니다.</p>
@@ -421,7 +441,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
     </div>
     <div class="battleBottom">
       <div class="stat"><div class="k">공격 속도</div><div class="v" id="spd">x1.0</div></div>
-      <div class="stat"><div class="k">이번 던전 코인</div><div class="v" id="runCoin">0</div></div>
+      <div class="stat"><div class="k">이번 던전 칼로리</div><div class="v" id="runCoin">0</div></div>
       <button class="secondary retreat" id="retreatBtn">후퇴</button>
     </div>
   </section>
@@ -438,7 +458,7 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
       </div>
       <div class="endStats">
         <div class="stat"><div class="k">걸린 시간</div><div class="v" id="endTime">-</div></div>
-        <div class="stat"><div class="k">총 소모</div><div class="v" id="endKcal">-</div></div>
+        <div class="stat"><div class="k">모은 칼로리</div><div class="v" id="endKcal">-</div></div>
         <div class="stat"><div class="k">처치</div><div class="v" id="endKills">-</div></div>
       </div>
       <button class="primary" id="againBtn">처음부터 다시 하기</button>
@@ -474,34 +494,35 @@ body.theme-neon .card{box-shadow:inset 0 3px 0 var(--hi),0 0 0 1px #6b55ff,0 4px
 
 <script>
 // ===== LOGIC START (게임 규칙. 화면과 분리해 시뮬레이션에서도 같은 코드를 씀) =====
+// 흐름: 던전에서 몬스터를 잡으면 '칼로리'가 쌓인다. 칼로리는 정비 화면에서 세 곳에 나눠 쓴다.
+//   1) 장비: 무기 구입·강화   2) 스킬: 배우기·레벨업   3) 칼로리 버닝: 체중 감량(가벼울수록 공격이 빨라짐)
+// 버닝은 깬 던전 수만큼만 할 수 있다(던전 하나당 1.5kg). 30개 던전을 다 깨면 75kg까지 뺄 수 있다.
 const CFG = {
-  start: 120, height: 180, minTarget: 60, maxTarget: 115, fixedTarget: 75, // 목표 체중은 75kg으로 고정
+  start: 120, height: 180, fixedTarget: 75,
+  dungeons: 30, kgPerDungeon: 1.5,
   speedPerKg: 0.06,   // 1kg 빠질 때마다 공격 속도 +6% (다시 찌면 그만큼 느려짐)
-  kcalPerKg: 1000,    // 게임용 환산: 1,000 kcal = 1 kg (실제 환산 아님)
-  reward0: 240, rewardGrow: 1.03,  // 몬스터 칼로리 보상: 던전이 오를수록 커짐
-  floor: 48, curve: 2,// 체중이 낮을수록 같은 몬스터에서 덜 빠짐
-  hp0: 30, hpGrow: 1.17, perStage: 8, bossMul: 3, // 던전마다 잔몹 7마리 + 보스 1마리
+  kcal0: 60, kcalGrow: 1.13,    // 몬스터 하나가 주는 칼로리: 던전이 오를수록 커짐 (게임용 수치)
+  burn0: 150, burnGrow: 1.13,   // 1kg 버닝 값: 체중이 낮을수록 비싸짐
+  hp0: 30, hpGrow: 1.23, perStage: 8, bossMul: 3, // 던전마다 잔몹 7마리 + 보스 1마리
   critMul: 2,
-  enhAtk: 0.2, enhCrit: 0.01, enhMax: 10, enhCost0: 0.5, enhCostGrow: 1.25, // 무기 강화 (대가는 체중)
-  coin0: 3, coinGrow: 1.04, // 몬스터가 떨어뜨리는 코인
-  feedEvery: 4, feedRate: 0.15, feedMax: 3, // 먹이기 공격
+  enhAtk: 0.2, enhCrit: 0.01, enhMax: 10, enhRate: 0.25, enhGrow: 1.3, // 무기 강화: 무기 값의 25%에서 시작해 단계마다 1.3배
+  feedEvery: 4, feedKg: 0.04, feedMax: 3, // 먹이기 공격: 4초마다 0.04kg 다시 찜, 한 마리당 최대 3번
   bossTime: 25,       // 보스 제한 시간(초). 못 잡으면 던전 실패
-  mat0: 3, matGrow: 0.5, // 던전 클리어 때 받는 재료: 3 + 던전 번호 x 0.5
   firstClearGems: 5,  // 처음 깬 던전마다 보석
   skillMax: 5,
   respawn: 0.5, offlineCap: 300,
 };
-const REGIONS = ['야식 골목', '패스트푸드 거리', '디저트 공장', '탄산 폭포', '뷔페 마왕성'];
-// at: 목표까지 감량할 양 가운데 이만큼 빠지면 해금. price: 코인. gem: 보석 전용
+const REGIONS = ['야식 골목', '패스트푸드 거리', '디저트 공장', '탄산 폭포', '뷔페 마왕성', '폭식의 탑'];
+// at: 목표까지 감량할 양(45kg) 가운데 이만큼 빠지면 해금. price: 칼로리. gem: 보석 전용
 const WEAPONS = [
-  { id: 'fist',   name: '주먹·발차기', atk: 10,  crit: 0.05, at: 0,    price: 0 },
-  { id: 'rope',   name: '줄넘기',     atk: 16,  crit: 0.08, at: 0.08, price: 40 },
-  { id: 'dumbbell', name: '덤벨',     atk: 26,  crit: 0.10, at: 0.2,  price: 150 },
-  { id: 'kettle', name: '케틀벨',     atk: 40,  crit: 0.12, at: 0.34, price: 400 },
-  { id: 'ball',   name: '메디신볼',   atk: 60,  crit: 0.15, at: 0.5,  price: 900 },
-  { id: 'barbell', name: '바벨',      atk: 90,  crit: 0.18, at: 0.66, price: 1800 },
-  { id: 'gold',   name: '황금 바벨',  atk: 130, crit: 0.22, at: 0.82, price: 3500 },
-  { id: 'diamond', name: '다이아 바벨', atk: 250, crit: 0.25, at: 0, price: 0, gem: 300 },
+  { id: 'fist',   name: '주먹·발차기', atk: 10,  crit: 0.05, at: 0,    price: 100 },
+  { id: 'rope',   name: '줄넘기',     atk: 16,  crit: 0.08, at: 0.08, price: 150 },
+  { id: 'dumbbell', name: '덤벨',     atk: 26,  crit: 0.10, at: 0.2,  price: 600 },
+  { id: 'kettle', name: '케틀벨',     atk: 40,  crit: 0.12, at: 0.34, price: 1800 },
+  { id: 'ball',   name: '메디신볼',   atk: 60,  crit: 0.15, at: 0.5,  price: 5000 },
+  { id: 'barbell', name: '바벨',      atk: 90,  crit: 0.18, at: 0.66, price: 13000 },
+  { id: 'gold',   name: '황금 바벨',  atk: 130, crit: 0.22, at: 0.82, price: 32000 },
+  { id: 'diamond', name: '다이아 바벨', atk: 250, crit: 0.25, at: 0, price: 32000, gem: 300 },
 ];
 const MONSTERS = [
   { id: 'chicken', name: '닭다리 괴수' },
@@ -511,41 +532,37 @@ const MONSTERS = [
   { id: 'cola', name: '탄산 괴물' },
 ];
 const BOSSES = [{ id: 'cake', name: '대왕 케이크 마왕' }, { id: 'burgerboss', name: '식인 버거 대왕' }, { id: 'pizzaboss', name: '피자 폭군' }];
-// 스킬: 코인으로 배우고(Lv1), 던전에서 얻는 재료로 레벨을 올린다(최대 Lv5)
+// 스킬: 칼로리로 배우고(Lv1), 칼로리로 레벨을 올린다(최대 Lv5)
 const ATTACK_SKILLS = [
-  { id: 'burpee', name: '버피 강타', at: 0.15, price: 120, desc: lv => `6초마다 공격력 ${(3 + (lv - 1) * 0.75).toFixed(2).replace(/\.?0+$/, '')}배로 한 방` },
-  { id: 'double', name: '2단 뛰기', at: 0.42, price: 700, desc: lv => `공격할 때 ${Math.round((0.2 + (lv - 1) * 0.06) * 100)}% 확률로 한 번 더 공격` },
-  { id: 'squat', name: '스쿼트 점프', at: 0.72, price: 2400, desc: lv => `10초마다 5초 동안 치명타 +${Math.round((0.15 + (lv - 1) * 0.05) * 100)}%p` },
+  { id: 'burpee', name: '버피 강타', at: 0.15, price: 300, desc: lv => `6초마다 공격력 ${(3 + (lv - 1) * 0.75).toFixed(2).replace(/\.?0+$/, '')}배로 한 방` },
+  { id: 'double', name: '2단 뛰기', at: 0.42, price: 3000, desc: lv => `공격할 때 ${Math.round((0.2 + (lv - 1) * 0.06) * 100)}% 확률로 한 번 더 공격` },
+  { id: 'squat', name: '스쿼트 점프', at: 0.72, price: 20000, desc: lv => `10초마다 5초 동안 치명타 +${Math.round((0.15 + (lv - 1) * 0.05) * 100)}%p` },
 ];
 const DEFENSE_SKILLS = [
-  { id: 'water', name: '물 한 잔', at: 0.1, price: 60, desc: lv => `먹이기 공격으로 찌는 체중 -${Math.round((0.3 + (lv - 1) * 0.08) * 100)}%` },
-  { id: 'diary', name: '식단 일기', at: 0.45, price: 800, desc: lv => `먹이기 공격을 ${Math.round((0.25 + (lv - 1) * 0.07) * 100)}% 확률로 피함` },
-  { id: 'protein', name: '단백질 방패', at: 0.76, price: 2600, desc: lv => `보스의 먹이기 공격 -${Math.round((0.5 + (lv - 1) * 0.1) * 100)}%` },
+  { id: 'water', name: '물 한 잔', at: 0.1, price: 200, desc: lv => `먹이기 공격으로 찌는 체중 -${Math.round((0.3 + (lv - 1) * 0.08) * 100)}%` },
+  { id: 'diary', name: '식단 일기', at: 0.45, price: 4000, desc: lv => `먹이기 공격을 ${Math.round((0.25 + (lv - 1) * 0.07) * 100)}% 확률로 피함` },
+  { id: 'protein', name: '단백질 방패', at: 0.76, price: 22000, desc: lv => `보스의 먹이기 공격 -${Math.round((0.5 + (lv - 1) * 0.1) * 100)}%` },
 ];
 // 보석(유료 화폐) 상점
 const GEM_SHOP = [
   { id: 'diamond', name: '다이아 바벨', price: 300, kind: 'weapon', desc: '보석 전용 무기 · 공격력 250 · 치명타 25%' },
   { id: 'boost', name: '프로틴 부스터', price: 40, kind: 'item', desc: '다음 던전 한 번 공격력 x5' },
   { id: 'time', name: '보스 시간 연장권', price: 20, kind: 'item', desc: '다음 던전 보스 제한 시간 +30초' },
-  { id: 'mats', name: '재료 상자', price: 50, kind: 'item', desc: '재료 +60' },
+  { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '칼로리 +(다음 던전 3번 돈 만큼)' },
   { id: 'gold', name: '황금 테마', price: 120, kind: 'theme', desc: '화면 색을 금빛으로 바꿉니다' },
   { id: 'neon', name: '네온 테마', price: 120, kind: 'theme', desc: '화면 색을 네온으로 바꿉니다' },
   { id: 'band', name: '금빛 머리띠', price: 60, kind: 'look', desc: '강산해의 머리띠가 금빛으로 바뀝니다' },
 ];
 // 충전 화면(테스트용: 실제 결제 없이 바로 보석이 들어온다)
-const CHARGE_PACKS = [
-  { gems: 60, bonus: 0, label: '₩1,200' },
-  { gems: 300, bonus: 30, label: '₩5,900' },
-  { gems: 1000, bonus: 150, label: '₩19,000' },
-  { gems: 2500, bonus: 600, label: '₩49,000' },
-];
+const CHARGE_PACKS = [{ gems: 60, bonus: 0 }, { gems: 300, bonus: 30 }, { gems: 1000, bonus: 150 }, { gems: 2500, bonus: 600 }];
 const SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
+function totalLoss(s) { return CFG.start - s.target; }
 function unlockWeightOf(s, at) { return CFG.start - at * totalLoss(s); }
 function isUnlocked(s, item) { return s.maxBurned >= item.at * totalLoss(s) - 1e-9; }
 
 function newState(target) {
-  const s = { v: 4, target, kcal: 0, kcalTotal: 0, burned: 0, maxBurned: 0, prevMax: 0, weapon: 0, enh: 0, enhCount: 0, regained: 0,
-    coins: 0, mats: 0, gems: 0, gemsSpent: 0, charged: 0,
+  const s = { v: 5, target: target || CFG.fixedTarget, cal: 0, calTotal: 0, burned: 0, maxBurned: 0, weapon: 0, enh: 0, enhCount: 0,
+    gems: 0, gemsSpent: 0, charged: 0,
     own: { w: [true], a: [0, 0, 0], d: [0, 0, 0] }, items: { boost: 0, time: 0 }, cos: { owned: {}, theme: '', band: false },
     dun: { best: 0, clears: {}, fails: 0 }, inDun: false, run: null,
     burpeeT: 0, squatT: 0, feedT: 0, feeds: 0, fed: 0, dodged: 0,
@@ -554,14 +571,14 @@ function newState(target) {
   return s;
 }
 function weightOf(s) { return CFG.start - s.burned; }
-function totalLoss(s) { return CFG.start - s.target; }
 function progressOf(s) { return Math.min(1, s.burned / totalLoss(s)); }
 function speedOf(s) { return 1 + CFG.speedPerKg * s.burned; }
 function weaponOf(s) { return WEAPONS[s.weapon]; }
 function lvOf(s, kind, id) { const i = SHOP[kind].findIndex(x => x.id === id); return s.own[kind][i] || 0; }
 function has(s, kind, id) { return lvOf(s, kind, id) > 0; }
 function boostOf(s) { return s.inDun && s.run ? s.run.boost : 1; }
-function atkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh) * boostOf(s); }
+function baseAtkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh); }
+function atkOf(s) { return baseAtkOf(s) * boostOf(s); }
 function squatBonus(s) { const lv = lvOf(s, 'a', 'squat'); return lv ? 0.15 + (lv - 1) * 0.05 : 0; }
 function squatOn(s) { return squatBonus(s) > 0 && (s.squatT % 10) < 5; }
 function critOf(s) { return Math.min(0.9, weaponOf(s).crit + CFG.enhCrit * s.enh + (squatOn(s) ? squatBonus(s) : 0)); }
@@ -569,7 +586,7 @@ function burpeeMul(s) { const lv = lvOf(s, 'a', 'burpee'); return lv ? 3 + (lv -
 function doubleChance(s) { const lv = lvOf(s, 'a', 'double'); return lv ? 0.2 + (lv - 1) * 0.06 : 0; }
 // 전투력: 초당 피해를 어림한 값 x10 (스킬 포함, 부스터 제외)
 function powerOf(s) {
-  const base = weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh);
+  const base = baseAtkOf(s);
   const crit = Math.min(0.9, weaponOf(s).crit + CFG.enhCrit * s.enh + squatBonus(s) / 2);
   let dps = base * (1 + crit * (CFG.critMul - 1)) * speedOf(s) * (1 + doubleChance(s));
   if (burpeeMul(s)) dps += base * burpeeMul(s) / 6;
@@ -579,84 +596,98 @@ function isBoss(stage, idx) { return idx === CFG.perStage - 1; }
 function monsterOf(s) {
   const boss = isBoss(s.stage, s.idx);
   const mul = boss ? CFG.bossMul : 1;
-  const m = boss ? BOSSES[(s.stage - 1) % BOSSES.length] : MONSTERS[(s.stage * 3 + s.idx * 7) % MONSTERS.length];
+  let m = boss ? BOSSES[(s.stage - 1) % BOSSES.length] : MONSTERS[(s.stage * 3 + s.idx * 7) % MONSTERS.length];
+  if (boss && s.stage === CFG.dungeons) m = { id: 'cake', name: '폭식 대마왕' };
   return { ...m, boss, hp: Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, s.stage - 1) * mul),
-    reward: CFG.reward0 * Math.pow(CFG.rewardGrow, s.stage - 1) * mul,
-    coins: Math.round(CFG.coin0 * Math.pow(CFG.coinGrow, s.stage - 1) * mul) };
+    kcal: Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, s.stage - 1) * mul) };
 }
 // 던전 정보
-function regionOf(d) { const r = Math.floor((d - 1) / 5); return { no: r + 1, sub: (d - 1) % 5 + 1, name: REGIONS[r % REGIONS.length] + (r >= REGIONS.length ? ` ${Math.floor(r / REGIONS.length) + 1}단계` : '') }; }
+function regionOf(d) { const r = Math.floor((d - 1) / 5); return { no: r + 1, sub: (d - 1) % 5 + 1, name: REGIONS[Math.min(r, REGIONS.length - 1)] }; }
 function dungeonLabel(d) { const r = regionOf(d); return `${r.no}-${r.sub}`; }
 function bossHpOf(d) { return Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, d - 1) * CFG.bossMul); }
 function recPowerOf(d) { return Math.round(bossHpOf(d) / (CFG.bossTime * 0.6) * 10); }
-function matsOf(d) { return Math.round(CFG.mat0 + d * CFG.matGrow); }
+function dungeonKcalOf(d) { return Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, d - 1) * (CFG.perStage - 1 + CFG.bossMul)); }
 // 압도 배율: 내 전투력이 이 던전 권장 전투력의 몇 배인지(1~5). 높을수록 몬스터가 빨리 몰려나온다
 function overpowerOf(s, d) { return Math.max(1, Math.min(5, powerOf(s) / recPowerOf(d || s.stage))); }
-function canEnter(s, d) { return !s.done && d >= 1 && d <= s.dun.best + 1; }
-// 몬스터 하나를 잡았을 때 빠지는 칼로리. 강한 몬스터일수록 많고, 체중이 낮을수록 적다.
-function rewardOf(s) {
-  const w = weightOf(s);
-  const eff = Math.pow(Math.max(0.05, (w - CFG.floor) / (CFG.start - CFG.floor)), CFG.curve);
-  const kcal = Math.max(1, Math.round(monsterOf(s).reward * eff));
-  return { kcal, kg: kcal / CFG.kcalPerKg };
+function canEnter(s, d) { return !s.done && d >= 1 && d <= Math.min(s.dun.best + 1, CFG.dungeons); }
+// ----- 칼로리 버닝 -----
+function burnCapKg(s) { return Math.min(totalLoss(s), s.dun.best * CFG.kgPerDungeon); }   // 지금까지 뺄 수 있는 총량
+function burnLimitWeight(s) { return CFG.start - burnCapKg(s); }
+function burnableKg(s) { return Math.max(0, Math.floor((burnCapKg(s) - s.burned) * 10 + 1e-6) / 10); } // 0.1kg 단위
+// b(kg)만큼 이미 뺀 상태에서 x(kg)를 더 빼는 값. 0.1kg 단위로 더한다
+function burnCostOf(s, x) {
+  let cost = 0, b = s.burned;
+  for (let k = 0; k < Math.round(x * 10) - 1e-9; k++) { cost += 0.1 * CFG.burn0 * Math.pow(CFG.burnGrow, (b + k * 0.1) / CFG.kgPerDungeon); }
+  return Math.ceil(cost);
 }
-function setKcal(s, kcal) { s.kcal = Math.max(0, kcal); s.burned = s.kcal / CFG.kcalPerKg; s.maxBurned = Math.max(s.maxBurned, s.burned); }
-// 무기 강화: 공격력 +20%, 치명타 +1%p. 대가로 체중이 다시 늘고 공격 속도가 느려진다. 120kg을 넘길 수는 없다.
-function enhCostOf(s) { return Math.round(CFG.enhCost0 * Math.pow(CFG.enhCostGrow, s.enh) * 10) / 10; }
+function maxAffordableBurn(s) { // 칼로리와 한도 안에서 뺄 수 있는 최대 kg (0.1 단위)
+  let x = 0; const lim = burnableKg(s);
+  while (x + 0.1 <= lim + 1e-9 && burnCostOf(s, x + 0.1) <= s.cal) x = Math.round((x + 0.1) * 10) / 10;
+  return x;
+}
+function burn(s, x, ev) {
+  x = Math.min(x, burnableKg(s)); x = Math.floor(x * 10 + 1e-9) / 10;
+  if (x <= 0) return false;
+  const cost = burnCostOf(s, x); if (cost > s.cal) return false;
+  s.cal -= cost; s.burned = Math.round((s.burned + x) * 100) / 100; s.maxBurned = Math.max(s.maxBurned, s.burned);
+  if (ev) ev.push({ t: 'burn', kg: x, cost });
+  if (weightOf(s) <= s.target + 1e-9) { s.burned = totalLoss(s); s.done = true; if (ev) ev.push({ t: 'done' }); }
+  return true;
+}
+// ----- 무기 강화: 칼로리를 쓴다 -----
+function enhCostOf(s) { return Math.round(Math.max(100, weaponOf(s).price) * CFG.enhRate * Math.pow(CFG.enhGrow, s.enh)); }
 function canEnhance(s) {
   if (s.done) return { ok: false, why: '' };
   if (s.enh >= CFG.enhMax) return { ok: false, why: `이 무기는 최대 +${CFG.enhMax}까지 강화했습니다` };
-  if (s.burned < enhCostOf(s)) return { ok: false, why: `${enhCostOf(s).toFixed(1)} kg 이상 빠져야 강화할 수 있습니다` };
+  if (s.cal < enhCostOf(s)) return { ok: false, why: `칼로리 ${enhCostOf(s).toLocaleString('ko-KR')}이 필요합니다` };
   return { ok: true };
 }
 function enhance(s, ev) {
   if (!canEnhance(s).ok) return false;
   const cost = enhCostOf(s);
-  setKcal(s, s.kcal - cost * CFG.kcalPerKg);
-  s.regained += cost; s.enh++; s.enhCount++;
+  s.cal -= cost; s.enh++; s.enhCount++;
   if (ev) ev.push({ t: 'enhance', cost, enh: s.enh });
   return true;
 }
 function equipWeapon(s, i) {
-  if (i <= s.weapon && s.weapon !== 7) return;
-  if (s.weapon === 7) return; // 다이아 바벨을 끼고 있으면 유지
-  const prev = atkOf(s) / boostOf(s); s.weapon = i; s.enh = 0;
-  while (atkOf(s) / boostOf(s) < prev && s.enh < CFG.enhMax) s.enh++;
+  if (s.weapon === 7 || i <= s.weapon) return; // 다이아 바벨을 끼고 있으면 유지
+  const prev = baseAtkOf(s); s.weapon = i; s.enh = 0;
+  while (baseAtkOf(s) < prev && s.enh < CFG.enhMax) s.enh++;
 }
-// 코인 구입: 해금된 무기·스킬을 산다. 무기는 바로 장착(공격력이 내려가지 않는 강화 단계에서 시작)
+// ----- 칼로리로 사기 -----
 function canBuy(s, kind, i) {
   const it = SHOP[kind][i];
   if (it.gem) return { ok: false, why: 'gem' };
   if (s.own[kind][i]) return { ok: false, why: 'owned' };
   if (!isUnlocked(s, it)) return { ok: false, why: 'locked' };
-  if (s.coins < it.price) return { ok: false, why: 'coins' };
+  if (s.cal < it.price) return { ok: false, why: 'cal' };
   return { ok: true };
 }
 function buy(s, kind, i, ev) {
   if (!canBuy(s, kind, i).ok) return false;
   const it = SHOP[kind][i];
-  s.coins -= it.price; s.own[kind][i] = kind === 'w' ? true : 1;
+  s.cal -= it.price; s.own[kind][i] = kind === 'w' ? true : 1;
   if (kind === 'w') equipWeapon(s, i);
   if (ev) ev.push({ t: 'buy', name: it.name, kind, enh: s.enh });
   return true;
 }
-// 스킬 레벨업: 재료를 쓴다
-function skillCostOf(lv) { return 6 + lv * lv * 4; } // Lv1→2: 10, 2→3: 22, 3→4: 42, 4→5: 70
+function skillCostOf(kind, i, lv) { return Math.round(SHOP[kind][i].price * 0.6 * lv); }
 function canLevelUp(s, kind, i) {
   const lv = s.own[kind][i] || 0;
   if (!lv) return { ok: false, why: 'notOwned' };
   if (lv >= CFG.skillMax) return { ok: false, why: 'max' };
-  if (s.mats < skillCostOf(lv)) return { ok: false, why: 'mats' };
+  if (s.cal < skillCostOf(kind, i, lv)) return { ok: false, why: 'cal' };
   return { ok: true };
 }
 function levelUp(s, kind, i, ev) {
   if (!canLevelUp(s, kind, i).ok) return false;
-  s.mats -= skillCostOf(s.own[kind][i]); s.own[kind][i]++;
+  s.cal -= skillCostOf(kind, i, s.own[kind][i]); s.own[kind][i]++;
   if (ev) ev.push({ t: 'levelup', name: SHOP[kind][i].name, lv: s.own[kind][i] });
   return true;
 }
-// 보석 상점
+// ----- 보석 상점 -----
 function gemOwned(s, id) { return id === 'diamond' ? !!s.own.w[7] : !!s.cos.owned[id]; }
+function kcalBoxOf(s) { return dungeonKcalOf(Math.min(CFG.dungeons, s.dun.best + 1)) * 3; }
 function canGemBuy(s, id) {
   const it = GEM_SHOP.find(x => x.id === id);
   if ((it.kind === 'weapon' || it.kind === 'theme' || it.kind === 'look') && gemOwned(s, id)) return { ok: false, why: 'owned' };
@@ -667,21 +698,21 @@ function gemBuy(s, id, ev) {
   if (!canGemBuy(s, id).ok) return false;
   const it = GEM_SHOP.find(x => x.id === id);
   s.gems -= it.price; s.gemsSpent += it.price;
-  if (id === 'diamond') { s.own.w[7] = true; const prev = atkOf(s) / boostOf(s); s.weapon = 7; s.enh = 0; while (atkOf(s) / boostOf(s) < prev && s.enh < CFG.enhMax) s.enh++; }
+  if (id === 'diamond') { s.own.w[7] = true; const prev = baseAtkOf(s); s.weapon = 7; s.enh = 0; while (baseAtkOf(s) < prev && s.enh < CFG.enhMax) s.enh++; }
   else if (id === 'boost') s.items.boost++;
   else if (id === 'time') s.items.time++;
-  else if (id === 'mats') s.mats += 60;
+  else if (id === 'kcalbox') s.cal += kcalBoxOf(s);
   else if (it.kind === 'theme') { s.cos.owned[id] = true; s.cos.theme = id; }
   else if (id === 'band') { s.cos.owned.band = true; s.cos.band = true; }
   if (ev) ev.push({ t: 'gembuy', name: it.name, id });
   return true;
 }
 function charge(s, i, ev) { const p = CHARGE_PACKS[i]; s.gems += p.gems + p.bonus; s.charged += p.gems + p.bonus; if (ev) ev.push({ t: 'charge', gems: p.gems + p.bonus }); }
-// 던전 입장·종료
+// ----- 던전 입장·종료 -----
 function enterDungeon(s, d, ev) {
   if (!canEnter(s, d)) return false;
   s.stage = d; s.idx = 0; s.hp = monsterOf(s).hp; s.respawn = 0; s.atk = 0; s.feedT = 0; s.feeds = 0; s.burpeeT = 0;
-  s.run = { d, boost: 1, extra: 0, kills: 0, kcal: 0, coins: 0, kg0: s.burned, t0: s.time, bossT: 0, first: d > s.dun.best };
+  s.run = { d, boost: 1, extra: 0, kills: 0, cal: 0, kg0: s.burned, t0: s.time, bossT: 0, first: d > s.dun.best };
   if (s.items.boost > 0) { s.items.boost--; s.run.boost = 5; }
   if (s.items.time > 0) { s.items.time--; s.run.extra = 30; }
   s.run.op = overpowerOf(s, d);
@@ -691,10 +722,9 @@ function enterDungeon(s, d, ev) {
 }
 function endRun(s, ok, ev) {
   const r = s.run, d = r.d;
-  const res = { t: ok ? 'clear' : 'fail', d, kills: r.kills, kcal: r.kcal, coins: r.coins, kg: r.kg0 - s.burned, time: s.time - r.t0, mats: 0, gems: 0, boost: r.boost };
+  const res = { t: ok ? 'clear' : 'fail', d, kills: r.kills, cal: r.cal, fedKg: r.kg0 - s.burned, time: s.time - r.t0, gems: 0, boost: r.boost };
   if (ok) {
-    res.mats = matsOf(d); s.mats += res.mats;
-    if (d > s.dun.best) { s.dun.best = d; res.gems = CFG.firstClearGems; s.gems += res.gems; res.first = true; }
+    if (d > s.dun.best) { s.dun.best = d; res.gems = CFG.firstClearGems; s.gems += res.gems; res.first = true; res.capKg = CFG.kgPerDungeon; }
     const prev = s.dun.clears[d]; if (!prev || res.time < prev) s.dun.clears[d] = Math.round(res.time * 10) / 10;
   } else s.dun.fails++;
   s.inDun = false;
@@ -710,18 +740,10 @@ function hit(s, dmg, crit, ev, tag) {
   s.hp -= dmg;
   if (ev) ev.push({ t: 'hit', dmg, crit, tag });
   if (s.hp <= 0) {
-    const m = monsterOf(s), r = rewardOf(s), oneShot = dmg >= m.hp;
-    setKcal(s, s.kcal + r.kcal); s.kcalTotal += r.kcal;
-    s.coins += m.coins; s.kills++;
-    s.run.kills++; s.run.kcal += r.kcal; s.run.coins += m.coins;
-    if (ev) ev.push({ t: 'kill', kcal: r.kcal, kg: r.kg, coins: m.coins, boss: m.boss, name: m.name, id: m.id, oneShot });
-    if (weightOf(s) <= s.target + 1e-9) {
-      setKcal(s, totalLoss(s) * CFG.kcalPerKg);
-      s.done = true; s.inDun = false; if (ev) ev.push({ t: 'done' }); return;
-    }
-    const names = newlyUnlocked(s, s.prevMax);
-    if (names.length && ev) ev.push({ t: 'unlock', names });
-    s.prevMax = s.maxBurned;
+    const m = monsterOf(s), oneShot = dmg >= m.hp;
+    s.cal += m.kcal; s.calTotal += m.kcal; s.kills++;
+    s.run.kills++; s.run.cal += m.kcal;
+    if (ev) ev.push({ t: 'kill', cal: m.kcal, boss: m.boss, name: m.name, id: m.id, oneShot });
     if (m.boss) { endRun(s, true, ev); return; }
     s.idx++;
     s.hp = monsterOf(s).hp;
@@ -734,17 +756,17 @@ function rollDamage(s, rate, rnd) {
   const crit = (rnd || Math.random)() < critOf(s);
   return { dmg: Math.max(1, Math.round(atkOf(s) * (rate || 1) * (crit ? CFG.critMul : 1))), crit };
 }
-// 먹이기 공격: 음식 몬스터가 강산해에게 음식을 먹여 체중을 다시 늘린다. 한 마리당 최대 3번이라 그 몬스터 보상을 넘지 않는다.
+// 먹이기 공격: 음식 몬스터가 강산해에게 음식을 먹여 체중을 다시 늘린다(120kg을 넘지 않음). 빨리 잡을수록 덜 당한다.
 function feed(s, ev, rnd) {
   const m = monsterOf(s);
   const dl = lvOf(s, 'd', 'diary'), wl = lvOf(s, 'd', 'water'), pl = lvOf(s, 'd', 'protein');
   if (dl && (rnd || Math.random)() < 0.25 + (dl - 1) * 0.07) { s.dodged++; if (ev) ev.push({ t: 'dodge' }); return; }
-  let mul = 1;
+  let mul = m.boss ? 2 : 1;
   if (wl) mul *= 1 - (0.3 + (wl - 1) * 0.08);
   if (m.boss && pl) mul *= 1 - (0.5 + (pl - 1) * 0.1);
-  const kcal = Math.round(rewardOf(s).kcal * CFG.feedRate * mul);
-  const before = s.kcal; setKcal(s, s.kcal - kcal); const real = before - s.kcal;
-  s.fed += real; if (ev) ev.push({ t: 'feed', kcal: real, kg: real / CFG.kcalPerKg });
+  const kg = Math.min(s.burned, Math.round(CFG.feedKg * mul * 1000) / 1000);
+  s.burned = Math.round((s.burned - kg) * 1000) / 1000; s.fed += kg;
+  if (ev) ev.push({ t: 'feed', kg });
 }
 function step(s, dt, ev, rnd) {
   if (s.done || !s.inDun) return;
@@ -774,39 +796,41 @@ function step(s, dt, ev, rnd) {
   }
   if (s.respawn > 0) s.atk = 0;
 }
-// 시뮬레이션용 사용자. 정비 화면에서: 살 수 있으면 사고, 재료로 스킬을 올리고, 다음 던전 권장 전투력에 못 미치면 무기를 강화한다.
-// 다음 던전에서 실패하면 마지막으로 깬 던전을 한 번 더 돌고 다시 도전한다.
-// gems: 처음에 충전한 보석. 보석이 있으면 다이아 바벨을 먼저 사고, 실패할 때마다 부스터를 쓴다.
-function simulate(target, policy, limitSec, noShop, gems, stopKg) {
+// 시뮬레이션용 사용자(정비 화면에서 하는 일). order: 칼로리를 쓰는 순서
+//   'burn' 버닝 먼저 → 무기·스킬 → 강화 / 'gear' 무기·스킬·강화 먼저 → 남으면 버닝 / 'mix' 번갈아
+// gems: 처음에 충전한 보석. 있으면 다이아 바벨을 먼저 사고, 막히면 부스터를 쓴다.
+function simulate(target, order, limitSec, noShop, gems, stopKg) {
   const s = newState(target); let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   s.log = []; s.gems = gems || 0; let lastFail = 0;
+  const gear = () => {
+    for (let i = WEAPONS.length - 2; i > s.weapon; i--) if (buy(s, 'w', i)) break;
+    for (const k of ['a', 'd']) for (let i = 2; i >= 0; i--) buy(s, k, i);
+    let up = true; while (up) { up = false; for (const k of ['a', 'd']) for (let i = 0; i < 3; i++) if (levelUp(s, k, i)) up = true; }
+    const next = Math.min(CFG.dungeons, s.dun.best + 1);
+    while (powerOf(s) < recPowerOf(next) && enhance(s)) {}
+  };
+  const burnAll = () => burn(s, maxAffordableBurn(s));
   while (!s.done && s.time < (limitSec || 6 * 3600)) {
     if (!s.inDun && stopKg && s.burned >= stopKg) break;
     if (!s.inDun) {
       if (!noShop) {
-        for (const k of ['w', 'a', 'd']) for (let i = SHOP[k].length - 1; i >= 0; i--) buy(s, k, i);
-        let up = true; while (up) { up = false; for (const k of ['a', 'd']) for (let i = 0; i < 3; i++) if (levelUp(s, k, i)) up = true; }
+        if (order === 'burn') { burnAll(); gear(); }
+        else if (order === 'gear') { gear(); burnAll(); }
+        else { const half = s.cal / 2; const keep = s.cal - half; s.cal = half; burnAll(); s.cal += keep; gear(); burnAll(); }
       }
+      if (s.done) break;
       if (s.gems >= 300 && !s.own.w[7]) gemBuy(s, 'diamond');
-      const next = s.dun.best + 1;
-      if (policy !== 'none') while (powerOf(s) < recPowerOf(next) * (policy === 'max' ? 3 : 1) && enhance(s)) {}
-      let d = next;
-      if (lastFail === next) { if (s.gems >= 40) gemBuy(s, 'boost'); else d = Math.max(1, s.dun.best); }
+      let d = Math.min(CFG.dungeons, s.dun.best + 1);
+      if (s.dun.best >= CFG.dungeons) d = CFG.dungeons; // 다 깼으면 마지막 던전을 돌며 칼로리를 모은다
+      if (lastFail === d) { if (s.gems >= 40) gemBuy(s, 'boost'); else d = Math.max(1, s.dun.best); }
       const ev = []; enterDungeon(s, d, ev);
     }
     const ev = []; step(s, 0.05, ev, rnd);
     for (const e of ev) { if (e.t === 'fail') { lastFail = e.d; s.log.push(e.d); } if (e.t === 'clear' && e.d === lastFail) lastFail = 0; }
-    s.time += 0; // 정비 화면에서 보내는 시간은 따로 세지 않는다
   }
   return s;
 }
-function estimateMinutes(target) { return simulate(target, 'some').time / 60; }
-function difficultyOf(target) {
-  if (target >= 95) return { name: '쉬움', color: '#6fae7f' };
-  if (target >= 80) return { name: '보통', color: '#5f8fc6' };
-  if (target >= 70) return { name: '어려움', color: '#d99a3a' };
-  return { name: '매우 어려움', color: '#d9775f' };
-}
+function estimateMinutes(target) { return simulate(target, 'mix').time / 60; }
 // ===== LOGIC END =====
 
 // ===== 도트 그림 =====
@@ -1137,13 +1161,16 @@ const vis = { weight: 120, atkT: 9, atkDur: .3, kick: false, mFlash: 0, mKnock: 
 // 옛 저장(던전 구조 이전, v3)을 새 구조로 옮긴다: 체중·무기·스킬·코인은 그대로, 지나온 라운드 수만큼 던전을 깬 것으로 친다
 function migrate(o) {
   if (!o) return null;
-  if (o.v === 4) return o;
-  if (o.v !== 3) return null;
-  const s = newState(o.target);
-  for (const k of ['kcal', 'kcalTotal', 'burned', 'maxBurned', 'prevMax', 'weapon', 'enh', 'enhCount', 'regained', 'coins', 'kills', 'time', 'fed', 'dodged', 'done']) if (o[k] != null) s[k] = o[k];
+  if (o.v === 5) return o;
+  if (o.v !== 3 && o.v !== 4) return null;
+  const s = newState(CFG.fixedTarget);
+  for (const k of ['burned', 'maxBurned', 'weapon', 'enh', 'enhCount', 'kills', 'time', 'fed', 'dodged', 'gems', 'gemsSpent', 'charged']) if (o[k] != null) s[k] = o[k];
+  s.burned = Math.max(0, Math.min(s.burned, totalLoss(s) - 0.1)); s.maxBurned = Math.max(s.maxBurned, s.burned);
+  s.cal = Math.round((o.coins || 0) + (o.mats || 0) * 30); s.calTotal = s.cal;
   s.own.w = (o.own && o.own.w) || [true];
-  for (const k of ['a', 'd']) s.own[k] = [0, 1, 2].map(i => (o.own && o.own[k] && o.own[k][i]) ? 1 : 0);
-  s.dun.best = Math.max(0, (o.stage || 1) - 1);
+  for (const k of ['a', 'd']) s.own[k] = [0, 1, 2].map(i => (o.own && o.own[k] && o.own[k][i]) ? (Number(o.own[k][i]) || 1) : 0);
+  if (o.items) s.items = o.items; if (o.cos) s.cos = o.cos;
+  s.dun.best = Math.min(CFG.dungeons, o.dun ? o.dun.best : Math.max(0, (o.stage || 1) - 1)); if (o.dun && o.dun.clears) s.dun.clears = o.dun.clears;
   s.stage = s.dun.best + 1; s.idx = 0; s.hp = monsterOf(s).hp;
   s.migrated = true;
   return s;
@@ -1191,7 +1218,7 @@ $('cNo').addEventListener('click', () => $('confirm').classList.remove('on'));
 $('continueBtn').addEventListener('click', () => {
   S = load(); if (!S) return;
   applyTheme();
-  if (S.migrated) { delete S.migrated; toast('예전 기록을 새 던전 구조로 옮겼습니다.<br>체중·무기·스킬·코인은 그대로이고, 지나온 라운드만큼 던전을 깬 것으로 했습니다.', 5000); }
+  if (S.migrated) { delete S.migrated; toast('예전 기록을 새 구조로 옮겼습니다.<br>체중·무기·스킬·깬 던전은 그대로이고, 코인과 재료는 칼로리로 바꿨습니다. 목표는 75 kg입니다.', 5000); }
   if (S.done) { endGame(); return; }
   if (S.inDun) { startBattle(); applyOffline((Date.now() - (S.savedAt || Date.now())) / 1000); }
   else goHub();
@@ -1203,11 +1230,11 @@ $('againBtn').addEventListener('click', () => { clearSave(); S = null; applyThem
 function applyOffline(sec) {
   if (!S || S.done || !S.inDun || !(sec > 3)) return;
   const use = Math.min(sec, CFG.offlineCap);
-  const w0 = weightOf(S), kills0 = S.kills, c0 = S.coins, t0 = S.time;
+  const w0 = weightOf(S), kills0 = S.kills, c0 = S.cal, t0 = S.time;
   const ev = []; let left = use;
   while (left > 0 && !S.done && S.inDun) { const d = Math.min(0.05, left); step(S, d, ev); left -= d; }
   const fought = S.time - t0;
-  toast(`자리를 비운 동안 ${fmtTime(fought)} 자동으로 싸웠습니다${sec > CFG.offlineCap && S.inDun ? ' (최대 5분까지만 반영)' : ''}<br>몬스터 ${S.kills - kills0}마리 · 코인 +${fmtNum(S.coins - c0)} · 체중 <b>${(weightOf(S) - w0).toFixed(1)} kg</b>`, 6000);
+  toast(`자리를 비운 동안 ${fmtTime(fought)} 자동으로 싸웠습니다${sec > CFG.offlineCap && S.inDun ? ' (최대 5분까지만 반영)' : ''}<br>몬스터 ${S.kills - kills0}마리 · 칼로리 +${fmtNum(S.cal - c0)} · 먹이기로 체중 <b>+${(weightOf(S) - w0).toFixed(2)} kg</b>`, 6000);
   vis.weight = weightOf(S);
   const end = ev.find(e => e.t === 'clear' || e.t === 'fail' || e.t === 'done');
   if (end) handleEvents([end], false);
@@ -1232,7 +1259,7 @@ function updateHub() {
   $('hubBar').style.width = (Math.min(1, lost / total) * 100).toFixed(1) + '%';
   $('hubRemain').textContent = `남은 체중 ${Math.max(0, w - S.target).toFixed(1)} kg`;
   $('hubPct').textContent = Math.floor(Math.min(1, lost / total) * 100) + '%';
-  $('wCoin').textContent = fmtNum(S.coins); $('wMat').textContent = fmtNum(S.mats); $('wGem').textContent = fmtNum(S.gems); $('gemV2').textContent = fmtNum(S.gems);
+  $('wCal').textContent = fmtNum(S.cal); $('wGem').textContent = fmtNum(S.gems); $('gemV2').textContent = fmtNum(S.gems);
   $('hubPower').textContent = fmtNum(powerOf(S));
   $('hubWeapon').textContent = `${weaponOf(S).name} +${S.enh}`;
   const items = [];
@@ -1241,10 +1268,31 @@ function updateHub() {
   $('hubItems').innerHTML = items.length ? items.join('<br>') + '<br>다음 던전에 들어갈 때 하나씩 자동으로 씁니다' : '';
   const next = S.dun.best + 1, rec = recPowerOf(next), pw = powerOf(S);
   $('nextInfo').innerHTML = `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>${pw < rec ? ' · 지금은 막힐 수 있습니다' : ''}`;
-  $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.kcalTotal); $('killTot').textContent = fmtNum(S.kills);
+  $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.calTotal); updateBurn(); $('killTot').textContent = fmtNum(S.kills);
   updatePanel();
 }
 $('toDungeonBtn').addEventListener('click', () => goDungeons());
+// 칼로리 버닝: 깬 던전 수만큼 한도가 열린다
+function updateBurn() {
+  const total = totalLoss(S), cap = burnCapKg(S), room = burnableKg(S), afford = maxAffordableBurn(S);
+  $('burnLimit').textContent = `지금 한도 ${burnLimitWeight(S).toFixed(1)} kg까지`;
+  $('burnDone').style.width = (S.burned / total * 100).toFixed(1) + '%';
+  $('burnRoom').style.width = (room / total * 100).toFixed(1) + '%';
+  const step = Math.min(0.5, room), stepCost = step > 0 ? burnCostOf(S, step) : 0;
+  let info;
+  if (S.dun.best === 0) info = '던전을 하나 깨면 1.5 kg까지 버닝할 수 있습니다.';
+  else if (room <= 0) info = S.dun.best >= CFG.dungeons ? '목표까지 남은 체중을 모두 뺐습니다.' : `한도에 닿았습니다. <b>다음 던전(${dungeonLabel(S.dun.best + 1)})을 깨면</b> ${CFG.kgPerDungeon} kg 더 뺄 수 있습니다.`;
+  else info = `앞으로 <b>${room.toFixed(1)} kg</b> 더 뺄 수 있습니다 · 1 kg 빠질 때마다 공격 속도 +${Math.round(CFG.speedPerKg * 100)}% · 체중이 낮을수록 버닝 값이 비쌉니다`;
+  $('burnInfo').innerHTML = info;
+  $('burnSmall').disabled = !(step > 0 && stepCost <= S.cal);
+  $('burnSmall').innerHTML = step > 0 ? `${step.toFixed(1)} kg 버닝<small>${fmtNum(stepCost)} kcal</small>` : '버닝<small>한도 없음</small>';
+  $('burnMax').disabled = !(afford > 0);
+  $('burnMax').innerHTML = afford > 0 ? `최대 ${afford.toFixed(1)} kg<small>${fmtNum(burnCostOf(S, afford))} kcal</small>` : `최대 버닝<small>${room > 0 ? '칼로리 부족' : '한도 없음'}</small>`;
+}
+for (const [id, fn] of [['burnSmall', () => Math.min(0.5, burnableKg(S))], ['burnMax', () => maxAffordableBurn(S)]]) $(id).addEventListener('click', () => {
+  if (!S || S.inDun) return;
+  const ev = []; if (burn(S, fn(), ev)) { handleEvents(ev, false); save(); if (!S.done) { panelKey = ''; updateHub(); } }
+});
 $('chargeBtn').addEventListener('click', openCharge);
 $('chargeBtn2').addEventListener('click', openCharge);
 
@@ -1260,9 +1308,9 @@ function renderDungeons() {
   const items = [];
   if (S.items.boost) items.push(`프로틴 부스터(공격력 x5) ${S.items.boost}개`);
   if (S.items.time) items.push(`보스 시간 연장권(+30초) ${S.items.time}개`);
-  $('dunItemNote').textContent = items.length ? `들어갈 때 하나씩 자동으로 씁니다: ${items.join(', ')}` : '깬 던전은 다시 들어가 재료와 코인을 모을 수 있습니다.';
-  const lastRegion = Math.floor((next - 1) / 5) + 2; // 다음 던전의 지역과 그다음 지역까지 보여 준다
-  const curRegion = Math.floor((next - 1) / 5) + 1;
+  $('dunItemNote').textContent = items.length ? `들어갈 때 하나씩 자동으로 씁니다: ${items.join(', ')}` : '깬 던전은 다시 들어가 칼로리를 모을 수 있습니다.';
+  const lastRegion = Math.min(CFG.dungeons / 5, Math.floor((Math.min(next, CFG.dungeons) - 1) / 5) + 2); // 다음 던전의 지역과 그다음 지역까지 보여 준다
+  const curRegion = Math.floor((Math.min(next, CFG.dungeons) - 1) / 5) + 1;
   let html = '';
   // 다 깬 지난 지역은 접어서 한 줄로 보여 준다
   if (curRegion > 1 && !showOld) html += `<div class="regionDone"><span>${curRegion > 2 ? `1~${curRegion - 1}지역` : `1. ${regionOf(1).name}`} · 모두 클리어</span><button class="back" id="showOldBtn">지난 던전 보기</button></div>`;
@@ -1278,7 +1326,7 @@ function renderDungeons() {
     html += '</div>';
     if (selD >= d0 && selD < d0 + 5) {
       const rec = recPowerOf(selD), first = selD > best;
-      html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스(제한 시간 ${CFG.bossTime}초)<br>권장 전투력 <b>${fmtNum(rec)}</b> · 내 전투력 <b>${fmtNum(pw)}</b>${pw < rec ? ' <span class="warnTxt">(부족)</span>' : ''}<br>클리어 보상: 재료 ${matsOf(selD)}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems}` : ''} + 처치마다 코인·체중 감량<button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장</button></div>`;
+      html += `<div class="dunDetail"><b>${dungeonLabel(selD)} ${regionOf(selD).name}</b> · 잔몹 7마리 뒤 보스(제한 시간 ${CFG.bossTime}초)<br>권장 전투력 <b>${fmtNum(rec)}</b> · 내 전투력 <b>${fmtNum(pw)}</b>${pw < rec ? ' <span class="warnTxt">(부족)</span>' : ''}<br>칼로리 약 ${fmtNum(dungeonKcalOf(selD))}${first ? ` · 첫 클리어 보석 ${CFG.firstClearGems} · 버닝 한도 +${CFG.kgPerDungeon} kg` : ''}<button class="primary" id="enterBtn">${dungeonLabel(selD)} 입장</button></div>`;
     }
     html += '</div>';
   }
@@ -1321,13 +1369,13 @@ function showResult(e) {
   $('resTitle').classList.toggle('fail', !ok);
   $('resSub').textContent = ok ? `${dungeonLabel(e.d)} ${regionOf(e.d).name}${e.first ? ' · 첫 클리어' : ''} · ${e.time.toFixed(1)}초` :
     e.retreat ? `${dungeonLabel(e.d)}에서 물러났습니다. 지금까지 얻은 것은 그대로 남습니다.` : `보스를 ${CFG.bossTime + (S.run ? S.run.extra : 0)}초 안에 잡지 못했습니다. 지금까지 얻은 것은 그대로 남습니다.`;
-  const rows = [['처치', fmtNum(e.kills) + '마리'], ['체중', (e.kg > 0.005 ? '-' : e.kg < -0.005 ? '+' : '') + Math.abs(e.kg).toFixed(2) + ' kg'], ['코인', '+' + fmtNum(e.coins)]];
-  if (ok) rows.push(['재료', '+' + fmtNum(e.mats)]);
+  const rows = [['처치', fmtNum(e.kills) + '마리'], ['칼로리', '+' + fmtNum(e.cal)], ['먹이기로 찐 체중', '+' + Math.max(0, e.fedKg).toFixed(2) + ' kg']];
+  if (e.capKg) rows.push(['버닝 한도', '+' + e.capKg + ' kg']);
   if (e.gems) rows.push(['보석', '+' + fmtNum(e.gems)]);
   $('resList').innerHTML = rows.map(([k, v]) => `<div>${k}<b>${v}</b></div>`).join('');
   const rec = recPowerOf(e.d), pw = powerOf(S);
-  $('resTip').innerHTML = ok ? '정비 화면에서 무기와 스킬을 손본 뒤 다음 던전으로 가세요.' :
-    `권장 전투력 ${fmtNum(rec)} · 내 전투력 ${fmtNum(pw)}<br>정비에서 무기 강화·스킬 레벨업을 하거나, 깬 던전을 다시 돌며 재료를 모으세요. 보석 상점의 부스터로 바로 뚫을 수도 있습니다.`;
+  $('resTip').innerHTML = ok ? '정비 화면에서 칼로리를 버닝·장비·스킬에 나눠 쓰고 다음 던전으로 가세요.' :
+    `권장 전투력 ${fmtNum(rec)} · 내 전투력 ${fmtNum(pw)}<br>정비에서 칼로리로 무기 강화·스킬 레벨업·버닝을 하거나, 깬 던전을 다시 돌며 칼로리를 모으세요. 보석 상점의 부스터로 바로 뚫을 수도 있습니다.`;
   $('resultModal').classList.add('on');
 }
 $('resOk').addEventListener('click', () => { $('resultModal').classList.remove('on'); goHub(); });
@@ -1487,8 +1535,10 @@ function handleEvents(ev, fromTap) {
       pop('skill', e.name, HERO_X + 4, 30);
       addFx('ring', HERO_X + 4, 82, { r: 20, dur: .35, color: '#5aa0e0' });
       SFX.play('skill');
+    } else if (e.t === 'burn') {
+      toast(`칼로리 버닝 <b>-${e.kg.toFixed(1)} kg</b> · ${fmtNum(e.cost)} kcal 사용`, 1800); SFX.play('enhance');
     } else if (e.t === 'enhance') {
-      toast(`무기 +${e.enh} · 체중 +${e.cost.toFixed(1)} kg`, 1800);
+      toast(`무기 +${e.enh} · ${fmtNum(e.cost)} kcal 사용`, 1800);
       SFX.play('enhance');
     } else if (e.t === 'kill') {
       // 연속 처치 콤보: 1.6초 안에 다음 몬스터를 잡으면 이어진다
@@ -1499,9 +1549,8 @@ function handleEvents(ev, fromTap) {
       burst(MON_X, 80, e.boss ? 34 : 16, ['#fff', '#f3cf5a', '#e48a72', '#9fd3f0']);
       addFx('ring', MON_X, 84, { r: e.boss ? 40 : 24, dur: e.boss ? .6 : .4, color: '#fff' });
       for (let i = 0; i < (e.boss ? 10 : 4); i++) vis.particles.push({ x: MON_X, y: 80, vx: (Math.random() - .5) * 60, vy: -60 - Math.random() * 50, life: .8, c: '#f5c542' });
-      pop('kcal', `-${fmtNum(e.kcal)} kcal`, MON_X, 52);
-      setTimeout(() => { pop('coin', `+${fmtNum(e.coins)} 코인`, MON_X, 74); SFX.play('coin'); }, 140);
-      setTimeout(() => pop('kg', `-${e.kg >= 0.1 ? e.kg.toFixed(1) : (e.kg * 1000).toFixed(0) + ' g'}${e.kg >= 0.1 ? ' kg' : ''}`, HERO_X, 40), 250);
+      pop('kcal', `+${fmtNum(e.cal)} kcal`, MON_X, 52);
+      setTimeout(() => SFX.play('coin'), 140);
       vis.sweat = 1;
       SFX.play('kill', { combo: vis.combo });
       if (e.boss && !reduceMotion) { shake(); vis.hitStop = .12; vis.flash = 1; vis.flashColor = '#ffffff'; }
@@ -1510,7 +1559,7 @@ function handleEvents(ev, fromTap) {
       if (S.inDun && monsterOf(S).boss) { setTimeout(() => { SFX.play('boss'); addFx('ring', MON_X, 84, { r: 34, dur: .7, color: '#e0605a' }); if (!reduceMotion) { vis.flash = .8; vis.flashColor = '#e0605a'; } }, 350); }
     } else if (e.t === 'clear') { SFX.play('round'); setTimeout(() => showResult(e), 900); }
     else if (e.t === 'fail') { SFX.play('feed'); setTimeout(() => showResult(e), e.retreat ? 0 : 600); }
-    else if (e.t === 'done') { SFX.play('done'); setTimeout(endGame, 900); }
+    else if (e.t === 'done') { SFX.play('done'); setTimeout(endGame, $('hubScreen').classList.contains('on') ? 300 : 900); }
   }
 }
 $('soundBtn').addEventListener('click', () => {
@@ -1544,19 +1593,18 @@ for (const id of ['weaponList', 'atkList', 'defList', 'gemPowerList', 'gemLookLi
 let panelKey = '';
 function updatePanel() {
   const w = weaponOf(S), ce = canEnhance(S), cost = enhCostOf(S);
-  const key = JSON.stringify([S.weapon, S.enh, ce, cost, Math.floor(S.burned * 10), S.coins, S.mats, S.gems, S.own, S.items, S.cos]);
+  const key = JSON.stringify([S.weapon, S.enh, ce, cost, Math.floor(S.burned * 10), S.cal, S.gems, S.own, S.items, S.cos]);
   if (key === panelKey) return; panelKey = key;
   $('wName').textContent = `${w.name} +${S.enh}`;
   $('wStat').textContent = `공격력 ${fmtNum(atkOf(S))} · 치명타 ${Math.round(critOf(S) * 100)}%`;
   const c = $('wIcon').getContext('2d'); c.clearRect(0, 0, 32, 24); drawWeapon(c, w.id, 13, 12, true);
-  const spdNow = speedOf(S), spdAfter = 1 + CFG.speedPerKg * Math.max(0, S.burned - cost);
   $('enhBtn').disabled = !ce.ok;
   $('enhTitle').textContent = S.enh >= CFG.enhMax ? '최대' : `+${S.enh + 1}`;
   $('enhGain').textContent = S.enh >= CFG.enhMax ? '더 강화할 수 없습니다' : `공격력 ${fmtNum(atkOf(S))} → ${fmtNum(atkOf(S) * (1 + CFG.enhAtk))} · 치명타 +1%p`;
-  $('enhCost').textContent = S.enh >= CFG.enhMax ? '더 강한 무기를 구하세요' : `대가: 체중 +${cost.toFixed(1)} kg · 공격 속도 x${spdNow.toFixed(2)} → x${spdAfter.toFixed(2)}`;
+  $('enhCost').textContent = S.enh >= CFG.enhMax ? '더 강한 무기를 구하세요' : `비용: 칼로리 ${fmtNum(cost)} (보유 ${fmtNum(S.cal)})`;
   $('enhWhy').textContent = ce.ok || S.enh >= CFG.enhMax ? '새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.' : ce.why;
   const lock = at => `해금하려면<br><b>${unlockWeightOf(S, at).toFixed(1)} kg</b>까지 감량하세요`;
-  const coinBtn = (kind, i, x) => { const ok = S.coins >= x.price; return `<button class="buy" data-buy="${kind}:${i}" ${ok ? '' : 'disabled'}>${fmtNum(x.price)} 코인<small>${ok ? (kind === 'w' ? '구입' : '배우기') : '코인 부족'}</small></button>`; };
+  const coinBtn = (kind, i, x) => { const ok = S.cal >= x.price; return `<button class="buy calBuy" data-buy="${kind}:${i}" ${ok ? '' : 'disabled'}>${fmtNum(x.price)} kcal<small>${ok ? (kind === 'w' ? '구입' : '배우기') : '칼로리 부족'}</small></button>`; };
   $('weaponList').innerHTML = WEAPONS.map((x, i) => {
     if (x.gem) return '';
     let st;
@@ -1571,7 +1619,7 @@ function updatePanel() {
     let st;
     if (!lv) st = isUnlocked(S, x) ? coinBtn(kind, i, x) : lock(x.at);
     else if (lv >= CFG.skillMax) st = '<span class="badge now">최대</span>';
-    else { const cost = skillCostOf(lv), ok = S.mats >= cost; st = `<button class="buy matBuy" data-lv="${kind}:${i}" ${ok ? '' : 'disabled'}>재료 ${cost}<small>${ok ? `Lv${lv + 1}로` : '재료 부족'}</small></button>`; }
+    else { const cost = skillCostOf(kind, i, lv), ok = S.cal >= cost; st = `<button class="buy calBuy" data-lv="${kind}:${i}" ${ok ? '' : 'disabled'}>${fmtNum(cost)} kcal<small>${ok ? `Lv${lv + 1}로` : '칼로리 부족'}</small></button>`; }
     const desc = lv && lv < CFG.skillMax ? `${x.desc(lv)}<br>다음 Lv: ${x.desc(lv + 1)}` : x.desc(Math.max(1, lv));
     return `<li class="item ${isUnlocked(S, x) ? '' : 'locked'}"><span class="nm">${x.name}${lv ? `<span class="lvTag">Lv${lv}</span>` : ''}<span class="ds">${desc}</span></span><span class="st">${st}</span></li>`;
   };
@@ -1588,7 +1636,8 @@ function updatePanel() {
       const have = it.id === 'boost' ? S.items.boost : it.id === 'time' ? S.items.time : 0;
       st = `<button class="buy gemBuy" data-gem="${it.id}">보석 ${fmtNum(it.price)}<small>${ok ? '구입' : '충전하기'}${have ? ` · 보유 ${have}` : ''}</small></button>`;
     }
-    return `<li class="item"><span class="nm">${it.name}<span class="ds">${it.desc}</span></span><span class="st">${st}</span></li>`;
+    const desc = it.id === 'kcalbox' ? `칼로리 +${fmtNum(kcalBoxOf(S))} (다음 던전 3번 돈 만큼)` : it.desc;
+    return `<li class="item"><span class="nm">${it.name}<span class="ds">${desc}</span></span><span class="st">${st}</span></li>`;
   };
   $('gemPowerList').innerHTML = GEM_SHOP.filter(x => x.kind === 'weapon' || x.kind === 'item').map(gemRow).join('');
   $('gemLookList').innerHTML = GEM_SHOP.filter(x => x.kind === 'theme' || x.kind === 'look').map(gemRow).join('');
@@ -1696,7 +1745,7 @@ function updateHud(dt) {
   const hpRatio = S.respawn > 0 ? 1 : Math.max(0, S.hp / m.hp);
   $('hpFill').style.width = (hpRatio * 100).toFixed(1) + '%';
   $('spd').textContent = 'x' + speedOf(S).toFixed(1);
-  $('runCoin').textContent = S.run ? fmtNum(S.run.coins) : '0';
+  $('runCoin').textContent = S.run ? fmtNum(S.run.cal) : '0';
   const buffs = [];
   if (S.run && S.run.boost > 1) buffs.push('프로틴 부스터: 공격력 x5');
   if (S.run && S.run.extra) buffs.push('보스 시간 +30초');
@@ -1711,7 +1760,7 @@ function endGame() {
   $('endSub').textContent = `강산해가 ${S.target} kg에 도달했습니다 · 던전 ${S.dun.best}개 클리어`;
   $('afterW').textContent = weightOf(S).toFixed(1) + ' kg';
   $('endTime').textContent = fmtTime(S.time);
-  $('endKcal').textContent = fmtNum(S.kcalTotal);
+  $('endKcal').textContent = fmtNum(S.calTotal);
   $('endKills').textContent = fmtNum(S.kills);
   drawPortrait($('beforeC'), 120, 0, { band: false }); drawPortrait($('afterC'), weightOf(S), 0);
 }
@@ -1722,13 +1771,13 @@ if (DEMO) {
   // 실제 규칙으로 감량 지점까지 돌린 상태를 쓴다(예시 숫자를 만들지 않음)
   const scr = params.get('screen'), tg = Number(params.get('target') || CFG.fixedTarget), lost = Number(params.get('lost') || 0);
   if (scr) {
-    S = simulate(tg, 'some', 0, false, 0, lost);
+    S = simulate(tg, 'mix', 0, false, 0, lost);
     S.gems += Number(params.get('gems') || 0);
     for (const id of (params.get('buy') || '').split(',').filter(Boolean)) gemBuy(S, id);
     applyTheme();
     if (scr === 'hub') { goHub(); if (params.get('tab')) document.querySelector(`.tab[data-tab="${params.get('tab')}"]`).click(); }
     else if (scr === 'dungeon') goDungeons();
-    else if (scr === 'end') { while (!S.done) { if (!S.inDun) enterDungeon(S, Math.max(1, S.dun.best)); step(S, 0.05); } endGame(); }
+    else if (scr === 'end') { S = simulate(tg, 'mix'); endGame(); }
     else if (scr === 'charge') { goHub(); openCharge(); }
     else if (scr === 'game' || scr === 'boss') {
       enterDungeon(S, S.dun.best + 1); startBattle();
