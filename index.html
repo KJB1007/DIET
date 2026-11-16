@@ -1710,7 +1710,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794836327999';
+const BUILD_ID = '1794836499067';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2200,8 +2200,11 @@ function pop(cls, text, px, py) {
   if (!$('gameScreen').classList.contains('on')) return;
   const p = sceneXY(px, py), el = document.createElement('div');
   el.className = 'pop ' + cls; el.textContent = text; el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
-  $('fx').appendChild(el); setTimeout(() => el.remove(), 1400);
+  $('fx').appendChild(el); setTimeout(() => el.remove(), 1400); return el;
 }
+// 자리 하나에 알림 하나: 새 알림이 오면 그 자리의 앞 알림을 지운다(전투 화면에서 글이 겹치지 않게)
+const popSlots = {};
+function popSlot(slot, cls, text, px, py) { if (popSlots[slot]) popSlots[slot].remove(); popSlots[slot] = pop(cls, text, px, py) || null; }
 function shake() { const w = $('sceneWrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); }
 function burst(x, y, n, colors) {
   for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, sp = 20 + Math.random() * 50; vis.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: .6 + Math.random() * .4, c: colors[i % colors.length] }); }
@@ -2368,7 +2371,6 @@ function handleEvents(ev, fromTap) {
       const len = Math.max(18, (e.reach || MON_X) - HERO_X + 6), heavy = HEAVY[weaponOf(S).id];
       addFx('sweep', HERO_X + 8, GROUND - 16, { len, color: e.tag === 'double' ? '#7fe3ff' : (WEAPON_TRAIL[weaponOf(S).id] || '#fff'), thick: heavy || e.n >= 4, flip: e.tag === 'double' });
       if (pushOn(S)) addFx('ripple', HERO_X + 10, GROUND - 4, { len });
-      if (e.tag === 'double' && B.pops < 4) { pop('skill', '연타!', HERO_X + 30, GROUND - 52); B.pops++; }
       if (e.n >= 4 && !reduceMotion) { vis.hitStop = Math.max(vis.hitStop, .03); }
     }
     else if (e.t === 'hit') {
@@ -2377,7 +2379,6 @@ function handleEvents(ev, fromTap) {
       const hx = (e.x || MON_X) - 4 + Math.random() * 6, hy = mobY(e.row) - (e.boss ? 26 : 14) + Math.random() * 6;
       if (e.tag === 'fire') { // 화염: 작은 불꽃
         vis.particles.push({ x: hx, y: hy, vx: (Math.random() - .5) * 10, vy: -30, life: .4, c: '#ff8a3a' });
-        if (B.fire++ < 1) pop('fire', fmtNum(e.dmg), hx, hy - 8);
         continue;
       }
       addFx('impact', hx, hy, { crit: e.crit, rot: Math.random() * Math.PI });
@@ -2388,7 +2389,7 @@ function handleEvents(ev, fromTap) {
         vm.hop = 1;
       }
       burst(hx, hy, e.crit ? 6 : 2, ['#fff', '#ffe9b0']);
-      if (!B.pops && vis.time - (vis.lastPop || -9) > (e.crit ? .15 : .3)) { pop(e.crit ? 'crit' : 'dmg', (e.crit ? '치명타 ' : '') + fmtNum(e.dmg), hx + (Math.random() * 10 - 5), hy - 10); B.pops++; vis.lastPop = vis.time; } // 숫자가 화면을 덮지 않게 조금씩만
+      B.dmg = (B.dmg || 0) + e.dmg; if (e.crit) B.crit = 1; // 피해는 묶어서 한 번만 보여 준다
       if (e.crit && !B.critFx) { B.critFx = 1; if (!reduceMotion) { shake(); vis.hitStop = Math.max(vis.hitStop, .06); vis.flash = .6; vis.flashColor = '#fff3c4'; } SFX.play('crit'); }
       else if (!B.hitSfx) { B.hitSfx = 1; SFX.play(vis.kick ? 'kick' : 'hit'); }
     } else if (e.t === 'buy') {
@@ -2419,7 +2420,7 @@ function handleEvents(ev, fromTap) {
       pop('dodge', `${CH(S).attack} 피함`, HERO_X + 10, GROUND - 62); addFx('shield', HERO_X + 2, GROUND - 22, {});
       SFX.play('dodge');
     } else if (e.t === 'skill') {
-      pop('skill', SHOP.a.find(x => x.id === 'burpee').name, HERO_X + 10, GROUND - 70);
+      popSlot('skill', 'skill', SHOP.a.find(x => x.id === 'burpee').name, 40, 16); // 위쪽 왼쪽 자리
       vis.jump = 1; // 주인공이 뛰어올랐다가 내리찍는다
       addFx('ring', HERO_X + 4, GROUND, { r: 22, dur: .35, color: '#f5c542' });
       SFX.play('skill');
@@ -2431,7 +2432,6 @@ function handleEvents(ev, fromTap) {
     } else if (e.t === 'kill') {
       // 연속 처치 콤보: 1.6초 안에 다음 적을 잡으면 이어진다
       vis.combo = vis.time - (vis.lastKill || -9) < 1.6 ? (vis.combo || 0) + 1 : 1; vis.lastKill = vis.time;
-      if (vis.combo >= 10 && vis.combo % 10 === 0) pop('combo', `${vis.combo} 콤보!`, SCW / 2, 26);
       const vm = vis.mv[e.u] || {}; delete vis.mv[e.u];
       const y0 = mobY(e.row), over = Math.min(4, e.over || 1), sc = e.boss ? 0.95 : 0.62;
       // 맞은 힘만큼 뒤로 날아가며 돈다
@@ -2455,9 +2455,12 @@ function handleEvents(ev, fromTap) {
     else if (e.t === 'goal') { SFX.play('goal'); celebrate('목표치 달성!', `${CH(S).name} ${CH(S).target} kg`, 'goal'); setTimeout(showGoal, 1600); }
   }
   if (B.kcal) { vis.kcalAcc = (vis.kcalAcc || 0) + B.kcal; SFX.play('kill', { combo: vis.combo }); }
-  if (vis.kcalAcc && (vis.time - (vis.lastKcal || -9) > .6 || B.bossKill)) { pop('kcal', `+${fmtNum(vis.kcalAcc)} kcal`, MON_X + 30, GROUND - 78); vis.kcalAcc = 0; vis.lastKcal = vis.time; setTimeout(() => SFX.play('coin'), 120); } // 칼로리는 모아서 0.6초마다
-  if (B.kills >= 3) { pop('oneshot', `${B.kills}킬!`, B.kx + 20, GROUND - 92); if (!reduceMotion) { shake(); vis.hitStop = Math.max(vis.hitStop, .05); } SFX.play('crit'); }
-  if (B.hurt) { pop('hurt', '-' + fmtNum(B.hurt), HERO_X + (Math.random() * 8 - 4), GROUND - 46); SFX.play('hurt'); }
+  if (vis.kcalAcc && (vis.time - (vis.lastKcal || -9) > .6 || B.bossKill)) { popSlot('kcal', 'kcal', `+${fmtNum(vis.kcalAcc)} kcal`, SCW - 44, 16); vis.kcalAcc = 0; vis.lastKcal = vis.time; setTimeout(() => SFX.play('coin'), 120); } // 칼로리는 모아서 0.6초마다
+  // 피해: 한 번 휘두른 총 피해 하나(0.3초 간격), 처치: 'N킬!' 또는 콤보를 위쪽 가운데 한 자리에
+  if (B.dmg && vis.time - (vis.lastPop || -9) > .3) { popSlot('dmg', B.crit ? 'crit' : 'dmg', (B.crit ? '치명타 ' : '') + fmtNum(B.dmg), MON_X + 14, GROUND - 56); vis.lastPop = vis.time; }
+  if (B.kills < 3 && vis.combo >= 10 && B.kills && vis.combo % 10 < B.kills) popSlot('kill', 'combo', `${vis.combo - vis.combo % 10} 콤보!`, SCW / 2, 16);
+  if (B.kills >= 3) { popSlot('kill', 'oneshot', `${B.kills}킬!` + (vis.combo >= 10 ? ` · ${vis.combo}콤보` : ''), SCW / 2, 16); if (!reduceMotion) { shake(); vis.hitStop = Math.max(vis.hitStop, .05); } SFX.play('crit'); }
+  if (B.hurt) { popSlot('hurt', 'hurt', '-' + fmtNum(B.hurt), HERO_X - 12, GROUND - 40); SFX.play('hurt'); }
 }
 $('soundBtn').addEventListener('click', () => {
   SFX.on = !SFX.on; SFX.init(); refreshSoundBtn();
