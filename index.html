@@ -1624,7 +1624,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794834296146';
+const BUILD_ID = '1794834377425';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2034,7 +2034,7 @@ $('boosts').addEventListener('click', e => {
   const i = Number(b.dataset.boost), p = STAM_PACKS[i];
   if (S.gems < p.gems) { $('stamModal').classList.remove('on'); openCharge(); return; }
   const before = CFG.stamMax - stamNow();
-  if (buyStamPack(i)) { const after = CFG.stamMax - stamNow(); refreshStam(); celebrate(`근피로도 ${before - after} 회복`, `${before}에서 ${after}로`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
+  if (buyStamPack(i)) { const after = CFG.stamMax - stamNow(); refreshStam(); celebrate(`근피로도 ${before - after} 회복`, `${before} → ${after}`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
 
 });
 // 자동 진행: 클리어하면 다음 던전, 실패하면 마지막으로 깬 던전을 반복. 근피로도가 다 차면 멈춘다
