@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14161e">
+<title>강산해 줄이기</title>
+<style>
+@font-face{font-family:Galmuri11;font-weight:400;font-display:swap;src:url('fonts/Galmuri11.woff2') format('woff2')}
+@font-face{font-family:Galmuri11;font-weight:700;font-display:swap;src:url('fonts/Galmuri11-Bold.woff2') format('woff2')}
+@font-face{font-family:Galmuri9;font-weight:400;font-display:swap;src:url('fonts/Galmuri9.woff2') format('woff2')}
+:root{
+  --bg:#14161e; --panel:#222634; --panel2:#2b3043; --edge:#07080c; --hi:#3b425c;
+  --ink:#f1ead8; --sub:#a8a3b6; --gold:#f5c542; --gold-d:#a8801c;
+  --green:#5cc47e; --green-d:#2f7a49; --red:#e0605a; --red-d:#8c2f2b; --blue:#5aa0e0;
+  --line:#3b425c; --bar-bg:#11131a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Galmuri11,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background-image:radial-gradient(#1c1f2a 1px,transparent 1px);background-size:6px 6px;
+  -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;overscroll-behavior:none;
+  -webkit-font-smoothing:none;font-smooth:never}
+#app{max-width:440px;margin:0 auto;padding:max(12px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));min-height:100%}
+.screen{display:none}
+.screen.on{display:block}
+/* 도트 게임 창 */
+.card{background:var(--panel);border:3px solid var(--edge);border-radius:4px;padding:14px;
+  box-shadow:inset 0 3px 0 var(--hi),inset 0 -3px 0 #191c27,0 4px 0 #000}
+h1{font-weight:700;font-size:34px;margin:22px 0 6px;text-align:center;color:var(--gold);letter-spacing:1px;
+  text-shadow:3px 3px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000}
+.sub{color:var(--sub);text-align:center;margin:0 0 6px;font-size:13px;line-height:1.6}
+.pix{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+button{font:inherit;border:none;cursor:pointer;color:inherit}
+.primary,.secondary{width:100%;padding:13px;margin-top:12px;font-size:16px;font-weight:700;border:3px solid var(--edge);border-radius:4px;
+  background:var(--green);color:#0d2416;box-shadow:inset 0 -4px 0 var(--green-d),inset 0 3px 0 #8fe8ac;transition:transform .05s}
+.primary:active,.secondary:active,.enh:active,.buy:active{transform:translateY(2px)}
+.primary:disabled{background:#4a4f62;color:#8a879a;box-shadow:inset 0 -4px 0 #34384a,inset 0 3px 0 #5c6177;cursor:default}
+.secondary{background:#4a4f62;color:var(--ink);box-shadow:inset 0 -4px 0 #34384a,inset 0 3px 0 #646a82}
+.ghost{background:transparent;color:var(--sub);font-size:13px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
+/* 시작 */
+#startHero{width:192px;height:192px;margin:0 auto 6px}
+.profile{display:flex;justify-content:space-around;text-align:center;margin-bottom:14px}
+.profile .k{font-size:12px;color:var(--sub)}
+.profile .v{font-size:19px;font-weight:700;margin-top:4px}
+label{font-size:14px;font-weight:700}
+.inputRow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.inputRow input{flex:1;font:inherit;font-size:22px;font-weight:700;padding:10px 12px;border-radius:4px;border:3px solid var(--edge);
+  background:var(--bar-bg);color:var(--gold);outline:none;-webkit-user-select:text;user-select:text;width:100%;box-shadow:inset 0 3px 0 #000}
+.inputRow input::placeholder{color:#555a6e}
+.inputRow input:focus{border-color:var(--gold-d)}
+.inputRow span{font-size:18px;color:var(--sub)}
+.hint{font-size:12px;color:var(--sub);margin:8px 0 0;line-height:1.6;word-break:keep-all}
+.diff{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bar-bg);border:2px solid var(--edge);font-size:13px;min-height:44px;
+  display:flex;align-items:center;gap:8px;line-height:1.5;word-break:keep-all}
+.diff .tag{white-space:nowrap;flex:none;font-weight:700;padding:3px 7px;border-radius:2px;font-size:12px;color:#111;border:2px solid var(--edge)}
+.err{color:var(--red);font-size:12px;margin:6px 0 0;min-height:1em}
+#continueCard{margin-top:12px}
+.warn{font-size:12px;color:var(--sub);margin:8px 0 0;text-align:center}
+/* 게임 */
+.top{display:flex;align-items:flex-end;justify-content:space-between}
+.top .label{font-size:12px;color:var(--sub)}
+.weight{font-size:40px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--ink);text-shadow:3px 3px 0 #000}
+.weight small{font-size:16px;color:var(--sub);margin-left:4px;text-shadow:none}
+.goal{text-align:right}
+.goal .v{font-size:18px;font-weight:700;color:var(--gold);margin-top:2px}
+.bar{height:16px;background:var(--bar-bg);border:3px solid var(--edge);margin-top:10px;position:relative}
+.bar>div{height:100%;width:0;background:var(--green);box-shadow:inset 0 3px 0 #8fe8ac,inset 0 -3px 0 var(--green-d);transition:width .4s steps(12)}
+.barLabels{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:6px}
+#remain{color:var(--ink)}
+.battle{margin-top:12px;padding:10px}
+.monHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.stageLabel{font-size:12px;color:var(--sub)}
+.monName{font-weight:700;font-size:15px}
+.monName .boss{background:var(--red);color:#fff;font-size:11px;padding:2px 6px;border:2px solid var(--edge);margin-right:6px;vertical-align:1px}
+.hp{height:12px;background:var(--bar-bg);border:3px solid var(--edge)}
+.hp>div{height:100%;width:100%;background:var(--red);box-shadow:inset 0 2px 0 #ff9a8f;transition:width .1s linear}
+.sceneWrap{position:relative;margin-top:8px;border:3px solid var(--edge);overflow:hidden}
+#scene{width:100%;aspect-ratio:4/3;height:auto}
+.shake{animation:shake .25s steps(5)}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
+#fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.pop{position:absolute;transform:translate(-50%,-50%);font-weight:700;white-space:nowrap;pointer-events:none;
+  text-shadow:2px 2px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;animation:pop .8s steps(8) forwards}
+.pop.dmg{color:#fff;font-size:15px}
+.pop.crit{color:var(--gold);font-size:19px}
+.pop.kcal{color:#fff;font-size:17px;background:var(--red);padding:3px 7px;border:2px solid var(--edge);text-shadow:1px 1px 0 #000;animation:rise 1.3s steps(12) forwards}
+.pop.kg{color:#0d2416;background:var(--green);padding:2px 6px;border:2px solid var(--edge);font-size:13px;text-shadow:none;animation:rise 1.3s steps(12) forwards}
+.pop.coin{color:var(--gold);font-size:14px;animation:rise 1.1s steps(10) forwards}
+.pop.enh,.pop.feed{color:#fff;background:#b0563f;padding:2px 6px;border:2px solid var(--edge);font-size:13px;text-shadow:1px 1px 0 #000;animation:rise 1.3s steps(12) forwards}
+.pop.dodge{color:#9fd3f0;font-size:13px;animation:rise 1.1s steps(10) forwards}
+.pop.skill{color:#fff;background:var(--blue);padding:2px 6px;border:2px solid var(--edge);font-size:13px;text-shadow:1px 1px 0 #000;animation:rise 1.1s steps(10) forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}15%{opacity:1;transform:translate(-50%,-70%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-200%) scale(1)}}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,0)}15%{opacity:1;transform:translate(-50%,-40%)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-160%)}}
+.tapHint{font-size:12px;color:var(--sub);margin-top:8px;text-align:center;word-break:keep-all}
+/* 상점 창 */
+.panel{margin-top:12px;padding:10px}
+.panelHead{display:flex;justify-content:flex-end;align-items:center;margin:-2px 2px 8px;font-size:13px;color:var(--sub);gap:6px}
+.panelHead b{color:var(--gold);font-size:16px}
+.coinIco{display:inline-block;width:12px;height:12px;background:var(--gold);border:2px solid var(--edge);border-radius:50%;box-shadow:inset -2px -2px 0 var(--gold-d)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.tab{background:var(--panel2);color:var(--sub);font-size:14px;padding:9px 0;border:3px solid var(--edge);border-radius:4px;box-shadow:inset 0 -3px 0 #1b1e2a}
+.tab.on{background:var(--gold);color:#2a1f00;font-weight:700;box-shadow:inset 0 -3px 0 var(--gold-d),inset 0 3px 0 #ffe28a}
+.tabBody{padding-top:12px}
+.cur{display:flex;align-items:center;gap:12px}
+#wIcon{width:64px;height:48px;background:var(--bar-bg);border:3px solid var(--edge);flex:none}
+.wname{font-weight:700;font-size:16px}
+.wstat{font-size:12px;color:var(--sub);margin-top:4px}
+.enh{width:100%;margin-top:12px;padding:10px 12px;border:3px solid var(--edge);border-radius:4px;background:#d9783f;color:#fff;text-align:left;
+  display:grid;grid-template-columns:auto 1fr;column-gap:12px;row-gap:3px;align-items:center;box-shadow:inset 0 -4px 0 #8f4421,inset 0 3px 0 #f2a271}
+.enh:disabled{background:#4a4f62;color:#8a879a;box-shadow:inset 0 -4px 0 #34384a,inset 0 3px 0 #5c6177;cursor:default}
+.enhTitle{grid-row:span 2;font-weight:700;font-size:18px;text-shadow:2px 2px 0 rgba(0,0,0,.35)}
+.enhGain{font-size:13px;font-weight:700}
+.enhCost{font-size:12px;opacity:.95}
+.list{list-style:none;margin:12px 0 0;padding:0}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 8px;margin-top:6px;background:var(--panel2);border:2px solid var(--edge);font-size:14px}
+.item .nm{font-weight:700}
+.item .ds{display:block;font-size:12px;color:var(--sub);font-weight:400;margin-top:3px;line-height:1.5}
+.item .st{font-size:12px;flex:none;text-align:right;max-width:50%;word-break:keep-all;line-height:1.5;color:var(--sub)}
+.item .st b{color:var(--ink)}
+.item.locked{background:#1b1e29}
+.item.locked .nm{color:#7b7890}
+.item.locked .ds{color:#636075}
+.item .badge{display:inline-block;background:var(--panel);color:var(--ink);padding:3px 7px;border:2px solid var(--edge);font-weight:700}
+.item .badge.now{background:var(--green);color:#0d2416}
+.buy{background:var(--gold);color:#2a1f00;border:2px solid var(--edge);padding:5px 9px;font-weight:700;font-size:13px;line-height:1.25;text-align:center;
+  box-shadow:inset 0 -3px 0 var(--gold-d),inset 0 2px 0 #ffe28a}
+.buy small{display:block;font-size:11px;font-weight:400}
+.buy:disabled{background:#4a4f62;color:#8a879a;box-shadow:inset 0 -3px 0 #34384a;cursor:default}
+.draft{font-size:12px;color:var(--sub);background:var(--bar-bg);border:2px solid var(--edge);padding:8px 10px;margin:0;line-height:1.6;word-break:keep-all}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--panel);border:3px solid var(--edge);border-radius:4px;padding:9px 6px;text-align:center;box-shadow:inset 0 3px 0 var(--hi),0 3px 0 #000}
+.stat .k{font-size:11px;color:var(--sub)}
+.stat .v{font-size:16px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.note{font-size:11px;color:var(--sub);text-align:center;margin:12px 4px 0;line-height:1.7}
+.bottomBar{display:flex;justify-content:center;margin-top:6px}
+#toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;transition:opacity .2s,transform .2s;
+  background:#0d0f15;color:var(--ink);padding:11px 14px;border:3px solid var(--gold-d);border-radius:4px;font-size:13px;
+  width:min(400px,calc(100% - 32px));z-index:10;line-height:1.6;pointer-events:none;box-shadow:0 4px 0 #000}
+#toast b{color:var(--gold)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* 끝 */
+.endTitle{font-size:32px;font-weight:700;text-align:center;margin:22px 0 4px;color:var(--gold);text-shadow:3px 3px 0 #000}
+.compare{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:8px 0}
+.compare figure{margin:0;text-align:center}
+.compare canvas{width:132px;height:132px}
+.compare figcaption{font-size:12px;color:var(--sub)}
+.compare figcaption b{display:block;color:var(--ink);font-size:19px;margin-top:4px}
+.arrow{font-size:22px;color:var(--gold);padding-bottom:44px}
+.endStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.confirm{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.confirm.on{display:flex}
+.confirm .card{max-width:360px;width:100%}
+.confirm .row{display:flex;gap:8px}
+.confirm .row button{flex:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 시작 화면 -->
+  <section id="startScreen" class="screen on">
+    <h1>강산해 줄이기</h1>
+    <p class="sub">음식 몬스터를 물리칠 때마다 칼로리가 빠집니다</p>
+    <canvas id="startHero" class="pix" width="64" height="64"></canvas>
+    <div class="card">
+      <div class="profile">
+        <div><div class="k">주인공</div><div class="v">강산해</div></div>
+        <div><div class="k">키</div><div class="v">180 cm</div></div>
+        <div><div class="k">시작 체중</div><div class="v">120 kg</div></div>
+      </div>
+      <label for="targetInput">목표 체중</label>
+      <div class="inputRow">
+        <input id="targetInput" type="number" inputmode="decimal" min="60" max="115" step="1" placeholder="60~115">
+        <span>kg</span>
+      </div>
+      <p class="hint">목표를 낮게 잡을수록 어려워집니다. 체중이 낮아질수록 같은 몬스터를 잡아도 덜 빠집니다.</p>
+      <div class="diff" id="diffBox">목표 체중을 입력하면 난이도와 예상 시간이 나옵니다.</div>
+      <p class="err" id="targetErr"></p>
+      <button class="primary" id="startBtn" disabled>새로 시작</button>
+    </div>
+    <div class="card" id="continueCard" hidden>
+      <div class="profile" style="margin-bottom:0">
+        <div><div class="k">저장한 체중</div><div class="v" id="savedW">-</div></div>
+        <div><div class="k">목표</div><div class="v" id="savedT">-</div></div>
+        <div><div class="k">플레이 시간</div><div class="v" id="savedTime">-</div></div>
+      </div>
+      <button class="primary" id="continueBtn">이어 하기</button>
+      <p class="warn">새로 시작하면 저장한 기록이 지워집니다.</p>
+    </div>
+  </section>
+
+  <!-- 게임 화면 -->
+  <section id="gameScreen" class="screen">
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="label">현재 체중</div>
+          <div class="weight"><span id="wNum">120.0</span><small>kg</small></div>
+        </div>
+        <div class="goal">
+          <div class="label">목표</div>
+          <div class="v" id="goalV">-</div>
+        </div>
+      </div>
+      <div class="bar"><div id="wBar"></div></div>
+      <div class="barLabels"><span>120 kg</span><span id="remain">남은 체중 -</span><span id="pct">0%</span></div>
+    </div>
+
+    <div class="card battle" id="battle">
+      <div class="monHead">
+        <div class="monName" id="monName">-</div>
+        <div class="stageLabel" id="stageLabel">-</div>
+      </div>
+      <div class="hp"><div id="hpFill"></div></div>
+      <div class="sceneWrap" id="sceneWrap">
+        <canvas id="scene" class="pix" width="160" height="120"></canvas>
+        <div id="fx"></div>
+      </div>
+      <div class="tapHint">전투는 자동으로 계속됩니다 · 무기와 스킬은 아래에서</div>
+    </div>
+
+    <div class="card panel">
+      <div class="panelHead"><span class="coinIco"></span>코인 <b id="coinV">0</b></div>
+      <div class="tabs" role="tablist">
+        <button class="tab on" data-tab="Weapon">무기</button>
+        <button class="tab" data-tab="Atk">공격 스킬</button>
+        <button class="tab" data-tab="Def">방어 스킬</button>
+      </div>
+      <div class="tabBody" id="tabWeapon">
+        <div class="cur">
+          <canvas id="wIcon" class="pix" width="32" height="24"></canvas>
+          <div><div class="wname" id="wName">-</div><div class="wstat" id="wStat">-</div></div>
+        </div>
+        <button class="enh" id="enhBtn">
+          <span class="enhTitle" id="enhTitle">+1 강화</span>
+          <span class="enhGain" id="enhGain">-</span>
+          <span class="enhCost" id="enhCost">-</span>
+        </button>
+        <p class="hint" id="enhWhy">새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.</p>
+        <ul class="list" id="weaponList"></ul>
+      </div>
+      <div class="tabBody" id="tabAtk" hidden>
+        <p class="draft">공격 스킬은 사면 전투에서 자동으로 발동합니다</p>
+        <ul class="list" id="atkList"></ul>
+      </div>
+      <div class="tabBody" id="tabDef" hidden>
+        <p class="draft">음식 몬스터는 4초마다 '먹이기' 공격으로 체중을 다시 늘립니다(한 마리당 최대 3번). 방어 스킬이 이를 줄입니다</p>
+        <ul class="list" id="defList"></ul>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">공격 속도</div><div class="v" id="spd">x1.0</div></div>
+      <div class="stat"><div class="k">총 소모</div><div class="v" id="kcalTot">0</div></div>
+      <div class="stat"><div class="k">처치</div><div class="v" id="killTot">0</div></div>
+    </div>
+    <p class="note">칼로리와 체중 변화는 게임용 수치입니다.<br>체중이 줄수록 몸이 가벼워져 공격이 빨라집니다.</p>
+    <div class="bottomBar"><button class="ghost" id="toTitle">처음 화면으로</button></div>
+  </section>
+
+  <!-- 끝 화면 -->
+  <section id="endScreen" class="screen">
+    <div class="endTitle">목표 달성!</div>
+    <p class="sub" id="endSub">-</p>
+    <div class="card">
+      <div class="compare">
+        <figure><canvas id="beforeC" class="pix" width="64" height="64"></canvas><figcaption>처음<b>120.0 kg</b></figcaption></figure>
+        <div class="arrow">›</div>
+        <figure><canvas id="afterC" class="pix" width="64" height="64"></canvas><figcaption>지금<b id="afterW">-</b></figcaption></figure>
+      </div>
+      <div class="endStats">
+        <div class="stat"><div class="k">걸린 시간</div><div class="v" id="endTime">-</div></div>
+        <div class="stat"><div class="k">총 소모</div><div class="v" id="endKcal">-</div></div>
+        <div class="stat"><div class="k">처치</div><div class="v" id="endKills">-</div></div>
+      </div>
+      <button class="primary" id="againBtn">다른 목표로 다시 하기</button>
+    </div>
+  </section>
+</div>
+
+<div class="confirm" id="confirm">
+  <div class="card">
+    <p style="margin:0 0 4px;font-weight:700">새로 시작할까요?</p>
+    <p style="margin:0;color:var(--sub);font-size:14px">저장한 기록이 지워집니다.</p>
+    <div class="row"><button class="secondary" id="cNo">취소</button><button class="primary" id="cYes">새로 시작</button></div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ===== LOGIC START (게임 규칙. 화면과 분리해 시뮬레이션에서도 같은 코드를 씀) =====
+const CFG = {
+  start: 120, height: 180, minTarget: 60, maxTarget: 115,
+  speedPerKg: 0.06,   // 1kg 빠질 때마다 공격 속도 +6% (다시 찌면 그만큼 느려짐)
+  kcalPerKg: 1000,    // 게임용 환산: 1,000 kcal = 1 kg (실제 환산 아님)
+  reward0: 120, rewardGrow: 1.02,  // 몬스터 칼로리 보상: 단계가 오를수록 커짐
+  floor: 48, curve: 2,// 체중이 낮을수록 같은 몬스터에서 덜 빠짐
+  hp0: 30, hpGrow: 1.07, perStage: 8, bossMul: 3, // 라운드마다 잔몹 7마리 + 보스 1마리
+  critMul: 2,
+  enhAtk: 0.2, enhCrit: 0.01, enhMax: 10, enhCost0: 0.5, enhCostGrow: 1.25, // 강화 (대가는 체중)
+  coin0: 3, coinGrow: 1.04, // 몬스터가 떨어뜨리는 코인
+  feedEvery: 4, feedRate: 0.15, feedMax: 3, // 먹이기 공격: 4초마다 그 몬스터 보상의 15%만큼 체중 증가, 한 마리당 최대 3번
+  respawn: 0.5, offlineCap: 300,
+};
+// at: 목표까지 감량할 양 가운데 이만큼 빠지면 해금 (목표가 달라도 모든 항목이 한 번씩 해금됨). price: 코인
+const WEAPONS = [
+  { id: 'fist',   name: '주먹·발차기', atk: 10,  crit: 0.05, at: 0,    price: 0 },
+  { id: 'rope',   name: '줄넘기',     atk: 16,  crit: 0.08, at: 0.08, price: 40 },
+  { id: 'dumbbell', name: '덤벨',     atk: 26,  crit: 0.10, at: 0.2,  price: 150 },
+  { id: 'kettle', name: '케틀벨',     atk: 40,  crit: 0.12, at: 0.34, price: 400 },
+  { id: 'ball',   name: '메디신볼',   atk: 60,  crit: 0.15, at: 0.5,  price: 900 },
+  { id: 'barbell', name: '바벨',      atk: 90,  crit: 0.18, at: 0.66, price: 1800 },
+  { id: 'gold',   name: '황금 바벨',  atk: 130, crit: 0.22, at: 0.82, price: 3500 },
+];
+const MONSTERS = [
+  { id: 'chicken', name: '닭다리 괴수' },
+  { id: 'pizza', name: '피자 괴물' },
+  { id: 'burger', name: '식인 버거' },
+  { id: 'donut', name: '도넛 괴물' },
+  { id: 'cola', name: '탄산 괴물' },
+];
+const BOSSES = [{ id: 'cake', name: '대왕 케이크 마왕' }, { id: 'burgerboss', name: '식인 버거 대왕' }, { id: 'pizzaboss', name: '피자 폭군' }];
+const ATTACK_SKILLS = [
+  { id: 'burpee', name: '버피 강타', desc: '6초마다 공격력 3배로 한 방', at: 0.15, price: 120 },
+  { id: 'double', name: '2단 뛰기', desc: '공격할 때 20% 확률로 한 번 더 공격', at: 0.42, price: 700 },
+  { id: 'squat', name: '스쿼트 점프', desc: '10초마다 5초 동안 치명타 +15%p', at: 0.72, price: 2400 },
+];
+const DEFENSE_SKILLS = [
+  { id: 'water', name: '물 한 잔', desc: '먹이기 공격으로 찌는 체중 -30%', at: 0.1, price: 60 },
+  { id: 'diary', name: '식단 일기', desc: '먹이기 공격을 25% 확률로 피함', at: 0.45, price: 800 },
+  { id: 'protein', name: '단백질 방패', desc: '보스의 먹이기 공격 -50%', at: 0.76, price: 2600 },
+];
+const SHOP = { w: WEAPONS, a: ATTACK_SKILLS, d: DEFENSE_SKILLS };
+function unlockWeightOf(s, at) { return CFG.start - at * totalLoss(s); }
+function isUnlocked(s, item) { return s.maxBurned >= item.at * totalLoss(s) - 1e-9; }
+
+function newState(target) {
+  const s = { v: 3, target, kcal: 0, kcalTotal: 0, burned: 0, maxBurned: 0, weapon: 0, enh: 0, enhCount: 0, regained: 0,
+    coins: 0, own: { w: [true], a: [], d: [] }, seen: 1, prevMax: 0,
+    burpeeT: 0, squatT: 0, feedT: 0, feeds: 0, fed: 0, dodged: 0,
+    kills: 0, stage: 1, idx: 0, hp: 0, atk: 0, swing: 0, respawn: 0, time: 0, done: false };
+  s.hp = monsterOf(s).hp;
+  return s;
+}
+function weightOf(s) { return CFG.start - s.burned; }
+function totalLoss(s) { return CFG.start - s.target; }
+function progressOf(s) { return Math.min(1, s.burned / totalLoss(s)); }
+function speedOf(s) { return 1 + CFG.speedPerKg * s.burned; }
+function weaponOf(s) { return WEAPONS[s.weapon]; }
+function has(s, kind, id) { const i = SHOP[kind].findIndex(x => x.id === id); return !!s.own[kind][i]; }
+function atkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh); }
+function squatOn(s) { return has(s, 'a', 'squat') && (s.squatT % 10) < 5; }
+function critOf(s) { return Math.min(0.9, weaponOf(s).crit + CFG.enhCrit * s.enh + (squatOn(s) ? 0.15 : 0)); }
+function isBoss(stage, idx) { return idx === CFG.perStage - 1; }
+function monsterOf(s) {
+  const boss = isBoss(s.stage, s.idx);
+  const mul = boss ? CFG.bossMul : 1;
+  const m = boss ? BOSSES[(s.stage - 1) % BOSSES.length] : MONSTERS[(s.stage * 3 + s.idx * 7) % MONSTERS.length];
+  return { ...m, boss, hp: Math.round(CFG.hp0 * Math.pow(CFG.hpGrow, s.stage - 1) * mul),
+    reward: CFG.reward0 * Math.pow(CFG.rewardGrow, s.stage - 1) * mul,
+    coins: Math.round(CFG.coin0 * Math.pow(CFG.coinGrow, s.stage - 1) * mul) };
+}
+// 몬스터 하나를 잡았을 때 빠지는 칼로리. 강한 몬스터일수록 많고, 체중이 낮을수록 적다.
+function rewardOf(s) {
+  const w = weightOf(s);
+  const eff = Math.pow(Math.max(0.05, (w - CFG.floor) / (CFG.start - CFG.floor)), CFG.curve);
+  const kcal = Math.max(1, Math.round(monsterOf(s).reward * eff));
+  return { kcal, kg: kcal / CFG.kcalPerKg };
+}
+function setKcal(s, kcal) { s.kcal = Math.max(0, kcal); s.burned = s.kcal / CFG.kcalPerKg; s.maxBurned = Math.max(s.maxBurned, s.burned); }
+// 강화: 공격력 +20%, 치명타 +1%p. 대가로 체중이 다시 늘고 공격 속도가 느려진다. 120kg을 넘길 수는 없다.
+function enhCostOf(s) { return Math.round(CFG.enhCost0 * Math.pow(CFG.enhCostGrow, s.enh) * 10) / 10; }
+function canEnhance(s) {
+  if (s.done) return { ok: false, why: '' };
+  if (s.enh >= CFG.enhMax) return { ok: false, why: `이 무기는 최대 +${CFG.enhMax}까지 강화했습니다` };
+  if (s.burned < enhCostOf(s)) return { ok: false, why: `${enhCostOf(s).toFixed(1)} kg 이상 빠져야 강화할 수 있습니다` };
+  return { ok: true };
+}
+function enhance(s, ev) {
+  if (!canEnhance(s).ok) return false;
+  const cost = enhCostOf(s);
+  setKcal(s, s.kcal - cost * CFG.kcalPerKg);
+  s.regained += cost; s.enh++; s.enhCount++;
+  if (ev) ev.push({ t: 'enhance', cost, enh: s.enh });
+  return true;
+}
+// 구입: 해금된 항목을 코인으로 산다. 무기를 사면 바로 장착하고, 지금 공격력보다 약해지지 않는 강화 단계에서 시작한다.
+function canBuy(s, kind, i) {
+  const it = SHOP[kind][i];
+  if (s.own[kind][i]) return { ok: false, why: 'owned' };
+  if (!isUnlocked(s, it)) return { ok: false, why: 'locked' };
+  if (s.coins < it.price) return { ok: false, why: 'coins' };
+  return { ok: true };
+}
+function buy(s, kind, i, ev) {
+  if (!canBuy(s, kind, i).ok) return false;
+  const it = SHOP[kind][i];
+  s.coins -= it.price; s.own[kind][i] = true;
+  if (kind === 'w' && i > s.weapon) {
+    const prev = atkOf(s); s.weapon = i; s.enh = 0;
+    while (atkOf(s) < prev && s.enh < CFG.enhMax) s.enh++;
+  }
+  if (ev) ev.push({ t: 'buy', name: it.name, kind, enh: s.enh });
+  return true;
+}
+function newlyUnlocked(s, before) {
+  const names = [];
+  for (const k of ['w', 'a', 'd']) for (const it of SHOP[k]) { const kg = it.at * totalLoss(s); if (it.at > 0 && kg > before + 1e-9 && kg <= s.maxBurned + 1e-9) names.push(it.name); }
+  return names;
+}
+function hit(s, dmg, crit, ev, tag) {
+  if (s.done || s.respawn > 0) return;
+  s.hp -= dmg;
+  if (ev) ev.push({ t: 'hit', dmg, crit, tag });
+  if (s.hp <= 0) {
+    const m = monsterOf(s), r = rewardOf(s);
+    setKcal(s, s.kcal + r.kcal); s.kcalTotal += r.kcal;
+    s.coins += m.coins; s.kills++;
+    if (ev) ev.push({ t: 'kill', kcal: r.kcal, kg: r.kg, coins: m.coins, boss: m.boss, name: m.name, id: m.id });
+    if (weightOf(s) <= s.target + 1e-9) {
+      setKcal(s, totalLoss(s) * CFG.kcalPerKg);
+      s.done = true; if (ev) ev.push({ t: 'done' }); return;
+    }
+    const names = newlyUnlocked(s, s.prevMax);
+    if (names.length && ev) ev.push({ t: 'unlock', names });
+    s.prevMax = s.maxBurned;
+    s.idx++;
+    if (s.idx >= CFG.perStage) { s.idx = 0; s.stage++; if (ev) ev.push({ t: 'stage' }); }
+    s.hp = monsterOf(s).hp;
+    s.respawn = CFG.respawn; s.feedT = 0; s.feeds = 0;
+    if (ev) ev.push({ t: 'spawn' });
+  }
+}
+function rollDamage(s, rate, rnd) {
+  const crit = (rnd || Math.random)() < critOf(s);
+  return { dmg: Math.max(1, Math.round(atkOf(s) * (rate || 1) * (crit ? CFG.critMul : 1))), crit };
+}
+// 먹이기 공격: 음식 몬스터가 강산해에게 음식을 먹여 체중을 다시 늘린다. 한 마리당 최대 3번이라 그 몬스터 보상을 넘지 않는다.
+function feed(s, ev, rnd) {
+  const m = monsterOf(s);
+  if (has(s, 'd', 'diary') && (rnd || Math.random)() < 0.25) { s.dodged++; if (ev) ev.push({ t: 'dodge' }); return; }
+  let mul = 1;
+  if (has(s, 'd', 'water')) mul *= 0.7;
+  if (m.boss && has(s, 'd', 'protein')) mul *= 0.5;
+  const kcal = Math.round(rewardOf(s).kcal * CFG.feedRate * mul);
+  const before = s.kcal; setKcal(s, s.kcal - kcal); const real = before - s.kcal;
+  s.fed += real; if (ev) ev.push({ t: 'feed', kcal: real, kg: real / CFG.kcalPerKg });
+}
+function step(s, dt, ev, rnd) {
+  if (s.done) return;
+  s.time += dt; s.squatT += dt;
+  if (s.respawn > 0) { s.respawn -= dt; if (s.respawn > 0) return; s.respawn = 0; }
+  s.feedT += dt;
+  if (s.feedT >= CFG.feedEvery) { s.feedT -= CFG.feedEvery; if (s.feeds < CFG.feedMax) { s.feeds++; feed(s, ev, rnd); } }
+  if (has(s, 'a', 'burpee')) {
+    s.burpeeT += dt;
+    if (s.burpeeT >= 6) {
+      s.burpeeT = 0; if (ev) ev.push({ t: 'skill', name: '버피 강타' });
+      const r = rollDamage(s, 3, rnd); hit(s, r.dmg, r.crit, ev, 'burpee');
+      if (s.respawn > 0 || s.done) return;
+    }
+  }
+  s.atk += dt;
+  const iv = 1 / speedOf(s);
+  while (s.atk >= iv && !s.done && s.respawn <= 0) {
+    s.atk -= iv; s.swing++;
+    if (ev) ev.push({ t: 'attack', kick: s.weapon === 0 && s.swing % 2 === 0 });
+    let r = rollDamage(s, 1, rnd); hit(s, r.dmg, r.crit, ev);
+    if (s.respawn <= 0 && !s.done && has(s, 'a', 'double') && (rnd || Math.random)() < 0.2) { r = rollDamage(s, 1, rnd); hit(s, r.dmg, r.crit, ev, 'double'); }
+  }
+  if (s.respawn > 0) s.atk = 0;
+}
+// 시뮬레이션용 사용자: 살 수 있으면 산다(비싼 것부터). policy대로 강화한다.
+// policy: 'none' 강화 안 함, 'some' 처치에 3초 넘게 걸리면 강화, 'max' 할 수 있으면 바로 강화
+function simulate(target, policy, limitSec, noShop) {
+  const s = newState(target); let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  s.log = [];
+  while (!s.done && s.time < (limitSec || 4 * 3600)) {
+    if (!noShop) for (const k of ['w', 'a', 'd']) for (let i = SHOP[k].length - 1; i >= 0; i--) if (buy(s, k, i)) s.log.push(`${(s.time / 60).toFixed(1)}분 ${SHOP[k][i].name}`);
+    if (policy === 'max') while (enhance(s)) {}
+    else if (policy === 'some') { const dps = atkOf(s) * (1 + critOf(s)) * speedOf(s); if (s.hp / dps > 3) enhance(s); }
+    step(s, 0.05, null, rnd);
+  }
+  return s;
+}
+function estimateMinutes(target) { return simulate(target, 'some').time / 60; }
+function difficultyOf(target) {
+  if (target >= 95) return { name: '쉬움', color: '#6fae7f' };
+  if (target >= 80) return { name: '보통', color: '#5f8fc6' };
+  if (target >= 70) return { name: '어려움', color: '#d99a3a' };
+  return { name: '매우 어려움', color: '#d9775f' };
+}
+// ===== LOGIC END =====
+
+// ===== 도트 그림 =====
+const OUT = '#3b3340';
+function ell(c, cx, cy, rx, ry, color, rowColor) {
+  rx = Math.max(1, rx); ry = Math.max(1, ry);
+  for (let dy = -Math.round(ry); dy <= Math.round(ry); dy++) {
+    const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / ry) * (dy / ry))));
+    c.fillStyle = rowColor ? rowColor(dy) : color;
+    c.fillRect(Math.round(cx - hw), Math.round(cy + dy), hw * 2 + 1, 1);
+  }
+}
+function ellO(c, cx, cy, rx, ry, color, rowColor) { ell(c, cx, cy, rx + 1, ry + 1, OUT); ell(c, cx, cy, rx, ry, color, rowColor); }
+function rect(c, x, y, w, h, color) { c.fillStyle = color; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+function rectO(c, x, y, w, h, color) { rect(c, x - 1, y - 1, w + 2, h + 2, OUT); rect(c, x, y, w, h, color); }
+
+// 주인공: fat 1(120kg) → 0(아주 날씬). 몸통 너비를 체중에 따라 연속으로 바꾼다.
+function drawHero(c, x, ground, fat, pose) {
+  pose = pose || {};
+  const bob = pose.bob || 0, punch = pose.punch || 0, blink = pose.blink;
+  const rx = 6 + 10 * fat, ry = 11 + 2.5 * fat;
+  const cy = ground - 7 - ry + bob;
+  // 그림자
+  c.globalAlpha = 0.18; ell(c, x, ground + 1, rx + 4, 2, '#000'); c.globalAlpha = 1;
+  // 다리
+  const legGap = 2 + 4 * fat, st = pose.step || 0; // st: 걸음 (-1..1)
+  const bl = { dx: -Math.round(st * 2), up: Math.round(Math.max(0, -st) * 2) }, fl = { dx: Math.round(st * 2), up: Math.round(Math.max(0, st) * 2) };
+  rectO(c, x - legGap - 3 + bl.dx, ground - 8 - bl.up, 4, 8, '#4b5e8a');
+  if (!(pose.kick && punch > 0.05)) rectO(c, x + legGap - 1 + fl.dx, ground - 8 - fl.up, 4, 8, '#4b5e8a');
+  rect(c, x - legGap - 4 + bl.dx, ground - 2 - bl.up, 6, 2, '#f4f1ea');
+  if (!(pose.kick && punch > 0.05)) rect(c, x + legGap - 2 + fl.dx, ground - 2 - fl.up, 6, 2, '#f4f1ea');
+  const SKIN = '#ecbd92', SKIN_D = '#c98f6d', SKIN_L = '#f7d6b4', HAIR = '#16141a';
+  // 뒷팔 (근육형: 굵은 팔)
+  ellO(c, x - rx + 1, cy - ry * 0.25, 3.2 + fat * 1.2, 5.5, SKIN);
+  // 몸통: 어깨가 넓고 배가 둥근 근육형. 민소매 운동복 + 반바지
+  const shape = t => t < -0.55 ? 0.92 * Math.sqrt(Math.max(0, 1 - ((t + 0.55) / 0.45) ** 2))
+    : t <= 0.2 ? 0.92 + 0.08 * ((t + 0.55) / 0.75) : Math.sqrt(Math.max(0, 1 - ((t - 0.2) / 0.8) ** 2));
+  const body = (grow, colorAt) => {
+    for (let dy = -Math.round(ry) - grow; dy <= Math.round(ry) + grow; dy++) {
+      const hw = Math.round((rx + grow) * shape(dy / (ry + grow)));
+      if (hw <= 0) continue;
+      c.fillStyle = colorAt(dy); c.fillRect(Math.round(x - hw), Math.round(cy + dy), hw * 2 + 1, 1);
+    }
+  };
+  body(1, () => OUT);
+  body(0, dy => dy > ry * 0.45 ? '#4b5e8a' : dy < -ry * 0.62 ? SKIN : '#7ea6d6');
+  // 어깨 근육과 가슴 선
+  rect(c, x - rx * 0.92, cy - ry * 0.62, rx * 0.35, 2, SKIN); rect(c, x + rx * 0.57, cy - ry * 0.62, rx * 0.35, 2, SKIN);
+  rect(c, x - rx * 0.45, cy - ry * 0.25, rx * 0.35, 1, '#5f86b8'); rect(c, x + rx * 0.1, cy - ry * 0.25, rx * 0.35, 1, '#5f86b8');
+  rect(c, x, cy - ry * 0.45, 1, ry * 0.25, '#5f86b8');
+  // 배 하이라이트
+  c.globalAlpha = 0.3; ell(c, x + rx * 0.35, cy + ry * 0.1, rx * 0.22, ry * 0.22, '#fff'); c.globalAlpha = 1;
+  // 머리: 짧은 흑발, 뚜렷한 이목구비, 쌍꺼풀
+  // 얼굴도 체중에 따라 갸름해진다: 120kg은 넓고 둥근 얼굴 + 볼살·이중턱, 마르면 좁고 턱선이 보인다
+  const hr = 5.5 + 2.8 * fat, hry = 6 + 1.4 * fat, hx = x + 1, hy = cy - ry - 3 - hry * 0.4;
+  rect(c, hx - 2, hy + hry - 1, 4, 4, SKIN); // 목
+  ellO(c, hx, hy, hr, hry, SKIN);
+  if (fat > 0.5) { // 볼살과 이중턱
+    c.globalAlpha = 0.6; ell(c, hx + hr * 0.5, hy + hry * 0.45, hr * 0.35, hry * 0.28, SKIN_L); c.globalAlpha = 1;
+    rect(c, hx - hr * 0.45, hy + hry - 1, hr, 1, SKIN_D);
+  } else if (fat < 0.4) { rect(c, hx - hr + 1, hy + hry - 2, 2, 1, SKIN_D); rect(c, hx + hr - 2, hy + hry - 2, 2, 1, SKIN_D); } // 턱선
+  // 짧은 머리 (각진 짧은 커트)
+  const top = hy - hry;
+  rect(c, hx - hr, top, hr * 2 + 1, 4, HAIR);
+  rect(c, hx - hr + 1, top - 1, hr * 2 - 1, 1, HAIR);
+  for (let i = -hr + 1; i < hr; i += 3) rect(c, hx + i, top - 2, 1, 1, HAIR);
+  rect(c, hx - hr, top + 3, 2, 4, HAIR); // 옆머리(짧게)
+  // 머리띠
+  rect(c, hx - hr, top + 3, hr * 2 + 1, 2, '#e06b5b');
+  rect(c, hx - hr - 3, top + 4, 3, 1, '#e06b5b'); rect(c, hx - hr - 4, top + 5, 2, 1, '#e06b5b');
+  // 눈썹(진하게)
+  const e1 = hx + Math.round(hr * 0.15), e2 = e1 + 4;
+  rect(c, e1 - 1, hy - 2, 3, 1, HAIR); rect(c, e2, hy - 2, 3, 1, HAIR);
+  // 눈: 쌍꺼풀 선 + 눈동자
+  if (blink) { rect(c, e1, hy + 1, 2, 1, OUT); rect(c, e2, hy + 1, 2, 1, OUT); }
+  else {
+    rect(c, e1, hy - 1, 2, 1, SKIN_D); rect(c, e2, hy - 1, 2, 1, SKIN_D); // 쌍꺼풀
+    rect(c, e1, hy, 2, 2, '#fff'); rect(c, e2, hy, 2, 2, '#fff');
+    rect(c, e1 + 1, hy, 1, 2, OUT); rect(c, e2 + 1, hy, 1, 2, OUT);
+  }
+  // 코(그늘) 와 턱선
+  rect(c, e1 + 3, hy + 2, 1, 2, SKIN_D); rect(c, e1 + 4, hy + 3, 1, 1, SKIN_D);
+  // 입
+  if (pose.effort) rect(c, e1, hy + 5, 4, 1, OUT);
+  else { rect(c, e1, hy + 5, 3, 1, '#a9564a'); rect(c, e1 + 3, hy + 4, 1, 1, '#a9564a'); }
+  // 땀
+  if (pose.sweat) { rect(c, hx - hr + 1, hy - 1 + pose.sweat, 1, 2, '#9fd3f0'); }
+  // 발차기: 앞다리를 앞으로 뻗는다
+  if (pose.kick && punch > 0.05) {
+    const ky = ground - 9 - Math.round(punch * 3);
+    rectO(c, x + 1, ky, rx + punch * 9, 4, '#4b5e8a');
+    rectO(c, x + rx + punch * 9, ky - 1, 4, 6, '#f4f1ea');
+    if (punch > 0.6) { rect(c, x + rx + punch * 9 + 6, ky - 2, 1, 1, '#fff'); rect(c, x + rx + punch * 9 + 7, ky + 2, 2, 1, '#fff'); }
+  }
+  // 앞팔 (주먹 또는 무기)
+  const reach = pose.kick ? 0 : punch * 9;
+  const ax = x + rx - 1 + reach, ay = cy - 1;
+  if (reach > 0.5) rectO(c, x + rx - 2, ay - 1, reach + 2, 3, SKIN);
+  ellO(c, x + rx - 2, cy - ry * 0.3, 3.4 + fat * 1.2, 5, SKIN); // 굵은 위팔(이두)
+  rect(c, x + rx - 3, cy - ry * 0.3 - 2, 2, 1, SKIN_L);
+  if (pose.weapon && pose.weapon !== 'fist') drawWeapon(c, pose.weapon, ax + 2, ay, false);
+  ellO(c, ax, ay, 2.5 + fat, 3 + fat * 0.5, SKIN);
+  if (!pose.kick && punch > 0.6) { rect(c, ax + 4, ay - 3, 1, 1, '#fff'); rect(c, ax + 5, ay, 2, 1, '#fff'); rect(c, ax + 4, ay + 3, 1, 1, '#fff'); }
+}
+// 무기: (x, y)가 손잡이. icon=true면 아이콘용(주먹은 주먹 그림)
+function drawWeapon(c, id, x, y, icon) {
+  const IRON = '#4a4f57', BAR = '#9aa3ad', GOLD = '#e9b949', GOLD2 = '#f6d77e';
+  if (id === 'fist') { if (icon) { ellO(c, x + 3, y, 5, 5, '#e8b88f'); rect(c, x + 1, y - 2, 6, 1, '#c99670'); rect(c, x + 1, y + 1, 6, 1, '#c99670'); } return; }
+  if (id === 'rope') {
+    for (let i = 0; i <= 12; i++) rect(c, x + i, y - 2 - Math.round(Math.sin(i / 12 * Math.PI) * 6), 1, 1, '#f4efe6');
+    rectO(c, x - 1, y - 3, 2, 5, '#e06b5b'); rectO(c, x + 12, y - 3, 2, 5, '#e06b5b'); return;
+  }
+  if (id === 'dumbbell') { rect(c, x - 4, y, 12, 2, BAR); rectO(c, x - 6, y - 3, 3, 8, IRON); rectO(c, x + 7, y - 3, 3, 8, IRON); return; }
+  if (id === 'kettle') {
+    rect(c, x - 1, y - 6, 1, 4, OUT); rect(c, x + 6, y - 6, 1, 4, OUT); rect(c, x - 1, y - 6, 8, 1, OUT);
+    ellO(c, x + 3, y + 1, 5, 5, '#3c3f45'); rect(c, x + 1, y - 1, 2, 2, '#6b7079'); return;
+  }
+  if (id === 'ball') { ellO(c, x + 4, y, 6, 6, '#a0643a'); rect(c, x - 2, y, 12, 1, '#7a4a2a'); rect(c, x + 4, y - 6, 1, 12, '#7a4a2a'); rect(c, x + 1, y - 3, 2, 2, '#c28455'); return; }
+  const gold = id === 'gold';
+  rect(c, x - 9, y, 24, 2, gold ? GOLD2 : BAR);
+  rectO(c, x - 10, y - 5, 3, 12, gold ? GOLD : IRON); rectO(c, x + 12, y - 5, 3, 12, gold ? GOLD : IRON);
+  rectO(c, x - 7, y - 3, 2, 8, gold ? GOLD : IRON); rectO(c, x + 10, y - 3, 2, 8, gold ? GOLD : IRON);
+  if (gold) { rect(c, x - 10, y - 4, 1, 3, '#fff6c8'); rect(c, x + 12, y - 4, 1, 3, '#fff6c8'); }
+}
+
+// ----- 음식 괴물 -----
+const MAW = '#2a0a10', FANG = '#f1e9d8', EYE = '#ff3b30', EYE_HI = '#ffd2c8';
+// 붉게 빛나는 눈 (찡그린 눈썹 포함)
+function evilEye(c, x, y, big) {
+  const w = big ? 4 : 3;
+  rect(c, x - 1, y - 1, w + 2, 4, OUT);
+  rect(c, x, y, w, 2, EYE); rect(c, x + w - 1, y, 1, 1, EYE_HI);
+  rect(c, x - 1, y - 2, 2, 1, OUT); rect(c, x + 1, y - 2, w, 1, OUT); rect(c, x + w, y - 3, 2, 1, OUT);
+}
+function evilEyeL(c, x, y, big) { // 왼쪽 눈은 눈썹 방향을 반대로
+  const w = big ? 4 : 3;
+  rect(c, x - 1, y - 1, w + 2, 4, OUT);
+  rect(c, x, y, w, 2, EYE); rect(c, x, y, 1, 1, EYE_HI);
+  rect(c, x - 2, y - 3, 2, 1, OUT); rect(c, x - 1, y - 2, w, 1, OUT); rect(c, x + w - 1, y - 2, 2, 1, OUT);
+}
+// 이빨이 위아래로 난 입
+function maw(c, x, y, w, h, tongue) {
+  rect(c, x - 1, y - 1, w + 2, h + 2, OUT);
+  rect(c, x, y, w, h, MAW);
+  if (tongue) ell(c, x + w / 2, y + h - 1, w / 4, 1.5, '#c0394b');
+  for (let i = 0; i < w; i += 3) { rect(c, x + i, y, 2, 1, FANG); rect(c, x + i, y + 1, 1, 1, FANG); }
+  for (let i = 1; i < w; i += 3) { rect(c, x + i, y + h - 1, 2, 1, FANG); rect(c, x + i + 1, y + h - 2, 1, 1, FANG); }
+}
+// 짧은 다리와 갈고리 발
+function stubLegs(c, cx, ground, color) {
+  rectO(c, cx - 8, ground - 5, 4, 5, color); rectO(c, cx + 4, ground - 5, 4, 5, color);
+  rect(c, cx - 9, ground - 1, 1, 1, FANG); rect(c, cx - 5, ground - 1, 1, 1, FANG); rect(c, cx + 3, ground - 1, 1, 1, FANG); rect(c, cx + 7, ground - 1, 1, 1, FANG);
+}
+function clawArm(c, x, y, dir, color) {
+  rectO(c, x, y, 5 * dir > 0 ? 5 : 5, 3, color);
+  const tip = dir > 0 ? x + 5 : x - 1;
+  rect(c, tip, y - 1, 1, 1, FANG); rect(c, tip + dir, y, 1, 1, FANG); rect(c, tip, y + 3, 1, 1, FANG);
+}
+function drip(c, x, y, len, color) { rect(c, x, y, 1, len, color); rect(c, x - 1 + 1, y + len, 1, 1, color); }
+
+// 몬스터는 48x48(보스 64x64) 캔버스에 그린다. 아래 가운데가 바닥.
+const SPR = {
+  chicken(c) { // 닭다리 괴수: 뼈가 뿔처럼 솟은 튀김 덩어리
+    stubLegs(c, 22, 47, '#7a4420');
+    clawArm(c, 4, 30, -1, '#a8642e'); clawArm(c, 35, 30, 1, '#a8642e');
+    rectO(c, 29, 2, 4, 14, '#e8e0d0'); ellO(c, 28, 2, 2.5, 2, '#e8e0d0'); ellO(c, 34, 3, 2.5, 2, '#e8e0d0');
+    rect(c, 30, 8, 1, 3, '#b9ae98');
+    ellO(c, 21, 28, 14, 15, '#a8642e');
+    for (const [a, b] of [[12, 19], [26, 17], [15, 39], [29, 37], [9, 29], [33, 25], [20, 15], [31, 31]]) rect(c, a, b, 3, 1, '#7a4420');
+    for (const [a, b] of [[17, 18], [24, 16], [11, 24]]) rect(c, a, b, 2, 1, '#d18a4a');
+    evilEyeL(c, 13, 23); evilEye(c, 23, 23);
+    maw(c, 11, 30, 19, 7, true);
+    drip(c, 14, 42, 3, '#e8c060'); drip(c, 27, 41, 2, '#e8c060');
+  },
+  pizza(c) { // 피자 괴물: 쩍 벌어진 입, 녹아내리는 치즈
+    stubLegs(c, 24, 47, '#b07a3a');
+    for (let y = 0; y < 30; y++) { const hw = Math.round(18 * (1 - y / 30)); rect(c, 24 - hw - 1, 12 + y, hw * 2 + 3, 1, OUT); }
+    for (let y = 0; y < 29; y++) { const hw = Math.round(17 * (1 - y / 30)); rect(c, 24 - hw, 12 + y, hw * 2 + 1, 1, '#e3b13e'); }
+    rectO(c, 5, 7, 39, 6, '#b07a3a'); rect(c, 6, 8, 37, 1, '#cf9a5a');
+    clawArm(c, 2, 16, -1, '#b07a3a'); clawArm(c, 40, 16, 1, '#b07a3a');
+    // 페퍼로니 눈
+    ellO(c, 17, 18, 3.5, 3.5, '#8e2a22'); ellO(c, 31, 18, 3.5, 3.5, '#8e2a22');
+    rect(c, 16, 17, 3, 2, EYE); rect(c, 30, 17, 3, 2, EYE); rect(c, 18, 17, 1, 1, EYE_HI); rect(c, 32, 17, 1, 1, EYE_HI);
+    rect(c, 13, 13, 4, 1, OUT); rect(c, 16, 14, 2, 1, OUT); rect(c, 32, 13, 4, 1, OUT); rect(c, 30, 14, 2, 1, OUT);
+    maw(c, 15, 24, 18, 7, true);
+    drip(c, 11, 26, 6, '#f2cf5c'); drip(c, 36, 25, 5, '#f2cf5c'); drip(c, 22, 38, 6, '#f2cf5c');
+  },
+  burger(c) { // 식인 버거: 윗빵이 턱처럼 벌어진다
+    stubLegs(c, 24, 47, '#6b3e2a');
+    ellO(c, 24, 40, 17, 4, '#c9863e');
+    rectO(c, 7, 33, 34, 4, '#4a2a1c'); rect(c, 8, 34, 32, 1, '#5d3626');
+    for (let i = 0; i < 9; i++) rect(c, 5 + i * 4, 31 + (i % 2), 4, 2, '#5aa04a');
+    // 벌어진 입 안쪽
+    rect(c, 7, 22, 34, 10, OUT); rect(c, 8, 22, 32, 9, MAW);
+    ell(c, 24, 30, 7, 2, '#c0394b');
+    for (let i = 0; i < 32; i += 3) { rect(c, 8 + i, 30, 2, 1, FANG); rect(c, 8 + i, 29, 1, 1, FANG); }
+    // 윗빵(위턱)
+    ellO(c, 24, 15, 19, 9, '#c9863e', dy => dy > 6 ? '#a86a2e' : (dy < -5 ? '#dda05a' : '#c9863e'));
+    for (let i = 0; i < 34; i += 3) { rect(c, 7 + i, 23, 2, 1, FANG); rect(c, 7 + i, 24, 1, 1, FANG); }
+    for (const [a, b] of [[13, 9], [21, 7], [30, 9], [17, 12], [27, 12]]) rect(c, a, b, 2, 1, '#f4ead0');
+    evilEyeL(c, 14, 14, true); evilEye(c, 28, 14, true);
+    clawArm(c, 1, 28, -1, '#c9863e'); clawArm(c, 42, 28, 1, '#c9863e');
+  },
+  donut(c) { // 도넛 괴물: 가운데 구멍이 이빨 달린 입
+    stubLegs(c, 24, 47, '#b98450');
+    ellO(c, 24, 28, 19, 15, '#c08a52');
+    ell(c, 24, 26, 17, 12, '#9c2f5a');
+    for (let i = 0; i < 10; i++) rect(c, 11 + i * 3 + (i % 3), 18 + (i * 7) % 15, 2, 1, ['#e8e0d0', '#7ec8e3', '#f3cf5a', '#9be09b'][i % 4]);
+    drip(c, 10, 33, 4, '#9c2f5a'); drip(c, 37, 34, 3, '#9c2f5a'); drip(c, 30, 37, 2, '#9c2f5a');
+    // 구멍 = 입
+    ellO(c, 24, 29, 7, 5, MAW);
+    for (let a = 0; a < 12; a++) { const ang = a / 12 * Math.PI * 2; rect(c, 24 + Math.cos(ang) * 6, 29 + Math.sin(ang) * 4, 1, 1, FANG); }
+    // 눈 세 개
+    evilEyeL(c, 12, 19); evilEye(c, 22, 15); evilEye(c, 32, 19);
+    clawArm(c, 0, 27, -1, '#c08a52'); clawArm(c, 43, 27, 1, '#c08a52');
+  },
+  cola(c) { // 탄산 괴물: 거품을 뿜는 컵, 빨대 더듬이
+    stubLegs(c, 24, 47, '#7a1e1e');
+    rect(c, 27, 0, 3, 3, OUT); rectO(c, 30, 1, 6, 2, '#e8e0d0'); rectO(c, 27, 2, 3, 10, '#e8e0d0'); rect(c, 27, 5, 3, 2, '#b02a2a');
+    rectO(c, 9, 9, 30, 4, '#d8d0c0');
+    for (let y = 0; y < 30; y++) { const inset = Math.round(y / 8); rect(c, 10 + inset - 1, 13 + y, 28 - inset * 2 + 2, 1, OUT); rect(c, 10 + inset, 13 + y, 28 - inset * 2, 1, '#9e2424'); }
+    rect(c, 13, 43, 22, 1, OUT);
+    rect(c, 11, 19, 26, 13, '#d8d0c0'); rect(c, 11, 31, 26, 1, '#b8ae9a');
+    evilEyeL(c, 14, 22); evilEye(c, 29, 22);
+    maw(c, 15, 26, 18, 5);
+    c.globalAlpha = .35; rect(c, 13, 14, 2, 4, '#fff'); rect(c, 13, 33, 2, 8, '#fff'); c.globalAlpha = 1;
+    for (const [a, b, r] of [[6, 8, 1.5], [41, 5, 1.5], [3, 16, 1], [44, 14, 1], [38, 0, 1]]) ellO(c, a, b, r, r, '#c95050');
+    clawArm(c, 2, 30, -1, '#9e2424'); clawArm(c, 40, 30, 1, '#9e2424');
+  },
+  cake(c, t) { // 보스: 대왕 케이크 마왕
+    ellO(c, 32, 59, 29, 4, '#3a2a24');
+    rectO(c, 5, 38, 54, 20, '#5a3020'); rect(c, 5, 45, 54, 3, '#8e2a3a'); rect(c, 6, 39, 52, 1, '#7a4430');
+    rectO(c, 11, 21, 42, 17, '#5a3020'); rect(c, 11, 28, 42, 3, '#8e2a3a');
+    for (let i = 0; i < 8; i++) { ellO(c, 13 + i * 5.5, 21, 3, 2, '#d8c8b8'); drip(c, 13 + i * 5.5, 23, 2 + (i % 3) * 2, '#c0394b'); }
+    for (let i = 0; i < 9; i++) ellO(c, 8 + i * 6, 38, 3, 2, '#d8c8b8');
+    // 뿔
+    for (let i = 0; i < 6; i++) { rect(c, 12 - i, 15 - i * 2, 3, 2, OUT); rect(c, 13 - i, 15 - i * 2, 1, 2, '#e8e0d0'); rect(c, 49 + i, 15 - i * 2, 3, 2, OUT); rect(c, 50 + i, 15 - i * 2, 1, 2, '#e8e0d0'); }
+    rectO(c, 31, 6, 3, 14, '#2b2b3a'); rect(c, 31, 9, 3, 1, '#c0394b'); rect(c, 31, 14, 3, 1, '#c0394b');
+    const fl = (Math.sin((t || 0) * 18) > 0) ? 1 : 0;
+    ell(c, 32, 3, 1.5, 2.5 + fl * .5, '#ff7a2a'); rect(c, 32, 2, 1, 2, '#ffd27a');
+    evilEyeL(c, 19, 29, true); evilEye(c, 40, 29, true);
+    maw(c, 14, 44, 36, 10, true);
+  },
+};
+// 보스: 잔몹을 크게 키우고 왕관을 씌운다
+function makeBoss(baseId) {
+  return (c, t) => {
+    const base = document.createElement('canvas'); base.width = base.height = 48; SPR[baseId](base.getContext('2d'), t);
+    c.imageSmoothingEnabled = false; c.drawImage(base, 0, 0, 48, 48, 0, 0, 64, 64);
+    // 왕관
+    rectO(c, 22, 1, 20, 4, '#d4a62a'); for (const x of [22, 29, 36, 41]) rectO(c, x, -1, 1, 2, '#d4a62a');
+    rect(c, 26, 2, 2, 2, '#c0394b'); rect(c, 34, 2, 2, 2, '#4aa0e0');
+  };
+}
+SPR.burgerboss = makeBoss('burger');
+SPR.pizzaboss = makeBoss('pizza');
+const sprCache = {};
+const BIG = { cake: 1, burgerboss: 1, pizzaboss: 1 };
+function sprite(id, t) {
+  const big = !!BIG[id];
+  const size = big ? 64 : 48;
+  const key = id + (id === 'cake' ? Math.sin((t || 0) * 18) > 0 : '');
+  if (!sprCache[key]) { const cv = document.createElement('canvas'); cv.width = cv.height = size; const c = cv.getContext('2d'); SPR[id](c, t); sprCache[key] = cv; }
+  return sprCache[key];
+}
+const flashCv = document.createElement('canvas'); flashCv.width = flashCv.height = 64;
+// sx, sy: 가로·세로 배율(찌그러짐 표현), alpha: 투명도
+function drawSprite(c, id, x, ground, t, flash, sx, sy, alpha) {
+  const sp = sprite(id, t);
+  let src = sp;
+  if (flash > 0) {
+    const f = flashCv.getContext('2d'); f.clearRect(0, 0, 64, 64); f.globalCompositeOperation = 'source-over'; f.drawImage(sp, 0, 0);
+    f.globalCompositeOperation = 'source-atop'; f.globalAlpha = Math.min(1, flash); f.fillStyle = '#fff'; f.fillRect(0, 0, 64, 64);
+    f.globalAlpha = 1; f.globalCompositeOperation = 'source-over'; src = flashCv;
+  }
+  sx = sx == null ? 1 : sx; sy = sy == null ? sx : sy;
+  const w = sp.width * sx, h = sp.height * sy;
+  if (alpha != null) c.globalAlpha = Math.max(0, alpha);
+  c.globalAlpha *= 0.3; ell(c, x, ground + 1, w * 0.32, 2, '#000'); c.globalAlpha = alpha != null ? Math.max(0, alpha) : 1; // 그림자
+  c.drawImage(src, 0, 0, sp.width, sp.height, Math.round(x - w / 2), Math.round(ground - h), Math.round(w), Math.round(h));
+  c.globalAlpha = 1;
+}
+const ease = { out: p => 1 - (1 - p) * (1 - p), inOut: p => p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p),
+  back: p => { const k = 1.7; return 1 + (k + 1) * Math.pow(p - 1, 3) + k * Math.pow(p - 1, 2); } };
+
+function drawBackground(c, t, stage, scroll) {
+  scroll = scroll || 0;
+  // 라운드마다 하늘이 바뀐다: 저녁 → 노을 → 밤 → 새벽
+  const pal = [
+    { top: '#3b4a78', bot: '#6b7fae', hill: '#3d5a52', far: '#2f4744' },
+    { top: '#4a3a66', bot: '#c07a6a', hill: '#4a4f45', far: '#383c3a' },
+    { top: '#161a33', bot: '#2c3560', hill: '#22333a', far: '#1a262c' },
+    { top: '#2d4466', bot: '#9a8fa8', hill: '#3a5548', far: '#2b413b' },
+  ][(stage - 1) % 4];
+  for (let y = 0; y < 96; y += 8) { rect(c, 0, y, 160, 8, y < 48 ? pal.top : pal.bot); }
+  rect(c, 0, 40, 160, 8, pal.top); for (let x = 0; x < 160; x += 2) rect(c, x, 47, 1, 1, pal.bot); // 하늘 경계 디더링
+  // 별 / 구름
+  c.globalAlpha = .7;
+  for (let i = 0; i < 14; i++) rect(c, (i * 37 + 11) % 160, (i * 23 + 5) % 40, 1, 1, '#e8e4f4');
+  const cx = (t * 4) % 200 - 30;
+  c.globalAlpha = .25; ell(c, cx, 22, 12, 3, '#fff'); ell(c, cx + 8, 19, 6, 3, '#fff'); c.globalAlpha = 1;
+  // 먼 언덕 두 겹
+  // 먼 언덕 두 겹 (걸어갈 때 겹마다 다른 속도로 흐른다)
+  const s1 = scroll * 0.15, s2 = scroll * 0.4, s3 = Math.round(scroll) ;
+  for (let x = 0; x < 160; x++) { const u = x + s1; const h = 66 + Math.round(Math.sin(u / 17 + 1) * 5); rect(c, x, h, 1, 40, pal.far); }
+  for (let x = 0; x < 160; x++) { const u = x + s2; const h = 76 + Math.round(Math.sin(u / 11) * 3 + Math.sin(u / 5.3) * 1.2); rect(c, x, h, 1, 30, pal.hill); }
+  // 트랙
+  rect(c, 0, 96, 160, 24, '#2f5a3a');
+  rect(c, 0, 101, 160, 9, '#8a5a3c'); rect(c, 0, 105, 160, 1, '#a8775a');
+  const m12 = ((s3 % 12) + 12) % 12, m9 = ((s3 % 9) + 9) % 9, m20 = ((s3 % 20) + 20) % 20;
+  for (let x = -12; x < 172; x += 12) rect(c, x + 3 - m12, 98, 2, 1, '#3f7349');
+  for (let x = -9; x < 169; x += 9) rect(c, x + 2 - m9, 113, 1, 1, '#3f7349');
+  for (let x = -20; x < 180; x += 20) rect(c, x - m20, 103, 3, 1, '#7a4e33');
+}
+
+// ===== 화면 =====
+const $ = id => document.getElementById(id);
+const SAVE_KEY = 'gangsanhae-save-v1';
+const params = new URLSearchParams(location.search);
+const DEMO = params.has('demo');
+let S = null, running = false, lastT = 0, hiddenAt = 0;
+const vis = { weight: 120, atkT: 9, atkDur: .3, kick: false, mFlash: 0, mKnock: 0, mSquash: 0, dead: null, feedAnim: 0, scroll: 0, walk: 0, walkPh: 0,
+  particles: [], time: 0, sweat: 0, hpShown: 1 };
+
+function load() { if (DEMO) return null; try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); return s && s.v === 3 ? s : null; } catch (e) { return null; } }
+function save() { if (DEMO || !S) return; try { S.savedAt = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+
+function show(id) { for (const s of document.querySelectorAll('.screen')) s.classList.toggle('on', s.id === id); window.scrollTo(0, 0); }
+function fmtTime(sec) { sec = Math.round(sec); const m = Math.floor(sec / 60), s = sec % 60; return m + '분 ' + String(s).padStart(2, '0') + '초'; }
+function fmtNum(n) { return Math.round(n).toLocaleString('ko-KR'); }
+function fatOf(w) { return Math.max(0, Math.min(1, (w - 60) / 60)); }
+let toastTimer = 0;
+function toast(msg, ms) { const t = $('toast'); t.innerHTML = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), ms || 3500); }
+
+function drawPortrait(cv, w, t) {
+  const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
+  drawHero(c, 31, 60, fatOf(w), { bob: Math.round(Math.sin((t || 0) * 3)), blink: false });
+}
+
+// ----- 시작 화면 -----
+const startHeroCv = $('startHero');
+let startAnim = 0;
+function startLoop(ts) { if (!$('startScreen').classList.contains('on')) return; drawPortrait(startHeroCv, 120, ts / 1000); startAnim = requestAnimationFrame(startLoop); }
+function refreshStart() {
+  const saved = load();
+  $('continueCard').hidden = !saved || saved.done;
+  if (saved && !saved.done) {
+    $('savedW').textContent = weightOf(saved).toFixed(1) + ' kg';
+    $('savedT').textContent = saved.target + ' kg';
+    $('savedTime').textContent = Math.floor(saved.time / 60) + '분';
+  }
+  cancelAnimationFrame(startAnim); startAnim = requestAnimationFrame(startLoop);
+}
+const estCache = {};
+function readTarget() {
+  const raw = $('targetInput').value.trim();
+  if (!raw) return { ok: false, msg: '' };
+  const v = Number(raw);
+  if (!Number.isFinite(v)) return { ok: false, msg: '숫자로 입력해 주세요.' };
+  if (v < CFG.minTarget || v > CFG.maxTarget) return { ok: false, msg: `${CFG.minTarget}~${CFG.maxTarget} kg 사이로 입력해 주세요. (키 180cm 기준)` };
+  return { ok: true, v: Math.round(v) };
+}
+function onTargetInput() {
+  const r = readTarget();
+  $('targetErr').textContent = r.msg || '';
+  $('startBtn').disabled = !r.ok;
+  if (!r.ok) { $('diffBox').innerHTML = '목표 체중을 입력하면 난이도와 예상 시간이 나옵니다.'; return; }
+  const d = difficultyOf(r.v);
+  const min = estCache[r.v] ?? (estCache[r.v] = estimateMinutes(r.v));
+  $('diffBox').innerHTML = `<span class="tag" style="background:${d.color}">${d.name}</span> 120 kg에서 ${120 - r.v} kg 감량 · 적당히 강화하면 약 ${Math.round(min)}분`;
+}
+$('targetInput').addEventListener('input', onTargetInput);
+$('targetInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !$('startBtn').disabled) $('startBtn').click(); });
+$('startBtn').addEventListener('click', () => {
+  const r = readTarget(); if (!r.ok) return;
+  const saved = load();
+  const go = () => { clearSave(); S = newState(r.v); save(); startGame(); };
+  if (saved && !saved.done) { $('confirm').classList.add('on'); $('cYes').onclick = () => { $('confirm').classList.remove('on'); go(); }; }
+  else go();
+});
+$('cNo').addEventListener('click', () => $('confirm').classList.remove('on'));
+$('continueBtn').addEventListener('click', () => {
+  S = load(); if (!S) return;
+  applyOffline((Date.now() - (S.savedAt || Date.now())) / 1000);
+  startGame();
+});
+$('toTitle').addEventListener('click', () => { save(); running = false; show('startScreen'); refreshStart(); });
+$('againBtn').addEventListener('click', () => { clearSave(); S = null; $('targetInput').value = ''; onTargetInput(); show('startScreen'); refreshStart(); });
+
+// 자리를 비운 동안: 최대 5분까지 자동 전투를 계산해 반영
+function applyOffline(sec) {
+  if (!S || S.done || !(sec > 3)) return;
+  const use = Math.min(sec, CFG.offlineCap);
+  const w0 = weightOf(S), kills0 = S.kills, c0 = S.coins, f0 = S.fed, t0 = S.time;
+  let left = use; while (left > 0 && !S.done) { const d = Math.min(0.05, left); step(S, d, null); left -= d; }
+  const capped = sec > CFG.offlineCap ? ' (최대 5분까지만 반영)' : '';
+  const fought = S.time - t0;
+  toast(`자리를 비운 동안 ${fmtTime(fought)} 자동으로 싸웠습니다${S.done ? ' (그사이 목표 달성)' : capped}<br>몬스터 ${S.kills - kills0}마리 · 코인 +${fmtNum(S.coins - c0)} · 먹이기 +${((S.fed - f0) / CFG.kcalPerKg).toFixed(1)} kg<br>체중 <b>${(weightOf(S) - w0).toFixed(1)} kg</b> (구입·강화는 하지 않았습니다)`, 6000);
+  vis.weight = weightOf(S);
+  save();
+  if (S.done && running) setTimeout(endGame, 1500); // 화면이 켜진 채 돌아왔는데 그사이 목표를 달성한 경우
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); save(); }
+  else if (running && hiddenAt) { applyOffline((Date.now() - hiddenAt) / 1000); hiddenAt = 0; lastT = performance.now(); }
+});
+
+// ----- 게임 화면 -----
+const scene = $('scene'), ctx = scene.getContext('2d');
+const HERO_X = 46, MON_X = 116, GROUND = 103;
+function startGame() {
+  show('gameScreen'); vis.weight = weightOf(S); vis.hpShown = 1; vis.dead = null; vis.particles = [];
+  $('goalV').textContent = S.target + ' kg';
+  if (S.done) { endGame(); return; }
+  running = true; lastT = performance.now(); requestAnimationFrame(loop);
+}
+function sceneXY(px, py) { const r = scene.getBoundingClientRect(), w = $('sceneWrap').getBoundingClientRect(); return { x: (px / 160) * r.width + (r.left - w.left), y: (py / 120) * r.height + (r.top - w.top) }; }
+function pop(cls, text, px, py) {
+  const p = sceneXY(px, py), el = document.createElement('div');
+  el.className = 'pop ' + cls; el.textContent = text; el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
+  $('fx').appendChild(el); setTimeout(() => el.remove(), 1400);
+}
+function shake() { const w = $('sceneWrap'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); }
+function burst(x, y, n, colors) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, sp = 20 + Math.random() * 50; vis.particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 30, life: .6 + Math.random() * .4, c: colors[i % colors.length] }); }
+}
+function handleEvents(ev, fromTap) {
+  for (const e of ev) {
+    if (e.t === 'attack') { vis.atkT = 0; vis.atkDur = Math.min(.34, .9 / speedOf(S)); vis.kick = !!e.kick; }
+    else if (e.t === 'hit') {
+      vis.mFlash = 1; vis.mKnock = e.crit ? 6 : 3; vis.mSquash = e.crit ? 1.4 : 1;
+      pop(e.crit ? 'crit' : 'dmg', (e.crit ? '치명타 ' : '') + fmtNum(e.dmg), MON_X + (Math.random() * 16 - 8), 58 + Math.random() * 10);
+      if (e.crit) shake();
+    } else if (e.t === 'buy') {
+      toast(e.kind === 'w' ? `<b>${e.name} +${e.enh}</b> 장착<br>지금 공격력보다 약해지지 않게 강화 단계를 맞췄습니다` : `<b>${e.name}</b> 구입 · 바로 적용됩니다`, 2600);
+      burst(HERO_X + 12, 70, 16, ['#e9b949', '#fff', '#7fb38a']);
+    } else if (e.t === 'unlock') {
+      toast(`새로 해금: <b>${e.names.join(', ')}</b><br>코인으로 구입할 수 있습니다`, 3000);
+    } else if (e.t === 'feed') {
+      vis.feedAnim = 1;
+      pop('feed', `먹이기 +${(e.kg * 1000).toFixed(0)} g`, HERO_X + 6, 46);
+    } else if (e.t === 'dodge') {
+      pop('dodge', '먹이기 피함', HERO_X + 6, 46);
+    } else if (e.t === 'skill') {
+      pop('skill', e.name, HERO_X + 4, 30);
+    } else if (e.t === 'enhance') {
+      pop('enh', `+${e.cost.toFixed(1)} kg`, HERO_X, 40);
+      burst(HERO_X + 12, 80, 10, ['#e9b949', '#fff']);
+    } else if (e.t === 'kill') {
+      vis.dead = { id: e.id, t: 0, x: MON_X + vis.mKnock };
+      burst(MON_X, 80, e.boss ? 30 : 14, ['#fff', '#f3cf5a', '#e48a72', '#9fd3f0']);
+      pop('kcal', `-${fmtNum(e.kcal)} kcal`, MON_X, 52);
+      setTimeout(() => pop('coin', `+${fmtNum(e.coins)} 코인`, MON_X, 74), 120);
+      setTimeout(() => pop('kg', `-${e.kg >= 0.1 ? e.kg.toFixed(1) : (e.kg * 1000).toFixed(0) + ' g'}${e.kg >= 0.1 ? ' kg' : ''}`, HERO_X, 40), 250);
+      vis.sweat = 1;
+      if (e.boss) shake();
+    } else if (e.t === 'stage') { toast(`<b>${S.stage - 1}라운드 클리어!</b> ${S.stage}라운드 시작 · 잔몹 ${CFG.perStage - 1}마리 뒤에 보스가 나옵니다`, 2400); }
+    else if (e.t === 'done') { setTimeout(endGame, 900); }
+  }
+}
+$('enhBtn').addEventListener('click', () => {
+  if (!S || !running) return;
+  const ev = []; if (enhance(S, ev)) { handleEvents(ev, false); save(); }
+});
+for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => {
+  for (const x of document.querySelectorAll('.tab')) x.classList.toggle('on', x === b);
+  for (const id of ['Weapon', 'Atk', 'Def']) $('tab' + id).hidden = id !== b.dataset.tab;
+});
+// 구입 단추 (목록은 다시 그려지므로 위임으로 받는다)
+for (const id of ['weaponList', 'atkList', 'defList']) $(id).addEventListener('click', e => {
+  const b = e.target.closest('button[data-buy]'); if (!b || !S || !running) return;
+  const [kind, i] = b.dataset.buy.split(':'); const ev = [];
+  if (buy(S, kind, Number(i), ev)) { handleEvents(ev, false); panelKey = ''; save(); }
+});
+let panelKey = '';
+function updatePanel() {
+  const w = weaponOf(S), ce = canEnhance(S), cost = enhCostOf(S);
+  $('coinV').textContent = fmtNum(S.coins);
+  const shopKey = ['w', 'a', 'd'].map(k => SHOP[k].map((_, i) => canBuy(S, k, Number(i)).why || 'ok').join(',')).join('/');
+  const key = [S.weapon, S.enh, ce.ok, ce.why, cost, Math.floor(S.burned * 10), shopKey].join('|');
+  if (key === panelKey) return; panelKey = key;
+  $('wName').textContent = `${w.name} +${S.enh}`;
+  $('wStat').textContent = `공격력 ${fmtNum(atkOf(S))} · 치명타 ${Math.round(critOf(S) * 100)}%`;
+  const c = $('wIcon').getContext('2d'); c.clearRect(0, 0, 32, 24); drawWeapon(c, w.id, 13, 12, true);
+  const spdNow = speedOf(S), spdAfter = 1 + CFG.speedPerKg * Math.max(0, S.burned - cost);
+  $('enhBtn').disabled = !ce.ok;
+  $('enhTitle').textContent = S.enh >= CFG.enhMax ? '최대' : `+${S.enh + 1}`;
+  $('enhGain').textContent = S.enh >= CFG.enhMax ? '더 강화할 수 없습니다' : `공격력 ${fmtNum(atkOf(S))} → ${fmtNum(atkOf(S) * (1 + CFG.enhAtk))} · 치명타 +1%p`;
+  $('enhCost').textContent = S.enh >= CFG.enhMax ? '다음 무기를 기다리세요' : `대가: 체중 +${cost.toFixed(1)} kg · 공격 속도 x${spdNow.toFixed(2)} → x${spdAfter.toFixed(2)}`;
+  $('enhWhy').textContent = ce.ok || S.enh >= CFG.enhMax ? '새 무기는 지금 공격력보다 약해지지 않는 강화 단계에서 시작합니다.' : ce.why;
+  const lock = at => `해금하려면<br><b>${unlockWeightOf(S, at).toFixed(1)} kg</b>까지 감량하세요`;
+  const status = (kind, i, x) => {
+    if (kind === 'w' && i === S.weapon) return '<span class="badge now">사용 중</span>';
+    if (S.own[kind][i]) return `<span class="badge">${kind === 'w' ? '보유' : '적용 중'}</span>`;
+    if (!isUnlocked(S, x)) return lock(x.at);
+    const ok = S.coins >= x.price;
+    return `<button class="buy" data-buy="${kind}:${i}" ${ok ? '' : 'disabled'}>${fmtNum(x.price)} 코인<small>${ok ? '구입' : '코인 부족'}</small></button>`;
+  };
+  const row = (kind, i, x, ds) => `<li class="item ${isUnlocked(S, x) ? '' : 'locked'}"><span class="nm">${x.name}<span class="ds">${ds}</span></span><span class="st">${status(kind, i, x)}</span></li>`;
+  $('weaponList').innerHTML = WEAPONS.map((x, i) => row('w', i, x, `공격력 ${x.atk} · 치명타 ${Math.round(x.crit * 100)}%`)).join('');
+  $('atkList').innerHTML = ATTACK_SKILLS.map((x, i) => row('a', i, x, x.desc)).join('');
+  $('defList').innerHTML = DEFENSE_SKILLS.map((x, i) => row('d', i, x, x.desc)).join('');
+}
+
+let saveTimer = 0;
+function loop(ts) {
+  if (!running) return;
+  const dt = Math.min(0.1, (ts - lastT) / 1000); lastT = ts;
+  vis.time += dt;
+  const ev = []; step(S, dt, ev); handleEvents(ev, false);
+  saveTimer += dt; if (saveTimer > 3) { saveTimer = 0; save(); }
+  render(dt);
+  updateHud(dt);
+  if (S.done && running) { /* endGame 이 호출됨 */ }
+  requestAnimationFrame(loop);
+}
+function render(dt) {
+  const c = ctx; c.clearRect(0, 0, 160, 120);
+  // 다음 몬스터로 걸어가는 동안(리스폰) 배경이 흐르고 다리가 움직인다
+  const walking = S.respawn > 0;
+  vis.walk += ((walking ? 1 : 0) - vis.walk) * Math.min(1, dt * 10);
+  vis.scroll += dt * 70 * vis.walk;
+  vis.walkPh += dt * 14 * vis.walk;
+  drawBackground(c, vis.time, S.stage, vis.scroll);
+  // 공격 동작: 뒤로 젖힘(준비) → 빠르게 뻗음 → 잠깐 멈춤 → 천천히 돌아옴
+  vis.atkT += dt;
+  const ap = vis.atkT / vis.atkDur;
+  let off = 0, ext = 0;
+  if (ap < 1) {
+    if (ap < .3) { const q = ease.out(ap / .3); off = -2.5 * q; ext = 0; }
+    else if (ap < .5) { const q = ease.inOut((ap - .3) / .2); off = -2.5 + 8 * q; ext = q; }
+    else if (ap < .62) { off = 5.5; ext = 1; }
+    else { const q = ease.out((ap - .62) / .38); off = 5.5 * (1 - q); ext = 1 - q; }
+  }
+  vis.sweat = Math.max(0, vis.sweat - dt * 1.5);
+  vis.feedAnim = Math.max(0, vis.feedAnim - dt * 2.2);
+  const flinch = vis.feedAnim > 0 && vis.feedAnim < .6 ? Math.sin((.6 - vis.feedAnim) / .6 * Math.PI) * -3 : 0;
+  const fat = fatOf(vis.weight);
+  const breath = Math.sin(vis.time * 3.2) * .6 + (vis.walk > .1 ? Math.abs(Math.sin(vis.walkPh)) * -1.2 : 0);
+  drawHero(c, HERO_X + off + flinch, GROUND, fat, {
+    weapon: weaponOf(S).id, kick: vis.kick, step: Math.sin(vis.walkPh) * vis.walk,
+    bob: Math.round(breath), punch: ext, blink: (vis.time % 3.2) < .12,
+    effort: ext > .3 || flinch < -1, sweat: vis.sweat > 0 ? Math.round((1 - vis.sweat) * 4) : 0,
+  });
+  // 쓰러지는 몬스터: 납작해지며 사라진다
+  if (vis.dead) {
+    vis.dead.t += dt; const q = Math.min(1, vis.dead.t / .35);
+    drawSprite(c, vis.dead.id, vis.dead.x + q * 6, GROUND, vis.time, 1 - q, 1 + q * .5, 1 - q * .85, 1 - q);
+    if (q >= 1) vis.dead = null;
+  }
+  // 몬스터: 숨쉬듯 늘었다 줄고, 맞으면 찌그러졌다 돌아온다. 새 몬스터는 오른쪽에서 걸어 들어온다
+  const m = monsterOf(S);
+  vis.mFlash = Math.max(0, vis.mFlash - dt * 8);
+  vis.mKnock = Math.max(0, vis.mKnock - dt * 30);
+  vis.mSquash = Math.max(0, vis.mSquash - dt * 7);
+  if (!vis.dead || vis.dead.t > .15) {
+    const appear = walking ? ease.out(1 - S.respawn / CFG.respawn) : 1;
+    const breathe = Math.sin(vis.time * 5 + 1) * .04;
+    const sq = vis.mSquash * .18;
+    const hop = walking ? Math.abs(Math.sin(vis.time * 16)) * -3 : 0;
+    const lunge = vis.feedAnim > 0 ? -Math.sin((1 - vis.feedAnim) * Math.PI) * 22 : 0;
+    drawSprite(c, m.id, MON_X + vis.mKnock + lunge + (1 - appear) * 60, GROUND + hop, vis.time, vis.mFlash,
+      1 - breathe + sq, 1 + breathe - sq, 1);
+  }
+  // 입자
+  for (const p of vis.particles) { p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; rect(c, p.x, p.y, 2, 2, p.c); }
+  vis.particles = vis.particles.filter(p => p.life > 0);
+}
+function updateHud(dt) {
+  const w = weightOf(S);
+  vis.weight += (w - vis.weight) * Math.min(1, dt * 4);
+  if (Math.abs(vis.weight - w) < 0.005) vis.weight = w;
+  $('wNum').textContent = vis.weight.toFixed(1);
+  const total = CFG.start - S.target, lost = CFG.start - vis.weight;
+  $('wBar').style.width = (Math.min(1, lost / total) * 100).toFixed(1) + '%';
+  $('remain').textContent = `남은 체중 ${Math.max(0, vis.weight - S.target).toFixed(1)} kg`;
+  $('pct').textContent = Math.floor(Math.min(1, lost / total) * 100) + '%';
+  const m = monsterOf(S);
+  $('monName').innerHTML = (m.boss ? '<span class="boss">보스</span>' : '') + m.name;
+  $('stageLabel').textContent = m.boss ? `${S.stage}라운드 · 보스` : `${S.stage}라운드 · 잔몹 ${S.idx + 1}/${CFG.perStage - 1}`;
+  const hpRatio = S.respawn > 0 ? 1 : Math.max(0, S.hp / m.hp);
+  $('hpFill').style.width = (hpRatio * 100).toFixed(1) + '%';
+  $('spd').textContent = 'x' + speedOf(S).toFixed(1);
+  $('kcalTot').textContent = fmtNum(S.kcalTotal);
+  $('killTot').textContent = fmtNum(S.kills);
+  updatePanel();
+}
+function endGame() {
+  running = false; save();
+  show('endScreen');
+  $('endSub').textContent = `강산해가 ${S.target} kg에 도달했습니다`;
+  $('afterW').textContent = weightOf(S).toFixed(1) + ' kg';
+  $('endTime').textContent = fmtTime(S.time);
+  $('endKcal').textContent = fmtNum(S.kcalTotal);
+  $('endKills').textContent = fmtNum(S.kills);
+  drawPortrait($('beforeC'), 120, 0); drawPortrait($('afterC'), weightOf(S), 0);
+}
+
+// ----- 시작 -----
+if (DEMO) {
+  // 화면 확인용: ?demo&screen=game&target=75&lost=20&theme=light
+  if (params.get('theme')) document.documentElement.dataset.theme = params.get('theme');
+  const scr = params.get('screen'), tg = Number(params.get('target') || 75), lost = Number(params.get('lost') || 0);
+  if (scr === 'game' || scr === 'end') {
+    // 실제 규칙으로 감량 지점까지 돌린 상태를 쓴다(예시 숫자를 만들지 않음)
+    S = newState(tg); let seed = 3; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const enhTo = Number(params.get('enh') || 0);
+    const shop = params.get('shop') !== '0';
+    while (!S.done && S.burned < (scr === 'end' ? 999 : lost)) {
+      if (shop) for (const k of ['w', 'a', 'd']) for (let i = SHOP[k].length - 1; i >= 0; i--) buy(S, k, i);
+      if (S.enh < enhTo && canEnhance(S).ok) enhance(S); step(S, 0.05, null, rnd);
+    }
+    if (params.get('tab')) setTimeout(() => document.querySelector(`.tab[data-tab="${params.get('tab')}"]`).click(), 50);
+    startGame();
+    if (scr === 'game') setTimeout(() => { handleEvents([{ t: 'hit', dmg: Math.round(atkOf(S) * 2), crit: true }], false); const r = rewardOf(S); pop('kcal', `-${fmtNum(r.kcal)} kcal`, MON_X, 40); pop('kg', `-${(r.kg * 1000).toFixed(0)} g`, HERO_X, 40); vis.atkT = vis.atkDur * .5; vis.kick = false; }, 700);
+  } else { if (params.get('target')) { $('targetInput').value = params.get('target'); onTargetInput(); } refreshStart(); }
+} else refreshStart();
+</script>
+</body>
+</html>
