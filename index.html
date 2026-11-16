@@ -42,7 +42,7 @@ button{font:inherit;border:none;cursor:pointer;color:inherit}
 .secondary{background:#4a4f62;color:var(--ink);box-shadow:inset 0 -4px 0 #34384a,inset 0 3px 0 #646a82}
 .ghost{background:transparent;color:var(--sub);font-size:13px;padding:6px 8px;text-decoration:underline;text-underline-offset:3px}
 /* 시작 */
-#startHero{width:192px;height:192px;margin:0 auto 6px}
+#startHero{width:192px;height:192px;margin:0 auto 10px;background:linear-gradient(#3b4a78 0 62%,#6b7fae 62% 78%,#2f5a3a 78%);border:3px solid var(--edge);box-shadow:inset 0 3px 0 rgba(255,255,255,.12),0 4px 0 #000}
 .profile{display:flex;justify-content:space-around;text-align:center;margin-bottom:14px}
 .profile .k{font-size:12px;color:var(--sub)}
 .profile .v{font-size:19px;font-weight:700;margin-top:4px}
@@ -146,11 +146,12 @@ label{font-size:14px;font-weight:700}
 .endTitle{font-size:32px;font-weight:700;text-align:center;margin:22px 0 4px;color:var(--gold);text-shadow:3px 3px 0 #000}
 .compare{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:8px 0}
 .compare figure{margin:0;text-align:center}
-.compare canvas{width:132px;height:132px}
+.compare canvas{width:132px;height:132px;background:linear-gradient(#3b4a78 0 62%,#6b7fae 62% 78%,#2f5a3a 78%);border:3px solid var(--edge)}
 .compare figcaption{font-size:12px;color:var(--sub)}
 .compare figcaption b{display:block;color:var(--ink);font-size:19px;margin-top:4px}
 .arrow{font-size:22px;color:var(--gold);padding-bottom:44px}
 .endStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.endStats .v{font-size:14px;white-space:nowrap}
 .confirm{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
 .confirm.on{display:flex}
 .confirm .card{max-width:360px;width:100%}
