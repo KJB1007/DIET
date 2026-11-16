@@ -596,7 +596,7 @@ html,body{height:100%;overflow:hidden}
       <div class="sheetHead"><b>스킨 뽑기</b><button class="back sheetClose">닫기</button></div>
       <div class="sheetBody">
         <div class="gemHead"><span>보유 보석 <b id="gemV3">0</b></span><button class="buy gemBuy" id="chargeBtn3">보석 충전</button></div>
-        <p class="hint">스킨을 입으면 능력치가 붙습니다. 전설은 공격력·최대 HP +20%, 희귀는 몬스터 칼로리 +20%입니다. 뽑은 스킨은 아래에서 입고 벗을 수 있습니다.</p>
+        <p class="hint">스킨을 입으면 능력치가 붙습니다. 전설은 공격력·최대 HP +20%, 희귀는 몬스터 처치 칼로리 +20%입니다. 뽑은 스킨은 아래에서 입고 벗을 수 있습니다.</p>
         <div class="card gachaCard"><button class="buy gemBuy gachaBtn" id="gachaBtn">1회 뽑기<small>보석 100</small></button><p class="hint" id="gachaOdds">전설 15% · 희귀 35% (스킨마다) · 이미 가진 스킨이 나오면 보석 30개를 돌려받습니다</p></div>
         <ul class="grid2" id="skinList"></ul>
       </div>
@@ -723,7 +723,7 @@ html,body{height:100%;overflow:hidden}
     <div class="resTitle" id="stamTitle">근피로도</div>
     <div class="stamBig"><b id="stamBigV">0</b><span>/60</span></div>
     <p class="resSub" id="stamSub">-</p>
-    <p class="sectionK">보석으로 바로 줄이기</p>
+    <p class="sectionK">보석으로 바로 회복</p>
     <div class="boosts" id="boosts"></div>
     <button class="secondary" id="stamClose">닫기</button>
   </div>
@@ -801,7 +801,7 @@ const GEM_SHOP = [
   { id: 'boost', name: '프로틴 부스터', price: 40, kind: 'item', desc: '다음 던전 한 번 공격력 x5' },
   { id: 'time', name: '보스 시간 연장권', price: 20, kind: 'item', desc: '다음 던전 보스 제한 시간 +30초' },
   { id: 'kcalbox', name: '칼로리 상자', price: 50, kind: 'item', desc: '보관했다가 던전 입장 화면에서 씁니다' },
-  { id: 'stam', name: '근피로도 회복', price: 10, kind: 'item', desc: '보석으로 근피로도를 바로 20 또는 40 줄입니다' },
+  { id: 'stam', name: '근피로도 회복', price: 10, kind: 'item', desc: '보석으로 근피로도를 바로 20 또는 40 회복합니다' },
   { id: 'gold', name: '황금 테마', price: 120, kind: 'theme', desc: '화면 색을 금빛으로 바꿉니다' },
   { id: 'neon', name: '네온 테마', price: 120, kind: 'theme', desc: '화면 색을 네온으로 바꿉니다' },
   { id: 'band', name: '금빛 머리띠', price: 60, kind: 'look', desc: '강산해의 머리띠가 금빛으로 바뀝니다' },
@@ -880,10 +880,10 @@ function weaponOf(s) { return WEAPONS[s.weapon]; }
 function lvOf(s, kind, id) { const i = SHOP[kind].findIndex(x => x.id === id); return s.own[kind][i] || 0; }
 function has(s, kind, id) { return lvOf(s, kind, id) > 0; }
 function boostOf(s) { return s.inDun && s.run ? s.run.boost : 1; }
-// 스킨 능력치(입고 있을 때만): 전설(해병·육군)은 공격력·최대 HP +20%, 희귀(아기)는 몬스터 칼로리 +20%
+// 스킨 능력치(입고 있을 때만): 전설(해병·육군)은 공격력·최대 HP +20%, 희귀(아기)는 몬스터 처치 칼로리 +20%
 const SKIN_BONUS = { marine: { atk: 0.2, hp: 0.2 }, army: { atk: 0.2, hp: 0.2 }, baby: { kcal: 0.2 } };
 function skinBonus(s, k) { const b = s.skin && SKIN_BONUS[s.skin]; return (b && b[k]) || 0; }
-function skinBonusText(skin) { const b = SKIN_BONUS[skin] || {}, t = []; if (b.atk) t.push(`공격력 +${Math.round(b.atk * 100)}%`); if (b.hp) t.push(`최대 HP +${Math.round(b.hp * 100)}%`); if (b.kcal) t.push(`몬스터 칼로리 +${Math.round(b.kcal * 100)}%`); return t.join(', '); }
+function skinBonusText(skin) { const b = SKIN_BONUS[skin] || {}, t = []; if (b.atk) t.push(`공격력 +${Math.round(b.atk * 100)}%`); if (b.hp) t.push(`최대 HP +${Math.round(b.hp * 100)}%`); if (b.kcal) t.push(`몬스터 처치 칼로리 +${Math.round(b.kcal * 100)}%`); return t.join(', '); }
 function baseAtkOf(s) { return weaponOf(s).atk * Math.pow(1 + CFG.enhAtk, s.enh) * (1 + skinBonus(s, 'atk')); }
 function atkOf(s) { return baseAtkOf(s) * boostOf(s); }
 function squatBonus(s) { const lv = lvOf(s, 'a', 'squat'); return lv ? 0.15 + (lv - 1) * 0.05 : 0; }
@@ -1624,7 +1624,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794834123674';
+const BUILD_ID = '1794834296146';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2020,7 +2020,7 @@ function openStam(blocked) {
   const wait = blocked ? Math.max(0, Math.ceil(((CFG.stamCost - stamNow() - 1) * CFG.stamRegenMs) / 1000) + stamNextSec()) : 0;
   $('stamSub').innerHTML = (blocked ? `던전에 한 번 들어가면 근피로도가 ${CFG.stamCost} 쌓이고, ${CFG.stamMax}이 넘으면 들어갈 수 없습니다. 약 <b>${fmtMS(wait)}</b> 뒤 들어갈 수 있습니다.<br>` : `던전에 한 번 들어가면 ${CFG.stamCost} 쌓입니다. 앱을 닫아 둔 동안에도 줄어듭니다.<br>`)
     + `1분에 1씩 줄어듭니다${loss > 0 ? ` · 다음 1 회복까지 ${fmtMS(stamNextSec())}` : ''}`;
-  $('boosts').innerHTML = STAM_PACKS.map((p, i) => `<button class="buy gemBuy" data-boost="${i}" ${loss > 0 ? '' : 'disabled'}>근피로도 -${p.n}<small>보석 ${p.gems}${loss <= 0 ? ' · 줄일 것 없음' : S.gems < p.gems ? ' · 충전하기' : ''}</small></button>`).join('');
+  $('boosts').innerHTML = STAM_PACKS.map((p, i) => `<button class="buy gemBuy" data-boost="${i}" ${loss > 0 ? '' : 'disabled'}>근피로도 ${p.n} 회복<small>보석 ${p.gems}${loss <= 0 ? ' · 회복할 것 없음' : S.gems < p.gems ? ' · 충전하기' : ''}</small></button>`).join('');
   $('stamModal').classList.add('on');
 }
 function needStam(onOk) { // 근피로도가 들어갈 만큼 남았으면 쌓고 onOk, 아니면 근피로도 창
@@ -2034,7 +2034,7 @@ $('boosts').addEventListener('click', e => {
   const i = Number(b.dataset.boost), p = STAM_PACKS[i];
   if (S.gems < p.gems) { $('stamModal').classList.remove('on'); openCharge(); return; }
   const before = CFG.stamMax - stamNow();
-  if (buyStamPack(i)) { const after = CFG.stamMax - stamNow(); refreshStam(); celebrate(`근피로도 -${before - after}`, `${before}에서 ${after}로`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
+  if (buyStamPack(i)) { const after = CFG.stamMax - stamNow(); refreshStam(); celebrate(`근피로도 ${before - after} 회복`, `${before}에서 ${after}로`, 'unlock'); SFX.play('buy'); openStam(false); if ($('hubScreen').classList.contains('on')) { panelKey = ''; updateHub(); } }
 
 });
 // 자동 진행: 클리어하면 다음 던전, 실패하면 마지막으로 깬 던전을 반복. 근피로도가 다 차면 멈춘다
