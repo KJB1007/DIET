@@ -1516,136 +1516,159 @@ function drawWeaponAt(c, id, x, y, ang, sc) {
   const cv = weaponCanvas(id); sc = sc || 1;
   c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(ang); c.scale(sc, sc); c.imageSmoothingEnabled = false; c.drawImage(cv, -12, -14); c.restore();
 }
+// ----- 주인공(2배 디테일): 큰 머리·큰 눈의 2~3등신, 왼쪽 위 빛/오른쪽 아래 그림자, 흩날리는 머리띠 -----
+// 2배 크기 캔버스(HERO_CV)에 그린 뒤 원래 크기 자리에 붙인다. 전투 화면과 초상 캔버스는 내부 해상도가 2배라 한 점 한 점이 그대로 보인다
+const HERO_CV = document.createElement('canvas'); HERO_CV.width = 200; HERO_CV.height = 190;
+const HERO_OX = 80, HERO_OG = 176; // 2배 캔버스 안의 발 위치
+// 타원을 그리고 오른쪽 아래를 어둡게(빛이 왼쪽 위)
+function shadeEllO(c, cx, cy, rx, ry, col, dark, frac) {
+  ellO(c, cx, cy, rx, ry, col);
+  for (let dy = -Math.round(ry); dy <= Math.round(ry); dy++) {
+    const hw = Math.round(rx * Math.sqrt(Math.max(0, 1 - (dy / ry) * (dy / ry)))); if (hw <= 0) continue;
+    const cut = Math.round(hw * (1 - 2 * (frac || 0.3)) + dy * 0.25);
+    if (cut < hw) rect(c, cx + cut, cy + dy, hw - cut + 1, 1, dark);
+  }
+}
 function drawHero(c, x, ground, mus, pose) {
   pose = pose || {};
-  mus = Math.max(0, Math.min(1, mus || 0));
+  const m = Math.max(0, Math.min(1, mus || 0));
+  if (pose.aura) drawAura(c, x, ground, ground - 12 - (5.5 + 1.2 * m), 4.5 + 4.5 * m, 7 + 1.5 * m, pose.aura, pose.t || 0);
+  const h = HERO_CV.getContext('2d'); h.setTransform(1, 0, 0, 1, 0, 0); h.clearRect(0, 0, HERO_CV.width, HERO_CV.height); h.imageSmoothingEnabled = false;
+  drawHeroHD(h, HERO_OX, HERO_OG, m, pose);
+  const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false;
+  c.drawImage(HERO_CV, Math.round(x) - HERO_OX / 2, Math.round(ground) - HERO_OG / 2, HERO_CV.width / 2, HERO_CV.height / 2);
+  c.imageSmoothingEnabled = sm;
+}
+function drawHeroHD(c, x, G, mus, pose) {
   const HY = pose.char === 'hyuksu';
-  const SKIN = HY ? '#f1c9a5' : '#ecbd92', SKIN_D = HY ? '#cf9c7c' : '#c98f6d', SKIN_L = HY ? '#fbe0c6' : '#f7d6b4', HAIR = '#16141a';
-  // 스킨: marine(해병, 강산해) · army(육군, 김혁수) · baby(아기, 둘 다)
+  const SKIN = HY ? '#f6d2b0' : '#efc29a', SKIN_D = HY ? '#d9a581' : '#cf966f', SKIN_L = HY ? '#fde6d0' : '#fbdcbf';
+  const HAIR = HY ? '#2a2230' : '#1c1a26', HAIR_L = HY ? '#5a4a66' : '#3d4a72';
   const SK = pose.skin || '', CAMO = SK === 'marine' || SK === 'army', BABY = SK === 'baby';
-  const SHIRT = CAMO ? (SK === 'marine' ? '#6b6a3f' : '#55663f') : BABY ? (HY ? '#f5b5c8' : '#9fd3f0') : (HY ? '#6fbf8a' : '#7ea6d6');
-  const SHIRT_D = CAMO ? '#3f4a2a' : BABY ? (HY ? '#d98aa0' : '#6fb0d8') : (HY ? '#4f9a68' : '#5f86b8');
-  const PANTS = CAMO ? (SK === 'marine' ? '#55522f' : '#46553a') : BABY ? '#f4f1ea' : (HY ? '#5a5f70' : '#4b5e8a');
-  const SHOE = '#f4f1ea';
-  const bob = pose.bob || 0, blink = pose.blink, lean = pose.lean || 0, dip = pose.dip || 0, kick = pose.kick || 0;
+  const SHIRT = CAMO ? (SK === 'marine' ? '#6b6a3f' : '#55663f') : BABY ? (HY ? '#f5b5c8' : '#9fd3f0') : (HY ? '#6fcf94' : '#5f9be8');
+  const SHIRT_D = CAMO ? '#4a4a2c' : BABY ? (HY ? '#d98aa0' : '#6fb0d8') : (HY ? '#43a26a' : '#3d72c0');
+  const SHIRT_L = CAMO ? '#85845a' : BABY ? '#ffffff' : (HY ? '#a4ebbd' : '#9cc6ff');
+  const PANTS = CAMO ? (SK === 'marine' ? '#55522f' : '#46553a') : BABY ? '#f4f1ea' : (HY ? '#4f5468' : '#33415e');
+  const PANTS_D = CAMO ? '#3a3a22' : BABY ? '#cfc9bd' : (HY ? '#383c4d' : '#232d44');
+  const SHOE = '#f6f3ec', SOLE = HY ? '#e0605a' : '#e06b5b';
+  const bob = (pose.bob || 0) * 2, blink = pose.blink, lean = (pose.lean || 0) * 2, dip = (pose.dip || 0) * 2, kick = pose.kick || 0, stride = (pose.stride || 0) * 2;
   const firm = mus > 0.3, ripped = mus > 0.6, huge = mus > 0.95;
-  // 비율: 다리를 길게, 몸통은 짧게(예전 몸통 반높이 10~12.5 → 7~8.5, 다리 8 → 12)
-  const rx = 4.5 + 6.5 * mus, wa = 3.5 + 2.2 * mus, ry = 7 + 1.5 * mus, legL = 12 - dip;
-  const hipY = ground - legL, cy = hipY - ry + 1 + bob, bx = x + lean; // bx: 젖힌 몸의 가운데
-  if (pose.aura) drawAura(c, x, ground, cy, rx, ry + 3, pose.aura, pose.t || 0);
-  c.globalAlpha = 0.18; ell(c, x, ground + 1, rx + 5, 2, '#000'); c.globalAlpha = 1;
-  // 팔 길이·굵기
-  const L1 = 6 + mus, L2 = 6, w1 = 2 + 1.6 * mus, w2 = 2 + 1.2 * mus, bul = 0.6 + 1.6 * mus, fistR = 1.6 + 1.1 * mus;
-  const shY = cy - ry + 2.5, shF = { x: bx + rx * 0.55, y: shY }, shB = { x: bx - rx * 0.45, y: shY + 0.5 };
+  // 비율(2배 단위): 다리 24, 몸통 반높이 11~13, 머리 반지름 14 → 2~3등신
+  const legL = 24 - dip, hipY = G - legL, ry = 11 + 2 * mus, rx = 9 + 9 * mus, wa = 7.5 + 3.5 * mus;
+  const cy = hipY - ry + 3 + bob, bx = x + lean;
+  c.globalAlpha = 0.2; ell(c, x, G + 1, rx + 12, 3, '#000'); c.globalAlpha = 1;
+  // 팔(관절 두 개)
+  const L1 = 11 + 2 * mus, L2 = 11, w1 = 4.6 + 4 * mus, w2 = 4 + 2.6 * mus, bul = 1.2 + 3 * mus, fistR = 3.4 + 2 * mus;
+  const shY = cy - ry + 5, shF = { x: bx + rx * 0.55, y: shY }, shB = { x: bx - rx * 0.45, y: shY + 1 };
   const arm = pose.arm || ARM_REST, arm2 = pose.arm2 || ARM2_REST;
-  const joint = (s, a) => { const ex = s.x + Math.cos(a.a1) * L1, ey = s.y + Math.sin(a.a1) * L1; return { ex, ey, hx: ex + Math.cos(a.a1 + a.a2) * L2, hy: ey + Math.sin(a.a1 + a.a2) * L2, fa: a.a1 + a.a2 }; };
+  const joint = (sh, a) => { const ex = sh.x + Math.cos(a.a1) * L1, ey = sh.y + Math.sin(a.a1) * L1; return { ex, ey, hx: ex + Math.cos(a.a1 + a.a2) * L2, hy: ey + Math.sin(a.a1 + a.a2) * L2, fa: a.a1 + a.a2 }; };
   const jF = joint(shF, arm);
-  // 뒷팔: 두 손 무기면 앞손 옆을 쥐게 팔꿈치를 맞춰 굽힌다(팔꿈치는 아래쪽으로)
   const reachTo = (sh, tx, ty) => {
-    let dx = tx - sh.x, dy = ty - sh.y, d = Math.hypot(dx, dy); const m = L1 + L2 - 0.2; if (d > m) { tx = sh.x + dx / d * m; ty = sh.y + dy / d * m; d = m; }
+    let dx = tx - sh.x, dy = ty - sh.y, d = Math.hypot(dx, dy); const mx = L1 + L2 - 0.4; if (d > mx) { tx = sh.x + dx / d * mx; ty = sh.y + dy / d * mx; d = mx; }
     const base = Math.atan2(ty - sh.y, tx - sh.x), a = Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * Math.max(d, .01)))));
     const e1 = { x: sh.x + Math.cos(base + a) * L1, y: sh.y + Math.sin(base + a) * L1 }, e2 = { x: sh.x + Math.cos(base - a) * L1, y: sh.y + Math.sin(base - a) * L1 }, e = e1.y >= e2.y ? e1 : e2;
     return { ex: e.x, ey: e.y, hx: tx, hy: ty };
   };
-  const jB = pose.twoHand && !pose.arm2 ? reachTo(shB, jF.hx - Math.cos(jF.fa) * 2, jF.hy - Math.sin(jF.fa) * 2) : joint(shB, arm2);
-  const bulgeCol = u => u > 0.3 && u < 0.6 ? SKIN_L : SKIN;
-  // 뒷팔(몸 뒤)
+  const jB = pose.twoHand && !pose.arm2 ? reachTo(shB, jF.hx - Math.cos(jF.fa) * 4, jF.hy - Math.sin(jF.fa) * 4) : joint(shB, arm2);
+  // 머리띠 끈(뒤로 흩날림): 몸보다 먼저
+  const hr = 14, hry = 14.5, hx = bx + 3, hy = cy - ry - 4 - hry * 0.75, top = hy - hry, t = pose.t || 0;
+  const BAND = pose.band ? '#f5c542' : '#e0484a', BAND_D = pose.band ? '#c99a2e' : '#a8303a';
+  const hasBand = (!HY || pose.band) && !SK;
+  if (hasBand) for (const [k, len, ph] of [[0, 20, 0], [1, 16, 1.7]]) {
+    const pts = []; for (let i = 0; i <= 6; i++) { const u = i / 6; pts.push([hx - hr + 2 - u * len, hy - 6 + k * 3 + u * 5 + Math.sin(t * 9 + ph + u * 4) * 2.5 * u]); }
+    limbs(c, pts.slice(0, -1).map((p, i) => [p[0], p[1], pts[i + 1][0], pts[i + 1][1], 3 - k * 0.5, 2.4 - k * 0.5, 0]), k ? BAND_D : BAND);
+  }
+  // 뒷팔
   limbs(c, [[shB.x, shB.y, jB.ex, jB.ey, w1, w1 * 0.85, bul], [jB.ex, jB.ey, jB.hx, jB.hy, w2, w2, 0]], SKIN_D);
   ellO(c, jB.hx, jB.hy, fistR, fistR, SKIN_D);
-  // 다리: 뒷다리 → 앞다리(내딛기·앞차기)
-  const legW = 3 + 1.8 * mus, gap = 1.5 + 2.5 * mus, stride = pose.stride || 0;
+  // 다리: 뒷다리(어둡게) → 앞다리. 신발은 흰 운동화
+  const legW = 7 + 3 * mus, gap = 3 + 4 * mus;
   const hipB = { x: bx - gap, y: hipY }, hipF = { x: bx + gap * 0.6, y: hipY };
-  const footB = { x: x - gap - 1 - stride * 0.4, y: ground - 1 }, footF = kick > 0.05 ? { x: hipF.x + 4 + kick * 11, y: hipY - 1 - kick * 3 } : { x: x + gap + stride, y: ground - 1 };
-  limbs(c, [[hipB.x, hipB.y, footB.x, footB.y, legW + 0.6, legW - 0.4, mus * 0.8]], PANTS);
-  rectO(c, footB.x - 2, footB.y - 1, 5, 2, SHOE);
-  limbs(c, [[hipF.x, hipF.y, footF.x, footF.y, legW + 0.6, legW - 0.4, mus * 0.8]], PANTS);
-  if (kick > 0.05) { rectO(c, footF.x, footF.y - 2, 3, 5, SHOE); if (kick > 0.6) { rect(c, footF.x + 5, footF.y - 3, 1, 1, '#fff'); rect(c, footF.x + 6, footF.y + 2, 2, 1, '#fff'); } }
-  else rectO(c, footF.x - 2, footF.y - 1, 5, 2, SHOE);
-  // 승모근(근육질부터)
-  if (ripped) ellO(c, bx + 1, cy - ry + 1, rx * 0.55, 1.5 + mus, HY || SK ? SHIRT : SKIN);
-  // 몸통: 위는 어깨 너비, 아래로 갈수록 허리로 좁아진다
+  const footB = { x: x - gap - 2 - stride * 0.4, y: G - 3 }, footF = kick > 0.05 ? { x: hipF.x + 8 + kick * 22, y: hipY - 2 - kick * 6 } : { x: x + gap + 2 + stride, y: G - 3 };
+  const shoe = (f, dark) => { rectO(c, f.x - 5, f.y - 2, 12, 5, dark ? '#d8d2c6' : SHOE); rect(c, f.x - 5, f.y + 2, 12, 1, dark ? '#a8303a' : SOLE); rect(c, f.x - 3, f.y - 2, 3, 1, '#ffffff'); };
+  limbs(c, [[hipB.x, hipB.y, footB.x, footB.y - 2, legW + 1, legW - 1, mus * 1.6]], PANTS_D);
+  shoe(footB, true);
+  limbs(c, [[hipF.x, hipF.y, footF.x, footF.y - 2, legW + 1, legW - 1, mus * 1.6]], PANTS);
+  if (kick > 0.05) { rectO(c, footF.x, footF.y - 5, 5, 11, SHOE); rect(c, footF.x + 4, footF.y - 5, 1, 11, SOLE); if (kick > 0.6) { rect(c, footF.x + 9, footF.y - 7, 2, 2, '#fff'); rect(c, footF.x + 11, footF.y + 3, 3, 1, '#fff'); } }
+  else shoe(footF, false);
+  // 승모근
+  if (ripped) ellO(c, bx + 1, cy - ry + 2, rx * 0.6, 3 + 2 * mus, HY || SK ? SHIRT : SKIN);
+  // 몸통: 위는 어깨 너비, 아래는 허리. 오른쪽 30%는 그림자, 왼쪽 위는 빛
   const wr = wa / rx;
-  const shape = t => t < -0.65 ? Math.sqrt(Math.max(0, 1 - ((t + 0.65) / 0.35) ** 2))
-    : t <= 0.4 ? 1 + (wr - 1) * ((t + 0.65) / 1.05) ** 1.3 : wr;
-  const body = (grow, colorAt) => {
-    for (let dy = -Math.round(ry) - grow; dy <= Math.round(ry) + grow; dy++) {
-      const hw = Math.round((rx + grow) * shape(dy / (ry + grow)));
-      if (hw <= 0) continue;
-      c.fillStyle = colorAt(dy); c.fillRect(Math.round(bx - hw), Math.round(cy + dy), hw * 2 + 1, 1);
-    }
-  };
-  body(1, () => OUT);
-  body(0, dy => dy > ry * 0.5 ? PANTS : dy < -ry * 0.55 ? (HY || SK ? SHIRT : SKIN) : SHIRT);
-  if (CAMO) {
-    const blots = SK === 'marine' ? ['#3f4a2a', '#8a7a4a', '#2f3a22'] : ['#3a4a2a', '#7a8a5a', '#2a3520'];
-    for (let i = 0; i < 8; i++) { const ox = bx + ((i * 37) % 11 - 5) / 6 * rx * 0.7, oy = cy + ((i * 23) % 9 - 4) / 5 * ry * .6; if (SK === 'army') rect(c, ox, oy, 2, 2, blots[i % 3]); else ell(c, ox, oy, 1.5, 1, blots[i % 3]); }
-    if (SK === 'marine') { rect(c, bx - rx * .5, cy - ry * .3, 4, 2, '#c0394b'); rect(c, bx - rx * .5 + 1, cy - ry * .3, 2, 1, '#f5c542'); }
+  const shape = tt => tt < -0.65 ? Math.sqrt(Math.max(0, 1 - ((tt + 0.65) / 0.35) ** 2)) : tt <= 0.4 ? 1 + (wr - 1) * ((tt + 0.65) / 1.05) ** 1.3 : wr;
+  const R = Math.round(ry);
+  for (const pass of [0, 1]) for (let dy = -R - (pass ? 0 : 1); dy <= R + (pass ? 0 : 1); dy++) {
+    const g = pass ? 0 : 1, hw = Math.round((rx + g) * shape(dy / (ry + g))); if (hw <= 0) continue;
+    if (!pass) { rect(c, bx - hw, cy + dy, hw * 2 + 1, 1, OUT); continue; }
+    const shorts = dy > ry * 0.5, chest = dy < -ry * 0.5 && !HY && !SK;
+    const base = shorts ? PANTS : chest ? SKIN : SHIRT, dark = shorts ? PANTS_D : chest ? SKIN_D : SHIRT_D;
+    rect(c, bx - hw, cy + dy, hw * 2 + 1, 1, base);
+    const cut = Math.round(hw * 0.35); rect(c, bx + cut, cy + dy, hw - cut + 1, 1, dark);
+    if (!shorts && dy < 0 && dy > -R + 2) rect(c, bx - hw + 1, cy + dy, 2, 1, chest ? SKIN_L : SHIRT_L); // 왼쪽 가장자리 빛
   }
-  if (BABY) { ellO(c, bx + 1, cy - ry * .4, rx * .45, ry * .25, '#fff'); for (let i = -2; i <= 2; i += 2) rect(c, bx + 1 + i * rx * .15, cy - ry * .4, 1, 1, HY ? '#f5b5c8' : '#9fd3f0'); }
-  if (!HY && !SK) { rect(c, bx - rx * 0.92, cy - ry * 0.6, rx * 0.35, 2, SKIN); rect(c, bx + rx * 0.57, cy - ry * 0.6, rx * 0.35, 2, SKIN); }
-  else if (HY && !SK) { rect(c, bx - 1, cy - ry * 0.15, 3, 1, '#e8f4ec'); rect(c, bx - 2, cy - ry * 0.15 - 1, 1, 3, '#e8f4ec'); rect(c, bx + 2, cy - ry * 0.15 - 1, 1, 3, '#e8f4ec'); }
-  if (firm && !BABY) { rect(c, bx - rx * 0.55, cy - ry * 0.25, rx * 0.45, 1, SHIRT_D); rect(c, bx + rx * 0.12, cy - ry * 0.25, rx * 0.45, 1, SHIRT_D); rect(c, bx, cy - ry * 0.5, 1, ry * 0.3, SHIRT_D); }
-  if (ripped && !BABY) { for (let i = 0; i < (huge ? 3 : 2); i++) { rect(c, bx - 2, cy + i * 2.5, 2, 1, SHIRT_D); rect(c, bx + 1, cy + i * 2.5, 2, 1, SHIRT_D); } }
-  c.globalAlpha = 0.25; ell(c, bx + rx * 0.35, cy - ry * 0.3, rx * 0.2, ry * 0.18, '#fff'); c.globalAlpha = 1;
-  const hasW = pose.weapon && pose.weapon !== 'fist' && pose.weapon !== 'flick', raised = jF.ey < shF.y - 2;
+  rect(c, bx - wa, cy + Math.round(ry * 0.5), wa * 2 + 1, 2, HY ? '#2a2d38' : '#1c2333'); // 허리띠 줄
+  if (CAMO) { const bl = SK === 'marine' ? ['#3f4a2a', '#8a7a4a', '#2f3a22'] : ['#3a4a2a', '#7a8a5a', '#2a3520']; for (let i = 0; i < 10; i++) { const ox = bx + ((i * 37) % 13 - 6) / 7 * rx * 0.75, oy = cy + ((i * 23) % 9 - 5) / 6 * ry * 0.6; ell(c, ox, oy, 2.5, 1.6, bl[i % 3]); } if (SK === 'marine') { rect(c, bx - rx * .5, cy - ry * .25, 7, 3, '#c0394b'); rect(c, bx - rx * .5 + 2, cy - ry * .25, 3, 1, '#f5c542'); } }
+  if (BABY) { ellO(c, bx + 2, cy - ry * .35, rx * .5, ry * .3, '#fff'); for (let i = -2; i <= 2; i += 2) rect(c, bx + 2 + i * rx * .15, cy - ry * .35, 2, 2, HY ? '#f5b5c8' : '#9fd3f0'); }
+  if (!HY && !SK) { // 강산해 민소매: 어깨 끈
+    rect(c, bx - rx * 0.55, cy - ry * 0.75, 3, ry * 0.35, SHIRT); rect(c, bx + rx * 0.35, cy - ry * 0.75, 3, ry * 0.35, SHIRT_D);
+  } else if (HY && !SK) { // 김혁수 티셔츠 가슴 덤벨 무늬 + 소매
+    const dx = bx - 2, dy0 = cy - ry * 0.15; rect(c, dx, dy0, 7, 2, '#ecfff3'); rect(c, dx - 2, dy0 - 2, 2, 6, '#ecfff3'); rect(c, dx + 7, dy0 - 2, 2, 6, '#ecfff3');
+  }
+  if (firm && !BABY) { const pc = HY || SK ? SHIRT_D : SKIN_D; rect(c, bx - rx * 0.6, cy - ry * 0.28, rx * 0.5, 1, pc); rect(c, bx + rx * 0.1, cy - ry * 0.28, rx * 0.5, 1, pc); rect(c, bx, cy - ry * 0.55, 1, ry * 0.3, pc); }
+  if (ripped && !BABY) for (let i = 0; i < (huge ? 3 : 2); i++) { rect(c, bx - 4, cy + 1 + i * 4, 3, 1, SHIRT_D); rect(c, bx + 2, cy + 1 + i * 4, 3, 1, SHIRT_D); }
+  // 앞팔 + 무기(팔꿈치가 어깨보다 위면 머리 뒤에)
+  const hasW = pose.weapon && pose.weapon !== 'fist' && pose.weapon !== 'flick', raised = jF.ey < shF.y - 3;
   const frontArm = () => {
-    limbs(c, [[shF.x, shF.y, jF.ex, jF.ey, w1, w1 * 0.85, bul], [jF.ex, jF.ey, jF.hx, jF.hy, w2, w2, 0]], bulgeCol);
-    if (ripped) { const mx = (shF.x + jF.ex) / 2, my = (shF.y + jF.ey) / 2; rect(c, mx, my - 1, 1, 1, SKIN_D); }
-    if (huge) { const mx = (jF.ex + jF.hx) / 2, my = (jF.ey + jF.hy) / 2; rect(c, mx, my, 1, 1, SKIN_D); }
-    if (hasW) drawWeaponAt(c, pose.weapon, jF.hx, jF.hy, jF.fa + (pose.wOff || 0));
-    ellO(c, jF.hx, jF.hy, fistR, fistR, SKIN);
+    if (hasW) drawWeaponAt(c, pose.weapon, jF.hx, jF.hy, jF.fa + (pose.wOff || 0), 2);
+    limbs(c, [[shF.x, shF.y, jF.ex, jF.ey, w1, w1 * 0.85, bul], [jF.ex, jF.ey, jF.hx, jF.hy, w2, w2, 0]], u => u > 0.25 && u < 0.55 ? SKIN_L : SKIN);
+    if (ripped) { const mx = (shF.x + jF.ex) / 2, my = (shF.y + jF.ey) / 2; rect(c, mx, my - 2, 2, 1, SKIN_D); }
+    if (huge) { const mx = (jF.ex + jF.hx) / 2, my = (jF.ey + jF.hy) / 2; rect(c, mx - 1, my, 1, 3, SKIN_D); }
+    ellO(c, jF.hx, jF.hy, fistR, fistR, SKIN); rect(c, jF.hx - 1, jF.hy - fistR + 1, 2, 1, SKIN_L);
   };
-  if (raised) frontArm(); // 머리 위로 들었을 때는 머리 뒤에
-  // 머리: 짧은 흑발, 뚜렷한 이목구비. 목은 근육이 붙을수록 굵어진다
-  const hr = 5, hry = 5.5, hx = bx + 1, hy = cy - ry - 3 - hry * 0.45, nw = 3 + Math.round(3 * mus);
-  rect(c, hx - nw / 2, hy + hry - 1, nw, 4, SKIN);
-  ellO(c, hx, hy, hr, hry, SKIN);
-  rect(c, hx - hr + 1, hy + hry - 2, 2, 1, SKIN_D); rect(c, hx + hr - 2, hy + hry - 2, 2, 1, SKIN_D);
-  if (mus < 0.2) rect(c, hx + hr * 0.45, hy + 2, 1, 2, SKIN_D);
-  const top = hy - hry;
-  if (!HY) {
-    rect(c, hx - hr, top, hr * 2 + 1, 4, HAIR); rect(c, hx - hr + 1, top - 1, hr * 2 - 1, 1, HAIR);
-    for (let i = -hr + 1; i < hr; i += 3) rect(c, hx + i, top - 2, 1, 1, HAIR);
-    rect(c, hx - hr, top + 3, 2, 4, HAIR);
-  } else {
-    rect(c, hx - hr, top - 1, hr * 2 + 1, 5, HAIR); rect(c, hx - hr + 1, top - 2, hr * 2 - 1, 1, HAIR);
-    rect(c, hx - hr, top + 4, 3, 3, HAIR); rect(c, hx + 1, top + 4, hr - 1, 1, HAIR); rect(c, hx - 2, top - 1, 1, 2, '#3a3440');
+  if (raised) frontArm();
+  // 목과 머리: 오른쪽 아래 그림자, 왼쪽 뒤에 귀
+  const nw = 7 + Math.round(5 * mus); rect(c, hx - nw / 2 - 1, hy + hry - 5, nw, 9, SKIN_D); rect(c, hx - nw / 2 - 1, hy + hry - 5, Math.round(nw * 0.6), 9, SKIN);
+  shadeEllO(c, hx, hy, hr, hry, SKIN, SKIN_D, 0.22);
+  ellO(c, hx - hr + 4, hy + 2, 3, 4, SKIN); rect(c, hx - hr + 4, hy + 1, 1, 3, SKIN_D);
+  // 머리카락
+  const hairRows = (g, col) => { for (let dy = -Math.round(hry) - 1 - g; dy <= -2 + g; dy++) { const yy = hy + dy, ww = Math.round((hr + 1 + g) * Math.sqrt(Math.max(0, 1 - (dy / (hry + 1 + g)) ** 2))); rect(c, hx - ww - 1, yy, ww * 2 + 2, 1, col); } };
+  if (!HY) { // 강산해: 뾰족뾰족 짧은 머리, 앞머리 몇 가닥
+    const spikes = [[-12, -10, -18, -18], [-6, -14, -8, -24], [1, -15, 2, -25], [8, -13, 12, -21], [-14, -3, -21, -8]];
+    for (const g of [1, 0]) { hairRows(g, g ? OUT : HAIR); for (const [ax, ay, tx, ty] of spikes) tri(c, hx + ax - 4 - g, hy + ay + 4 + g, hx + tx, hy + ty - g, hx + ax + 4 + g, hy + ay + 2, g ? OUT : HAIR); }
+    for (const [fx, fl] of [[-6, 6], [0, 7], [6, 5], [11, 4]]) tri(c, hx + fx - 3, hy - 3, hx + fx + 3, hy - 3, hx + fx + 1, hy - 3 + fl, HAIR);
+    rect(c, hx - hr - 1, hy - 3, 5, 9, HAIR); // 옆머리
+    for (const [a, b, w] of [[-9, -12, 6], [-3, -15, 5], [3, -14, 4], [-12, -7, 3]]) rect(c, hx + a, hy + b, w, 1, HAIR_L); // 머리 결 하이라이트
+  } else { // 김혁수: 가르마를 탄 단정한 머리, 앞머리가 이마를 덮는다
+    for (const g of [1, 0]) hairRows(g, g ? OUT : HAIR);
+    tri(c, hx - 4, hy - 4, hx + 14, hy - 4, hx + 12, hy + 3, HAIR); tri(c, hx - 12, hy - 4, hx - 2, hy - 4, hx - 9, hy + 2, HAIR);
+    rect(c, hx - hr - 1, hy - 3, 6, 10, HAIR); rect(c, hx - 3, hy - hry - 1, 2, 4, HAIR_L);
+    for (const [a, b, w] of [[-10, -11, 7], [2, -13, 6], [6, -8, 5]]) rect(c, hx + a, hy + b, w, 1, HAIR_L);
   }
-  if ((!HY || pose.band) && !SK) {
-    const BAND = pose.band ? '#f5c542' : '#e06b5b', fl = Math.round(Math.sin((pose.t || 0) * 9) * 1);
-    rect(c, hx - hr, top + 3, hr * 2 + 1, 2, BAND);
-    rect(c, hx - hr - 3, top + 4 + fl, 3, 1, BAND); rect(c, hx - hr - 5, top + 5 + fl, 2, 1, BAND); // 머리띠 끈이 흩날린다
-    if (pose.band) { rect(c, hx - 1, top + 3, 1, 1, '#fff6c8'); rect(c, hx + 3, top + 3, 1, 1, '#fff6c8'); }
+  // 머리띠
+  if (hasBand) { rect(c, hx - hr - 1, hy - 8, hr * 2 + 3, 5, OUT); rect(c, hx - hr, hy - 7, hr * 2 + 1, 3, BAND); rect(c, hx - hr, hy - 5, hr * 2 + 1, 1, BAND_D); if (pose.band) { rect(c, hx + 2, hy - 7, 2, 1, '#fff6c8'); rect(c, hx + 8, hy - 7, 2, 1, '#fff6c8'); } }
+  if (SK === 'marine') { rectO(c, hx - hr - 2, top - 4, hr * 2 + 5, 11, '#6b6a3f'); rect(c, hx - hr - 1, top - 5, hr * 2 + 3, 2, '#55522f'); for (let i = -hr; i < hr; i += 4) rect(c, hx + i, top - 2 + (i % 3), 3, 1, '#3f4a2a'); rectO(c, hx - hr + 2, top + 6, hr * 2 + 8, 3, '#55522f'); rect(c, hx + 2, top - 1, 5, 5, '#c0394b'); rect(c, hx + 3, top, 3, 2, '#f5c542'); }
+  else if (SK === 'army') { ellO(c, hx, top + 2, hr + 3, 9, '#55663f', dy => dy > 4 ? '#3f4a2a' : '#55663f'); rect(c, hx - hr - 3, top + 8, hr * 2 + 7, 3, '#3f4a2a'); rect(c, hx - 6, top - 2, 4, 2, '#6b7a4a'); rect(c, hx - hr, top + 11, 2, 9, '#2a2a20'); }
+  else if (BABY) { ellO(c, hx, top + 3, hr + 3, 9, HY ? '#fbe0ea' : '#e0f2fb'); rect(c, hx - hr - 3, top + 8, hr * 2 + 7, 3, HY ? '#f5b5c8' : '#9fd3f0'); for (let i = -hr - 2; i <= hr + 2; i += 3) rect(c, hx + i, top + 11, 2, 2, '#fff'); }
+  // 얼굴: 큰 눈(가까운 눈이 크다), 굵은 눈썹, 볼 홍조
+  const e1 = hx + 1, e2 = hx + 10, ey = hy + 1;
+  rect(c, e1 - 1, ey - 5, 7, 2, HAIR); rect(c, e1 + 4, ey - 6, 2, 1, HAIR); rect(c, e2 - 1, ey - 5, 5, 2, HAIR); // 눈썹(치켜 올라감)
+  if (blink) { rect(c, e1, ey + 2, 6, 1, OUT); rect(c, e2, ey + 2, 4, 1, OUT); }
+  else {
+    const eye = (ex, w, hgt) => { rect(c, ex - 1, ey - 2, w + 2, 2, OUT); rect(c, ex, ey, w, hgt, '#ffffff'); rect(c, ex + Math.floor(w / 2) - 1, ey, Math.ceil(w / 2) + 1, hgt, HY ? '#3b2a1e' : '#1f2a4a'); rect(c, ex + Math.floor(w / 2) - 1, ey + hgt - 2, Math.ceil(w / 2) + 1, 2, HY ? '#7a5030' : '#3f6fd0'); rect(c, ex + Math.floor(w / 2), ey + 1, 2, 2, '#ffffff'); rect(c, ex - 1, ey, 1, hgt, OUT); };
+    eye(e1, 6, 6); eye(e2, 4, 5);
   }
-  if (SK === 'marine') {
-    rectO(c, hx - hr - 1, top - 3, hr * 2 + 3, 6, '#6b6a3f'); rect(c, hx - hr, top - 4, hr * 2 + 1, 1, '#55522f');
-    for (let i = -hr; i < hr; i += 3) rect(c, hx + i, top - 2 + (i % 2), 2, 1, '#3f4a2a');
-    rectO(c, hx - hr + 1, top + 3, hr * 2 + 4, 2, '#55522f'); rect(c, hx + 1, top - 1, 3, 3, '#c0394b'); rect(c, hx + 2, top, 1, 1, '#f5c542');
-  } else if (SK === 'army') {
-    ellO(c, hx, top + 1, hr + 2, 5, '#4f5f3a', dy => dy > 2 ? '#3f4a2a' : '#55663f'); rect(c, hx - hr - 2, top + 4, hr * 2 + 5, 2, '#3f4a2a');
-    rect(c, hx - 3, top - 1, 2, 1, '#6b7a4a'); rect(c, hx + 3, top + 1, 2, 1, '#2f3a22'); rect(c, hx - hr, top + 6, 1, 5, '#2a2a20');
-  } else if (BABY) {
-    ellO(c, hx, top + 1, hr + 2, 5, HY ? '#fbe0ea' : '#e0f2fb'); rect(c, hx - hr - 2, top + 4, hr * 2 + 5, 2, HY ? '#f5b5c8' : '#9fd3f0');
-    for (let i = -hr - 1; i <= hr + 1; i += 2) rect(c, hx + i, top + 6, 1, 1, '#fff');
-    rect(c, hx - hr - 1, top + 6, 1, 6, HY ? '#f5b5c8' : '#9fd3f0');
+  if (HY) { // 뿔테안경
+    const frame = (fx, w, hgt) => { rect(c, fx - 2, ey - 2, w + 4, 1, '#2a1a12'); rect(c, fx - 2, ey + hgt + 1, w + 4, 1, '#2a1a12'); rect(c, fx - 2, ey - 2, 1, hgt + 4, '#2a1a12'); rect(c, fx + w + 1, ey - 2, 1, hgt + 4, '#2a1a12'); };
+    frame(e1, 6, 6); frame(e2, 4, 5); rect(c, e1 + 6, ey, 3, 1, '#2a1a12'); rect(c, hx - hr, ey, e1 - (hx - hr) - 2, 1, '#2a1a12');
+    c.globalAlpha = .3; rect(c, e1, ey, 2, 1, '#fff'); c.globalAlpha = 1;
   }
-  const e1 = hx + Math.round(hr * 0.15), e2 = e1 + 4;
-  rect(c, e1 - 1, hy - 2, 3, 1, HAIR); rect(c, e2, hy - 2, 3, 1, HAIR);
-  if (blink) { rect(c, e1, hy + 1, 2, 1, OUT); rect(c, e2, hy + 1, 2, 1, OUT); }
-  else { rect(c, e1, hy - 1, 2, 1, SKIN_D); rect(c, e2, hy - 1, 2, 1, SKIN_D); rect(c, e1, hy, 2, 2, '#fff'); rect(c, e2, hy, 2, 2, '#fff'); rect(c, e1 + 1, hy, 1, 2, OUT); rect(c, e2 + 1, hy, 1, 2, OUT); }
-  if (HY) {
-    rect(c, e1 - 1, hy - 1, 4, 1, '#2a1a12'); rect(c, e1 - 1, hy + 2, 4, 1, '#2a1a12'); rect(c, e1 - 1, hy - 1, 1, 4, '#2a1a12'); rect(c, e1 + 2, hy - 1, 1, 4, '#2a1a12');
-    rect(c, e2 - 1, hy - 1, 4, 1, '#2a1a12'); rect(c, e2 - 1, hy + 2, 4, 1, '#2a1a12'); rect(c, e2 - 1, hy - 1, 1, 4, '#2a1a12'); rect(c, e2 + 2, hy - 1, 1, 4, '#2a1a12');
-    rect(c, e1 + 3, hy, 1, 1, '#2a1a12'); rect(c, hx - hr, hy, e1 - (hx - hr) - 1, 1, '#2a1a12');
-    c.globalAlpha = .35; rect(c, e1, hy, 1, 1, '#fff'); rect(c, e2, hy, 1, 1, '#fff'); c.globalAlpha = 1;
-  }
-  rect(c, e1 + 3, hy + 2, 1, 2, SKIN_D);
-  if (pose.effort) rect(c, e1, hy + 4, 4, 1, OUT); else { rect(c, e1, hy + 4, 3, 1, '#a9564a'); rect(c, e1 + 3, hy + 3, 1, 1, '#a9564a'); }
-  if (BABY) { ellO(c, e1 + 2, hy + 4, 2, 1.5, HY ? '#ff8fb0' : '#7fc8f0'); rect(c, e1 + 1, hy + 4, 3, 1, '#fff'); }
-  if (pose.sweat) rect(c, hx - hr + 1, hy - 1 + pose.sweat, 1, 2, '#9fd3f0');
-  // 앞팔: 무기는 손에 쥐고 팔뚝 방향으로(맨손이면 주먹)
+  c.globalAlpha = .45; rect(c, e1 - 1, ey + 8, 4, 2, '#ff7a8a'); rect(c, e2 + 1, ey + 7, 3, 2, '#ff7a8a'); c.globalAlpha = 1; // 볼 홍조
+  rect(c, e1 + 7, ey + 5, 1, 2, SKIN_D); // 코
+  if (pose.effort) { rect(c, e1 + 1, ey + 10, 6, 3, '#5a1a22'); rect(c, e1 + 2, ey + 10, 4, 1, '#ffffff'); } // 기합: 벌린 입
+  else { rect(c, e1 + 2, ey + 11, 4, 1, '#9a3a3a'); rect(c, e1 + 6, ey + 10, 1, 1, '#9a3a3a'); }
+  if (BABY) { ellO(c, e1 + 4, ey + 11, 3, 2, HY ? '#ff8fb0' : '#7fc8f0'); rect(c, e1 + 2, ey + 11, 5, 1, '#fff'); }
+  if (pose.sweat) { rect(c, hx - hr + 3, hy - 4 + pose.sweat * 2, 2, 3, '#9fd3f0'); rect(c, hx - hr + 3, hy - 4 + pose.sweat * 2, 1, 1, '#ffffff'); }
   if (!raised) frontArm();
-  if (pose.jab > 0.6) { const fx = jF.hx + 4, fy = jF.hy; rect(c, fx, fy - 3, 1, 1, '#fff'); rect(c, fx + 1, fy, 2, 1, '#fff'); rect(c, fx, fy + 3, 1, 1, '#fff'); }
+  if (pose.jab > 0.6) { const fx = jF.hx + 7, fy = jF.hy; rect(c, fx, fy - 6, 2, 2, '#fff'); rect(c, fx + 2, fy, 4, 1, '#fff'); rect(c, fx, fy + 5, 2, 2, '#fff'); }
 }
 // 무기: (x, y)가 손잡이. icon=true면 아이콘용(주먹은 주먹 그림)
 function drawWeapon(c, id, x, y, icon) {
@@ -1950,6 +1973,17 @@ const sprCache = {};
 const BIG = { bearboss: 1, rhinoboss: 1, eagleboss: 1, lionboss: 1, dragonboss: 1 };
 // 변종 장식: 1 불꽃(빨강·불꽃) 2 얼음(하늘색·얼음 조각) 3 독(보라·방울) 4 황금(금빛·반짝임) 5 암흑(검붉음·기운)
 const VAR_TINT = [null, ['#ff3b1f', .28], ['#7fe3ff', .32], ['#9a3fd0', .3], ['#f5c542', .38], ['#1a0010', .45]];
+function shadeSprite(cv) {
+  const c = cv.getContext('2d'), W = cv.width, H = cv.height, img = c.getImageData(0, 0, W, H), d = img.data, src = new Uint8ClampedArray(d);
+  const solid = (x, y) => { if (x < 0 || y < 0 || x >= W || y >= H) return false; const i = (y * W + x) * 4; return src[i + 3] > 200 && !(src[i] === 0x3b && src[i + 1] === 0x33 && src[i + 2] === 0x40); };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 4; if (!solid(x, y)) continue;
+    const lit = !solid(x - 1, y - 1) || !solid(x, y - 1), dark = !solid(x + 1, y + 1) || !solid(x + 1, y);
+    if (lit && !dark) for (let k = 0; k < 3; k++) d[i + k] = d[i + k] + (255 - d[i + k]) * 0.28;
+    else if (dark && !lit) for (let k = 0; k < 3; k++) d[i + k] = d[i + k] * 0.72;
+  }
+  c.putImageData(img, 0, 0);
+}
 function sprite(id, t) {
   const [base, vs] = String(id).split('#'), v = Number(vs || 0);
   const big = !!BIG[base];
@@ -1967,6 +2001,7 @@ function sprite(id, t) {
       if (v === 4) { rect(c, 6 * k, 8 * k, 1, 3, '#fff6c8'); rect(c, 5 * k, 9 * k, 3, 1, '#fff6c8'); rect(c, 40 * k, 20 * k, 1, 3, '#fff6c8'); rect(c, 39 * k, 21 * k, 3, 1, '#fff6c8'); }
       if (v === 5) { c.globalAlpha = .5; for (let i = 0; i < 10; i++) rect(c, (6 + i * 4) * k, (2 + (i % 3) * 3) * k, 2, 2, '#ff2a4a'); c.globalAlpha = 1; }
     }
+    shadeSprite(cv);
     sprCache[key] = cv;
   }
   return sprCache[key];
@@ -1993,7 +2028,7 @@ const ease = { out: p => 1 - (1 - p) * (1 - p), inOut: p => p < .5 ? 2 * p * p :
 
 function drawBackground(c, t, stage, scroll) {
   scroll = scroll || 0;
-  const W = (c.canvas && c.canvas.width) || 160, k = ((c.canvas && c.canvas.height) || 120) / 120, Y = v => Math.round(v * k);
+  const W = (c.canvas && (c.canvas.lw || c.canvas.width)) || 160, k = ((c.canvas && (c.canvas.lh || c.canvas.height)) || 120) / 120, Y = v => Math.round(v * k);
   // 라운드마다 하늘이 바뀐다: 저녁 → 노을 → 밤 → 새벽
   const pal = [
     { top: '#3b4a78', bot: '#6b7fae', hill: '#3d5a52', far: '#2f4744' },
@@ -2022,7 +2057,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794888973903';
+const BUILD_ID = '1794889686293';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2129,8 +2164,10 @@ function josa(word, a, b) { const c = word.charCodeAt(word.length - 1) - 0xac00;
 let toastTimer = 0;
 function toast(msg, ms) { const t = $('toast'); t.innerHTML = msg; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), ms || 3500); }
 function applyTheme() { document.body.classList.toggle('theme-gold', !!S && S.cos.theme === 'gold'); document.body.classList.toggle('theme-neon', !!S && S.cos.theme === 'neon'); }
+// 64 논리 px 초상 캔버스를 내부 128 px로(2배 디테일 주인공용)
+function hiCtx(cv) { if (cv.width !== 128) { cv.width = 128; cv.height = 128; } const c = cv.getContext('2d'); c.setTransform(2, 0, 0, 2, 0, 0); c.imageSmoothingEnabled = false; return c; }
 function drawPortrait(cv, w, t, extra) {
-  const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
+  const c = hiCtx(cv); c.clearRect(0, 0, 64, 64);
   const ch = (extra && extra.char) || (S && S.ch) || 'sanhae';
   drawHero(c, 31, 60, bodyOf(w), Object.assign({ bob: Math.round(Math.sin((t || 0) * 3)), blink: false, band: S && S.cos.band, char: ch, skin: S && S.ch === ch ? S.skin : '', aura: auraOf(w), t: t || 0 }, extra || {}));
 }
@@ -2168,7 +2205,7 @@ function refreshStart() {
   }).join('');
   for (const cv of document.querySelectorAll('[data-acc]')) {
     const p = load(cv.dataset.acc), st = p && (p.chars[p.cur] || p.chars.sanhae); if (!st) continue;
-    const cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(weightOf(st)), { char: st.ch, skin: st.skin, aura: auraOf(weightOf(st)), t: 0 });
+    const cx = hiCtx(cv); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(weightOf(st)), { char: st.ch, skin: st.skin, aura: auraOf(weightOf(st)), t: 0 });
   }
   for (const b of document.querySelectorAll('.accBtn')) b.onclick = () => enterNick(b.dataset.nick);
   $('rankCard').hidden = !renderRank($('rankList'), 20, $('rankNote'));
@@ -2268,7 +2305,7 @@ function renderRank(el, max, noteEl) {
 function drawRankRows(el, rows) {
   const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'), mine = r => S && r.ch === S.ch && (r.key ? r.key === nickKey(NICK) : r.nick === NICK);
   el.innerHTML = rows.map((r, i) => `<li class="${mine(r) ? 'me' : ''} ${r.rank <= 3 ? 'top' : ''}"><span class="rk">${r.rank}</span><canvas class="pix" width="64" height="64" data-rk="${i}"></canvas><span class="rn"><b>${esc(r.nick)}</b><small>${esc(CHARS[r.ch].name)} · ${esc(r.form)} · 던전 ${esc(r.best)}개</small></span><span class="rv">${esc(Number(r.kg).toFixed(1))} kg</span></li>`).join('');
-  el.querySelectorAll('[data-rk]').forEach(cv => { const r = rows[Number(cv.dataset.rk)], cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(r.kg), { char: r.ch, skin: r.skin, aura: auraOf(r.kg), t: 0 }); });
+  el.querySelectorAll('[data-rk]').forEach(cv => { const r = rows[Number(cv.dataset.rk)], cx = hiCtx(cv); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(r.kg), { char: r.ch, skin: r.skin, aura: auraOf(r.kg), t: 0 }); });
 }
 function refreshRankMine() {
   const on = !!(FIREBASE_CONFIG && NICK && PRO);
@@ -2431,7 +2468,7 @@ function renderCharBar() {
     for (const cv of document.querySelectorAll('[data-mini]')) {
       const id = cv.dataset.mini, st = PRO && PRO.chars[id], c = CHARS[id];
       const w = st ? weightOf(st) : CFG.mus0;
-      const cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64);
+      const cx = hiCtx(cv); cx.clearRect(0, 0, 64, 64);
       drawHero(cx, 31, 60, bodyOf(w), { char: id, band: S && S.cos.band, skin: st ? st.skin : '', aura: auraOf(w), t: 0 });
     }
     for (const b of document.querySelectorAll('.charChip:not([disabled])')) b.onclick = () => { if (b.dataset.ch === S.ch) return; save(); useChar(b.dataset.ch); save(); goHub('Home'); toast(`<b>${CH(S).name}</b>(으)로 바꿨습니다. 다른 캐릭터 기록은 그대로 남아 있습니다.`, 2400); };
@@ -2634,6 +2671,7 @@ $('packs').addEventListener('click', e => {
 const scene = $('scene'), ctx = scene.getContext('2d');
 const SCW = 240, SCH = 180; // 전투 화면 크기(도트). 키울수록 캐릭터가 작아 보인다
 const HERO_X = CFG.lane.hero, MON_X = 120, GROUND = 154;
+scene.width = SCW * 2; scene.height = SCH * 2; scene.lw = SCW; scene.lh = SCH; // 내부 2배 해상도(도트 그림을 줄이지 않고 그대로 보이게)
 ctx.imageSmoothingEnabled = false;
 function startBattle() {
   show('gameScreen'); vis.weight = weightOf(S); vis.hpShown = 1; vis.dead = null; vis.particles = []; vis.fx = []; vis.hitStop = 0; vis.mv = {}; vis.corpses = []; vis.combo = 0;
@@ -2876,6 +2914,7 @@ function handleEvents(ev, fromTap) {
     else if (e.t === 'swing') { // 원거리 공격: 맞힌 적마다 탄이 날아간다
       const col = e.tag === 'double' ? '#7fe3ff' : (WEAPON_TRAIL[weaponOf(S).id] || '#fff'), heavy = HEAVY[weaponOf(S).id];
       if (e.tag === 'double') vis.atk2T = 0; // 연타: 뒷팔로 한 번 더
+      else if (!vis.kick && weaponOf(S).id !== 'fist' && weaponOf(S).id !== 'flick') addFx('slash', HERO_X + 10, GROUND - 22, { r: heavy ? 16 : 13, color: col, thick: heavy }); // 휘두른 궤적
       const wid = e.tag === 'double' || vis.kick ? 'fist' : weaponOf(S).id;
       for (const [x, row, boss] of e.xs || []) addFx('shot', HERO_X + 12, GROUND - 26, { tx: x, ty: mobY(row) - (boss ? 26 : 12), color: col, thick: heavy || e.crit, wid, kick: vis.kick && e.tag !== 'double' });
       if (e.xs && e.xs[0]) vis.lastTx = e.xs[0][0];
@@ -2995,7 +3034,7 @@ $('gachaBtn').addEventListener('click', () => {
   if (!S) return; if (S.gems < GACHA_COST) { openCharge(); return; }
   const r = rollSkin(); if (!r) return; lastRoll = r; save(); panelKey = ''; updateHub();
   $('gachaTitle').textContent = '두근두근...'; $('gachaTitle').className = 'resTitle'; $('gachaSub').textContent = ''; $('gachaWear').hidden = true;
-  const cv = $('gachaCv'), c = cv.getContext('2d'); $('gachaModal').classList.add('on'); SFX.play('gacha');
+  const cv = $('gachaCv'), c = hiCtx(cv); $('gachaModal').classList.add('on'); SFX.play('gacha');
   let t0 = performance.now();
   const spin = ts => { // 캡슐이 흔들리다 열린다
     const k = (ts - t0) / 900; c.clearRect(0, 0, 64, 64);
@@ -3142,7 +3181,7 @@ function poseOut(k, m, p) {
   return o;
 }
 function render(dt) {
-  const c = ctx; c.clearRect(0, 0, SCW, SCH);
+  const c = ctx; c.setTransform(2, 0, 0, 2, 0, 0); c.imageSmoothingEnabled = false; c.clearRect(0, 0, SCW, SCH);
   // 다음 몬스터로 걸어가는 동안(리스폰) 배경이 흐르고 다리가 움직인다
   const walking = false; // 방어전: 주인공은 제자리에서 싸운다
   vis.walk += ((walking ? 1 : 0) - vis.walk) * Math.min(1, dt * 10);
@@ -3194,7 +3233,10 @@ function render(dt) {
     drawSprite(c, id, x, y, vis.time, vm.flash, sc * (1 - breathe + sq), sc * (1 + breathe - sq), m.flee ? Math.max(0, 1 - (vm.run || 0) / 120) : 1);
     if (m.slowT > 0) for (let i = 0; i < 3; i++) rect(c, x - 6 + i * 6, y - 4 - ((vis.time * 20 + i * 5 + m.u) % 8), 1, 2, '#7fd0ff'); // 감속: 물방울
     if (m.stunT > 0) for (let i = 0; i < 3; i++) { const a = vis.time * 8 + i * 2.1; rect(c, x + Math.cos(a) * 6, y - (m.boss ? 58 : 32) + Math.sin(a) * 2, 2, 2, '#ffe14a'); } // 기절: 머리 위 별
-    if (m.burn > 0) for (let i = 0; i < 3; i++) { const fx = x - 5 + i * 5, fy = y - (m.boss ? 50 : 26) - ((vis.time * 30 + i * 7 + m.u) % 6); rect(c, fx, fy, 2, 2, i % 2 ? '#ffd07a' : '#ff6a2a'); }
+    if (m.burn > 0) for (let i = 0; i < 5; i++) { // 화상: 몸을 감싸고 일렁이는 불꽃
+      const ph = (vis.time * 2.2 + i * 0.37 + m.u * 0.13) % 1, fx = x - (m.boss ? 14 : 8) + i * (m.boss ? 7 : 4) + Math.sin(vis.time * 9 + i) * 1, fy = y - 6 - ph * (m.boss ? 46 : 24), sz = Math.max(1, Math.round((1 - ph) * 3));
+      c.globalAlpha = 1 - ph * 0.7; rect(c, fx, fy - sz, sz, sz + 1, ph < .4 ? '#ffe08a' : ph < .7 ? '#ff8a2a' : '#e0402a'); c.globalAlpha = 1;
+    }
     // 체력 줄: 보스는 크게, 잔몹은 맞은 것만 작게
     const md = defOf(S, m), r2 = Math.max(0, m.hp / md.hp);
     if (m.boss) { const top = y - 70; rect(c, x - 20, top, 40, 5, OUT); rect(c, x - 19, top + 1, 38, 3, '#3a1a1a'); rect(c, x - 19, top + 1, Math.round(38 * r2), 3, '#e0605a'); }
