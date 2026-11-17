@@ -58,7 +58,12 @@ label{font-size:14px;font-weight:700}
   display:flex;align-items:center;gap:8px;line-height:1.5;word-break:keep-all}
 .diff .tag{white-space:nowrap;flex:none;font-weight:700;padding:3px 7px;border-radius:2px;font-size:12px;color:#111;border:2px solid var(--edge)}
 .err{color:var(--red);font-size:12px;margin:6px 0 0;min-height:1em}
-#continueCard{margin-top:12px}
+.nickCard label{display:block;margin-bottom:2px} .nickCard .nickGo{width:auto;margin-top:0;padding:12px 18px;flex:none}
+.nickCard .inputRow input{min-width:0;font-size:20px}
+#accCard{margin-top:12px} .accList{display:flex;flex-direction:column;gap:6px}
+.accBtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel2);border:3px solid var(--edge);color:var(--ink);padding:6px 10px;font:inherit}
+.accBtn canvas{width:40px;height:40px;flex:none;background:#2a2f40} .accBtn b{font-size:15px;display:block} .accBtn small{font-size:11px;color:var(--sub)}
+.accBtn .accGo{margin-left:auto;font-size:12px;font-weight:700;color:var(--gold);white-space:nowrap}
 .warn{font-size:12px;color:var(--sub);margin:8px 0 0;text-align:center}
 /* 게임 */
 .top{display:flex;align-items:flex-end;justify-content:space-between}
@@ -502,6 +507,16 @@ html,body{height:100%;overflow:hidden}
     <h1>강산해 키우기</h1>
     <p class="sub">동물 괴물을 물리치고 마른 몸에서 근육질로</p>
     <canvas id="startHero" class="pix" width="64" height="64"></canvas>
+    <div class="card nickCard">
+      <label for="nickIn">닉네임</label>
+      <div class="inputRow"><input id="nickIn" maxlength="12" autocomplete="off" placeholder="닉네임 입력" enterkeyhint="go"><button class="primary nickGo" id="nickGo">시작</button></div>
+      <p class="err" id="nickErr"></p>
+      <p class="hint">같은 닉네임을 넣으면 그 기록으로 이어서 하고, 처음 쓰는 닉네임이면 새 계정을 만듭니다. 기록은 이 브라우저에만 저장돼서 다른 기기에서는 이어지지 않습니다.</p>
+    </div>
+    <div class="card" id="accCard" hidden>
+      <p class="sectionK">이 기기에 저장된 닉네임</p>
+      <div class="accList" id="accList"></div>
+    </div>
     <div class="card">
       <div class="profile">
         <div><div class="k">주인공</div><div class="v">강산해</div></div>
@@ -510,16 +525,6 @@ html,body{height:100%;overflow:hidden}
       </div>
       <div class="fixedGoal forms"><span>외형</span><b>마른&nbsp;몸 → 탄탄한&nbsp;몸 → 근육질 → 거대&nbsp;근육 → 오라</b></div>
       <p class="hint">괴물을 잡아 단백질을 모으고, 단백질을 근육·장비·스킬에 나눠 씁니다. 근육량이 늘면 몸이 바뀌고, 탄탄한 몸이 되면 김혁수가 열립니다. 끝은 없습니다.</p>
-      <button class="primary" id="startBtn">새로 시작</button>
-    </div>
-    <div class="card" id="continueCard" hidden>
-      <div class="profile" style="margin-bottom:0">
-        <div><div class="k" id="savedName">근육량</div><div class="v" id="savedW">-</div></div>
-        <div><div class="k">외형</div><div class="v" id="savedT">-</div></div>
-        <div><div class="k">진행</div><div class="v" id="savedTime">-</div></div>
-      </div>
-      <button class="primary" id="continueBtn">이어 하기</button>
-      <p class="warn">새로 시작하면 저장한 기록이 지워집니다.</p>
     </div>
   </section>
 
@@ -559,7 +564,7 @@ html,body{height:100%;overflow:hidden}
     <div class="hubBottom">
       <p class="nextInfo" id="nextInfo">-</p>
       <button class="primary big" id="toDungeonBtn">던전 입장</button>
-      <div class="miniStats"><span>깬 던전 <b id="hubBest">0</b></span><span>모은 단백질 <b id="kcalTot">0</b></span><span>처치 <b id="killTot">0</b></span><button class="ghost tiny" id="soundBtn">소리 켬</button><button class="ghost tiny" id="toTitle">처음으로</button></div>
+      <div class="miniStats"><span>깬 던전 <b id="hubBest">0</b></span><span>모은 단백질 <b id="kcalTot">0</b></span><span>처치 <b id="killTot">0</b></span><button class="ghost tiny" id="soundBtn">소리 켬</button><span>닉네임 <b id="nickNow">-</b></span><button class="ghost tiny" id="toTitle">처음으로</button></div>
     </div>
 
     <!-- 좌우 단추로 여는 창 -->
@@ -681,9 +686,9 @@ html,body{height:100%;overflow:hidden}
 
 <div class="confirm" id="confirm">
   <div class="card">
-    <p style="margin:0 0 4px;font-weight:700">새로 시작할까요?</p>
-    <p style="margin:0;color:var(--sub);font-size:14px">저장한 기록(모든 캐릭터)이 지워집니다.</p>
-    <div class="row"><button class="secondary" id="cNo">취소</button><button class="primary" id="cYes">새로 시작</button></div>
+    <p style="margin:0 0 4px;font-weight:700">새 계정을 만들까요?</p>
+    <p style="margin:0;color:var(--sub);font-size:14px" id="cMsg">-</p>
+    <div class="row"><button class="secondary" id="cNo">취소</button><button class="primary" id="cYes">만들기</button></div>
   </div>
 </div>
 <div class="confirm" id="resultModal">
@@ -777,7 +782,8 @@ const CFG = {
   // 체력: 최대 60, 던전 입장 6, 1분에 1 회복(꺼 둔 동안도), 실패·후퇴 때 3 반환, 보석 30개로 가득. 두 캐릭터가 함께 씀
   stamMax: 60, stamCost: 6, stamRegenMs: 60000, stamRefund: 3, stamGem: 30,
 };
-let REGIONS = ['야식 골목', '패스트푸드 거리', '디저트 공장', '탄산 폭포', '뷔페 마왕성', '폭식의 탑'];
+// 지역 이름은 그 지역 몬스터 변종에 맞춘다: 1 기본, 2 불꽃, 3 얼음, 4 독, 5 황금, 6 암흑
+let REGIONS = ['야생의 숲', '불타는 화산', '얼어붙은 설원', '독안개 늪', '황금 사막', '암흑 성채'];
 // at: 근육 30kg 늘리기 가운데 이만큼 늘면 해금(0.5면 +15kg). price: 단백질. gem: 보석 전용
 let WEAPONS = [
   { id: 'fist',   name: '주먹·발차기', atk: 10,  crit: 0.05, at: 0,    price: 100 },
@@ -838,7 +844,7 @@ const CHARS = {
   hyuksu: { id: 'hyuksu', name: '김혁수', height: 178, type: '속도형', typeDesc: '공격이 빠르고 연타·번개가 잘 터집니다',
     style: { atk: 0.85, spd: 1.25, knock: 1, burpeeAll: false, dbl: 0.1, chain: 0.15, chainN: 1 },
     unlockBy: 'sanhae', unlockForm: 1,
-    regions: ['샐러드 바', '디톡스 카페', '단식원', '러닝 트랙', '다이어트 캠프', '굶주림의 성'],
+    regions: ['바람 초원', '용암 동굴', '눈보라 산맥', '맹독 정글', '황금 신전', '그림자 탑'],
     weapons: [
       { id: 'flick', name: '꿀밤', atk: 10, crit: 0.05, at: 0, price: 100 },
       { id: 'spoon', name: '숟가락', atk: 16, crit: 0.08, at: 0.08, price: 150 },
@@ -1890,7 +1896,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794878946980';
+const BUILD_ID = '1794879779883';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -1901,7 +1907,15 @@ async function checkUpdate() {
 if (location.protocol.startsWith('http')) { setTimeout(checkUpdate, 3000); setInterval(checkUpdate, 60000); }
 // ===== 화면 =====
 const $ = id => document.getElementById(id);
-const SAVE_KEY = 'gangsanhae-save-v1';
+const SAVE_KEY = 'gangsanhae-save-v1';               // 닉네임 없던 시절의 저장(지우지 않고 백업으로 둠)
+const ACC_KEY = 'gangsanhae-accounts-v1';            // 이 기기의 닉네임 목록과 마지막에 쓴 닉네임
+let NICK = '';
+const saveKeyOf = nick => SAVE_KEY + ':' + nick;
+function accounts() { try { const a = JSON.parse(localStorage.getItem(ACC_KEY)); if (a && a.list) return a; } catch (e) {} return { list: {}, last: '' }; }
+function saveAccounts(a) { try { localStorage.setItem(ACC_KEY, JSON.stringify(a)); } catch (e) {} }
+function cleanNick(v) { return String(v || '').replace(/\s+/g, ' ').trim(); }
+// 같은 닉네임인지: 공백 정리 + 영문 대소문자 무시. 이미 있으면 처음 만든 표기를 쓴다
+function findNick(acc, nick) { const k = nick.toLowerCase(); return Object.keys(acc.list).find(n => cleanNick(n).toLowerCase() === k) || null; }
 const params = new URLSearchParams(location.search);
 const DEMO = params.has('demo');
 let S = null, running = false, lastT = 0, hiddenAt = 0;
@@ -1965,10 +1979,9 @@ function loadProfile(raw) {
   const sh = p.chars.sanhae; if (sh && formIdx(sh.burned) >= CHARS.hyuksu.unlockForm) p.unlocked.hyuksu = true; // 이미 열린 김혁수는 그대로
   return p;
 }
-function load() { if (DEMO) return null; try { return loadProfile(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return null; } }
+function load(nick) { if (DEMO) return null; try { return loadProfile(JSON.parse(localStorage.getItem(saveKeyOf(nick || NICK)))); } catch (e) { return null; } }
 function syncShared() { if (PRO && S) { PRO.gems = S.gems; PRO.cos = S.cos; PRO.chars[S.ch] = S; PRO.cur = S.ch; PRO.skins = PRO.skins || {}; } }
-function save() { if (DEMO || !S || !PRO) return; try { syncShared(); S.savedAt = Date.now(); PRO.savedAt = S.savedAt; localStorage.setItem(SAVE_KEY, JSON.stringify(PRO)); } catch (e) {} }
-function clearSave() { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} }
+function save() { if (DEMO || !S || !PRO) return; try { syncShared(); S.savedAt = Date.now(); PRO.savedAt = S.savedAt; if (!NICK) return; localStorage.setItem(saveKeyOf(NICK), JSON.stringify(PRO)); } catch (e) {} }
 // 캐릭터 바꾸기: 지금 캐릭터 기록은 그대로 두고, 보석·꾸미기만 들고 간다
 function useChar(id) {
   if (PRO && S) syncShared();
@@ -2018,33 +2031,51 @@ const startHeroCv = $('startHero');
 let startAnim = 0;
 function startLoop(ts) { if (!$('startScreen').classList.contains('on')) return; drawPortrait(startHeroCv, CFG.mus0, ts / 1000, { band: false, char: 'sanhae' }); startAnim = requestAnimationFrame(startLoop); }
 function refreshStart() {
-  const saved = load();
-  $('continueCard').hidden = !saved;
-  if (saved) {
-    const s = saved.chars[saved.cur] || saved.chars.sanhae, c = CHARS[s.ch || 'sanhae'];
-    setChar(s.ch || 'sanhae');
-    $('savedName').textContent = `${c.name} 근육량`;
-    $('savedW').textContent = weightOf(s).toFixed(1) + ' kg';
-    $('savedT').textContent = formOf(s).name;
-    $('savedTime').textContent = `던전 ${s.dun.best}개`;
+  const acc = accounts(), nicks = Object.keys(acc.list).sort((a, b) => (acc.list[b].last || 0) - (acc.list[a].last || 0));
+  if (!$('nickIn').value) $('nickIn').value = acc.last || '';
+  $('nickErr').textContent = '';
+  $('accCard').hidden = !nicks.length;
+  $('accList').innerHTML = nicks.map(n => {
+    const p = load(n), st = p && (p.chars[p.cur] || p.chars.sanhae), c = st && CHARS[st.ch || 'sanhae'];
+    const info = st ? `${c.name} · ${formOf(st).name} · 던전 ${st.dun.best}개` : '기록 없음';
+    return `<button class="accBtn" data-nick="${n.replace(/"/g, '&quot;')}"><canvas class="pix" width="64" height="64" data-acc="${n.replace(/"/g, '&quot;')}"></canvas><span><b>${n.replace(/</g, '&lt;')}</b><small>${info}</small></span><span class="accGo">이어 하기 ›</span></button>`;
+  }).join('');
+  for (const cv of document.querySelectorAll('[data-acc]')) {
+    const p = load(cv.dataset.acc), st = p && (p.chars[p.cur] || p.chars.sanhae); if (!st) continue;
+    const cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(weightOf(st)), { char: st.ch, skin: st.skin, aura: auraOf(weightOf(st)), t: 0 });
   }
+  for (const b of document.querySelectorAll('.accBtn')) b.onclick = () => enterNick(b.dataset.nick);
   cancelAnimationFrame(startAnim); startAnim = requestAnimationFrame(startLoop);
 }
-$('startBtn').addEventListener('click', () => {
-  const saved = load();
-  const go = () => { clearSave(); PRO = newProfile(); S = null; useChar('sanhae'); save(); applyTheme(); goHub('Home'); };
-  if (saved) { $('confirm').classList.add('on'); $('cYes').onclick = () => { $('confirm').classList.remove('on'); go(); }; }
-  else go();
-});
-$('cNo').addEventListener('click', () => $('confirm').classList.remove('on'));
-$('continueBtn').addEventListener('click', () => {
-  PRO = load(); if (!PRO) return;
-  S = null; useChar(PRO.cur || 'sanhae');
-  applyTheme();
+// 닉네임으로 들어가기: 있으면 이어서, 없으면 확인 뒤 새 계정
+function enterNick(raw) {
+  const nick = cleanNick(raw);
+  if (!nick) { $('nickErr').textContent = '닉네임을 입력하세요.'; return; }
+  if (nick.length > 12) { $('nickErr').textContent = '닉네임은 12자까지입니다.'; return; }
+  const acc = accounts(), have = findNick(acc, nick);
+  if (have && load(have)) { playAs(have, false); return; }
+  // 닉네임 없던 시절의 기록은 처음 만드는 닉네임 하나에만 옮긴다(legacyDone 표시 뒤로는 옮기지 않음)
+  const old = (() => { try { return !acc.legacyDone && loadProfile(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch (e) { return null; } })();
+  $('cMsg').innerHTML = `'<b>${nick.replace(/</g, '&lt;')}</b>'은(는) 이 기기에서 처음 쓰는 닉네임입니다.` + (old ? '<br>이 기기에 있던 예전 기록을 이 닉네임으로 이어 갑니다.' : '')
+    + '<br>기록은 이 브라우저에만 저장됩니다. 다른 기기에서는 이어지지 않고, 브라우저 데이터를 지우면 되살릴 수 없습니다.';
+  $('confirm').classList.add('on');
+  $('cYes').onclick = () => { $('confirm').classList.remove('on'); playAs(nick, true, old); };
+}
+function playAs(nick, fresh, old) {
+  const acc = accounts();
+  NICK = nick; acc.list[nick] = Object.assign(acc.list[nick] || { created: Date.now() }, { last: Date.now() }); acc.last = nick;
+  if (fresh) acc.legacyDone = true; // 첫 계정을 만든 뒤로는 예전 기록을 다른 닉네임에 옮기지 않는다
+  saveAccounts(acc);
+  PRO = fresh ? (old || newProfile()) : load(nick);
+  S = null; useChar(PRO.cur || 'sanhae'); save(); applyTheme();
   if (Object.values(PRO.chars).some(x => x && x.converted)) { for (const x of Object.values(PRO.chars)) if (x) delete x.converted; save(); toast('강산해 키우기로 바뀌었습니다.<br>예전 체중을 바꾼 만큼 근육량을 채웠고, 칼로리는 단백질이 됐습니다. 깬 던전·장비·스킬·보석은 그대로입니다.', 6000); }
+  else if (fresh && !old) toast(`<b>${nick.replace(/</g, '&lt;')}</b> 계정을 만들었습니다. 다음에도 이 닉네임을 넣으면 이어서 합니다.`, 3000);
   if (S.inDun) { startBattle(); applyOffline((Date.now() - (S.savedAt || Date.now())) / 1000); }
   else goHub('Home');
-});
+}
+$('nickGo').addEventListener('click', () => enterNick($('nickIn').value));
+$('nickIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); enterNick($('nickIn').value); } });
+$('cNo').addEventListener('click', () => $('confirm').classList.remove('on'));
 $('toTitle').addEventListener('click', () => { save(); running = false; show('startScreen'); refreshStart(); });
 
 // ----- 외형 변화 창: 근육량 단계가 오르면 전/후 모습. 강산해가 탄탄한 몸이 되면 김혁수 해금 -----
@@ -2139,6 +2170,7 @@ function updateHub() {
   $('hubItems').innerHTML = (items.length ? items.join(' · ') + '<br>다음 던전 입장 때 자동 사용' : '') + (S.items.kcal > 0 ? `${items.length ? '<br>' : ''}단백질 상자 <b>${S.items.kcal}</b>개 · 던전 입장 화면에서 사용` : '');
   const next = S.dun.best + 1, rec = recPowerOf(next), pw = powerOf(S);
   $('nextInfo').innerHTML = `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>`;
+  $('nickNow').textContent = NICK || '-';
   $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.calTotal); $('killTot').textContent = fmtNum(S.kills);
   $('navBurn').textContent = '근육';
   $('defDesc').textContent = '방어 스킬 · 적에게 받는 피해를 줄임';
@@ -2235,7 +2267,7 @@ function renderDungeons() {
 
 // ----- 던전 지도: 지역마다 다른 땅 위에 구불구불한 길, 던전마다 그 던전의 몬스터 그림 -----
 const MAP_PTS = [[18, 86], [50, 66], [84, 80], [114, 52], [140, 26]]; // 160x110 지도 위 던전 다섯 곳
-const MAP_PAL = [['#3d5a3a', '#4f7a4a', '#c9a06a'], ['#5a4a3a', '#7a5f45', '#e0b070'], ['#5a3a52', '#7a4f6e', '#f0b0d0'], ['#2f4a6a', '#3f6a8a', '#9fd3f0'], ['#4a3a2a', '#6b4f35', '#f0c080'], ['#2a1f2f', '#3f2f45', '#ff7a7a']];
+const MAP_PAL = [['#3d5a3a', '#4f7a4a', '#c9a06a'], ['#5a2e24', '#7a3a26', '#ff9a4a'], ['#9fb8c8', '#c8dce6', '#4f6a80'], ['#3a3a4e', '#4f5a3a', '#b07aff'], ['#b08a4a', '#c9a45e', '#7a5a2a'], ['#2a1f2f', '#3f2f45', '#ff7a7a']]; // 숲·화산·설원·늪·사막·성채
 function drawMap(d0, best, next) {
   const c = $('mapCv').getContext('2d'), r = selR - 1, pal = MAP_PAL[r % MAP_PAL.length];
   c.imageSmoothingEnabled = false;
