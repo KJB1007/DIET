@@ -758,7 +758,7 @@ const CFG = {
   mus0: 25, musPerDun: 1, musAtk: 0.05, musSpd: 0.02, musSpdMax: 0.6, musSpan: 30, // 시작 근육량 25kg, 던전 하나 깰 때마다 1kg 한도. 1kg마다 공격력 +5%, 공격 속도 +2%(30kg에서 +60%로 멈춤: 끝없이 빨라지지 않게). 해금 기준은 근육 30kg 늘리기의 비율
   kcal0: 60, kcalGrow: 1.13,    // 몬스터 하나가 주는 단백질: 던전이 오를수록 커짐 (게임용 수치)
   burn0: 200, burnGrow: 1.15,   // 근육 1kg 값: 갈수록 비싸짐(보상 1.13배보다 빨리 올라 무과금은 반복 사냥이 필요)
-  hp0: 30, hpGrow: 1.32, perStage: 8, bossMul: 3, // 적 HP는 던전마다 1.32배(무과금은 뒤로 갈수록 반복 사냥이 많이 필요). 잔몹 무리 HP 합 = 잔몹 7마리분
+  hp0: 30, hpGrow: 1.32, perStage: 8, bossMul: 2, recMul: 3, // 보스 HP는 기준의 2배(예전 3배: 너무 질기다는 의견), 권장 전투력은 예전 기준(3배) 그대로 // 적 HP는 던전마다 1.32배(무과금은 뒤로 갈수록 반복 사냥이 많이 필요). 잔몹 무리 HP 합 = 잔몹 7마리분
   hpGrow2: 1.15, monAtkGrow2: 1.12, // 30던전 뒤로는 적이 조금 느리게 강해진다(끝없이 이어지므로)
   critMul: 2,
   enhAtk: 0.2, enhCrit: 0.01, enhMax: 999, enhRate: 0.25, enhGrow: 1.4, // 무기 강화: 무기 값의 25%에서 시작해 단계마다 1.4배, 최대 +40
@@ -768,7 +768,7 @@ const CFG = {
   respawn: 0.5, offlineCap: 300,
   // 방어전: 던전마다 잔몹 무리(1던전 12마리, 던전마다 +0.6마리)가 오른쪽 끝에서 20초에 걸쳐 나와 걸어온다. 다 처리하거나 잔몹 제한 시간이 끝나면 보스
   // 잔몹 무리 전체의 단백질은 예전 잔몹 7마리 합과 같다. 잔몹이 주인공에게 닿으면 부딪혀 피해를 주고 사라진다(단백질 없음). 보스는 붙어서 계속 때린다
-  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, waveHp: 5, // 잔몹 무리 HP 합은 잔몹 5마리분(단백질은 7마리분): 권장 전투력이면 대부분 막을 수 있게
+  waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, waveHp0: 5, waveHp: 12, waveHpRamp: 15, // 잔몹 무리 HP 합: 1던전은 기준의 5배, 16던전부터 12배(예전은 늘 5배: 너무 약하다는 의견). 동시 공격 수가 늘어나는 만큼 단단해진다. 단백질은 7마리분 그대로
   mobCap: 24, meleeMax: 3, leakMul: 1,
   lane: { hero: 24, contact: 38, spawn: 252, speed: 24, range: 234 }, // 전투 화면(240x180) 위의 자리
   knock: 8, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
@@ -954,6 +954,7 @@ const TRAITS = [
   { desc: '단단하지만 단백질 1.6배', hpMul: 1.3, kcalMul: 1.6 },
   { desc: '아주 세게 때림', atkMul: 1.35 },
 ];
+function waveHpOf(d) { return CFG.waveHp0 + (CFG.waveHp - CFG.waveHp0) * Math.min(1, (d - 1) / CFG.waveHpRamp); }
 function waveNOf(d) { return Math.round(CFG.waveN0 + (d - 1) * CFG.waveNPer); }
 function mobKindOf(d, i) { return (d * 3 + i * 7) % MONSTERS.length; }
 // 던전 d의 적 HP·공격력 배율: 30던전까지는 1.32배·1.21배씩, 그 뒤로는 1.15배·1.12배씩
@@ -964,7 +965,7 @@ function mobDef(d, k, boss, ch) {
   let m = boss ? BOSSES[(d - 1) % BOSSES.length] : MONSTERS[k % MONSTERS.length];
   if (boss && d % CFG.dungeons === 0) m = CHARS[ch || 'sanhae'].finalBoss;
   const name = boss || !tier ? m.name : VARIANTS[tier] + m.name;
-  const share = boss ? CFG.bossMul : (CFG.perStage - 1) / waveNOf(d), hpShare = boss ? CFG.bossMul : CFG.waveHp / waveNOf(d);
+  const share = boss ? CFG.bossMul : (CFG.perStage - 1) / waveNOf(d), hpShare = boss ? CFG.bossMul : waveHpOf(d) / waveNOf(d);
   return { ...m, name, base: m.id, id: tier ? m.id + '#' + tier : m.id, tier, boss, trait: tr,
     hp: Math.max(1, Math.round(CFG.hp0 * hpMulOf(d) * hpShare * (tr.hpMul || 1))),
     kcal: Math.max(1, Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, d - 1) * share * (tr.kcalMul || 1))),
@@ -999,7 +1000,7 @@ function regionOf(d) { const r = Math.floor((d - 1) / 5), lap = Math.floor(r / R
 function dungeonLabel(d) { const r = regionOf(d); return `${r.no}-${r.sub}`; }
 function bossHpOf(d) { return Math.round(CFG.hp0 * hpMulOf(d) * CFG.bossMul); }
 function bossDangerOf(d) { const a = CFG.monAtk0 * atkMulOf(d) / CFG.monAtkEvery, t = CFG.bossTime * 0.6; return Math.round(a * ((CFG.perStage - 1) * t / CFG.bossMul + CFG.bossAtkMul * t)); } // 권장 전투력으로 한 던전을 도는 동안 맞는 양
-function recPowerOf(d) { return Math.round(bossHpOf(d) / (CFG.bossTime * 0.6) * 10); }
+function recPowerOf(d) { return Math.round(CFG.hp0 * hpMulOf(d) * CFG.recMul / (CFG.bossTime * 0.6) * 10); } // 권장 전투력: 보스 HP와 따로 둔다(보스 HP를 바꿔도 기준은 그대로)
 function dungeonKcalOf(d) { return Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, d - 1) * (CFG.perStage - 1 + CFG.bossMul)); }
 // 압도 배율: 내 전투력이 이 던전 권장 전투력의 몇 배인지(1~5). 높을수록 몬스터가 빨리 몰려나온다
 function overpowerOf(s, d) { return Math.max(1, Math.min(5, powerOf(s) / recPowerOf(d || s.stage))); }
@@ -1784,7 +1785,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794877449864';
+const BUILD_ID = '1794877716333';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
