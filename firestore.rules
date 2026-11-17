@@ -6,7 +6,7 @@ rules_version = '2';
 //       정상 게임 중 갱신 간격(10초)만 확인한다. 줄을 지웠다가 다시 만드는 쓰기까지 막지는 않는다.
 // 공개: 읽기는 누구나 할 수 있고 문서 전체가 보인다. 닉네임·캐릭터·근육량·외형·던전 수와 함께
 //       익명 로그인 id(uid), 닉네임 열쇠(key), 기록 시각(at, created)도 공개된다. 개인 정보는 들어 있지 않다.
-// 시험: Firebase 에뮬레이터(firestore 1.19.8)에서 허용 9가지·거부 21가지 사례를 모두 확인했다.
+// 시험: Firebase 에뮬레이터(firestore 1.19.8)에서 허용 10가지·거부 20가지 사례를 모두 확인했다.
 service cloud.firestore {
   match /databases/{database}/documents {
 
