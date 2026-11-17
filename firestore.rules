@@ -1,0 +1,53 @@
+rules_version = '2';
+// 강산해 키우기 · 모든 이용자 랭킹용 Firestore 보안 규칙
+// Firebase 콘솔 > Firestore Database > 규칙 탭에 이 내용을 그대로 붙여 넣고 '게시'한다.
+// 랭킹만 서버에 둔다. 게임 기록은 각자 브라우저에 있다.
+// 한계: 근육량·던전 수는 브라우저가 계산해 올리는 값이라 검증되지 않는다. 아래 조건은 형식과 소유자, 쓰기 간격만 막는다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 닉네임 선점: 문서 이름 = 정리한 닉네임 코드. 누구나 읽고, 없을 때만 만든다(만든 사람 = 로그인한 사람). 지우기는 본인만
+    match /gsh_names/{key} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid', 'nick', 'created'])
+        && request.resource.data.keys().hasAll(['uid', 'nick', 'created'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.nick is string
+        && request.resource.data.nick.size() >= 1 && request.resource.data.nick.size() <= 12
+        && request.resource.data.created == request.time;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    function nameOf(key) {
+      return get(/databases/$(database)/documents/gsh_names/$(key)).data;
+    }
+    // 랭킹 한 줄의 형식: 필드·자료형, 문서 이름 = key_ch, 닉네임은 선점한 사람이 선점한 표기 그대로, 던전 수 상한 500, 근육량은 25 kg + 던전 수 이하, 시각은 서버 시각
+    function validRank(id) {
+      let d = request.resource.data;
+      let n = nameOf(d.key);
+      return d.keys().hasOnly(['uid', 'key', 'nick', 'ch', 'kg', 'form', 'best', 'at'])
+        && d.keys().hasAll(['uid', 'key', 'nick', 'ch', 'kg', 'form', 'best', 'at'])
+        && d.uid == request.auth.uid
+        && d.key is string
+        && d.ch in ['sanhae', 'hyuksu']
+        && id == d.key + '_' + d.ch
+        && n.uid == request.auth.uid
+        && d.nick == n.nick
+        && d.form is string && d.form.size() <= 20
+        && d.best is int && d.best >= 0 && d.best <= 500
+        && d.kg is number && d.kg >= 25 && d.kg <= 25 + d.best + 0.05
+        && d.at == request.time;
+    }
+
+    // 랭킹: 누구나 읽기. 쓰기는 그 닉네임을 선점한 사람만. 고칠 때는 uid·key·nick·ch를 바꾸지 못하고, 10초에 한 번까지(서버 시각 기준)
+    match /gsh_rank/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && validRank(id);
+      allow update: if request.auth != null && validRank(id)
+        && request.resource.data.diff(resource.data).unchangedKeys().hasAll(['uid', 'key', 'nick', 'ch'])
+        && request.time > resource.data.at + duration.value(10, 's');
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+  }
+}
