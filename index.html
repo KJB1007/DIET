@@ -2022,7 +2022,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794884963996';
+const BUILD_ID = '1794888973903';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2176,7 +2176,7 @@ function refreshStart() {
 }
 // ----- 모든 이용자 랭킹(Firebase). 랭킹만 서버에 두고 게임 기록은 각자 브라우저에 둔다 -----
 // 설정값이 비어 있으면 서버를 쓰지 않고 이 브라우저 랭킹만 보여 준다. 웹 설정값은 공개 식별값이고, 접근은 Firestore 보안 규칙(firestore.rules)이 막는다
-const FIREBASE_CONFIG = null; // 여기에 Firebase 웹 앱의 firebaseConfig 객체
+const FIREBASE_CONFIG = { apiKey: 'AIzaSyAf0havQjWdb3gjlr76ud87qc5nvZb0PMA', authDomain: 'gangsanhae-rank.firebaseapp.com', projectId: 'gangsanhae-rank', storageBucket: 'gangsanhae-rank.firebasestorage.app', messagingSenderId: '631811889827', appId: '1:631811889827:web:4375712fff45af50c53d16' }; // Firebase 프로젝트 gangsanhae-rank의 웹 앱 설정(공개 식별값)
 const FB = { ready: null, db: null, uid: '', err: '', cache: null, cacheAt: 0, sent: {}, lastAt: {}, timer: 0 };
 const RANK_TOP = 30, RANK_CACHE_MS = 5 * 60 * 1000;
 function nickKey(nick) { return 'n_' + cleanNick(nick).toLowerCase(); } // 서버 문서 이름 = 'n_' + 정리한 닉네임(공백 정리 + 영문 소문자). 보안 규칙이 같은 식으로 확인한다
