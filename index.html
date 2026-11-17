@@ -999,7 +999,7 @@ function maxHpOf(s) {
 function regionOf(d) { const r = Math.floor((d - 1) / 5), lap = Math.floor(r / REGIONS.length); return { no: r + 1, sub: (d - 1) % 5 + 1, lap: lap + 1, name: REGIONS[r % REGIONS.length] + (lap ? ` ${lap + 1}회차` : '') }; }
 function dungeonLabel(d) { const r = regionOf(d); return `${r.no}-${r.sub}`; }
 function bossHpOf(d) { return Math.round(CFG.hp0 * hpMulOf(d) * CFG.bossMul); }
-function bossDangerOf(d) { const a = CFG.monAtk0 * atkMulOf(d) / CFG.monAtkEvery, t = CFG.bossTime * 0.6; return Math.round(a * ((CFG.perStage - 1) * t / CFG.bossMul + CFG.bossAtkMul * t)); } // 권장 전투력으로 한 던전을 도는 동안 맞는 양
+function bossDangerOf(d) { const a = CFG.monAtk0 * atkMulOf(d) / CFG.monAtkEvery, t = CFG.bossTime * 0.6; return Math.round(a * ((CFG.perStage - 1) * t / CFG.recMul + CFG.bossAtkMul * t)); } // 보스 HP 배율과 따로(예전 기준 3) // 권장 전투력으로 한 던전을 도는 동안 맞는 양
 function recPowerOf(d) { return Math.round(CFG.hp0 * hpMulOf(d) * CFG.recMul / (CFG.bossTime * 0.6) * 10); } // 권장 전투력: 보스 HP와 따로 둔다(보스 HP를 바꿔도 기준은 그대로)
 function dungeonKcalOf(d) { return Math.round(CFG.kcal0 * Math.pow(CFG.kcalGrow, d - 1) * (CFG.perStage - 1 + CFG.bossMul)); }
 // 압도 배율: 내 전투력이 이 던전 권장 전투력의 몇 배인지(1~5). 높을수록 몬스터가 빨리 몰려나온다
@@ -1785,7 +1785,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794877716333';
+const BUILD_ID = '1794877895406';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
