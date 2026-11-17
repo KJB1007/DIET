@@ -336,6 +336,7 @@ html,body{height:100%;overflow:hidden}
 #hubHeroCv{width:120px;height:120px}
 .nextInfo{margin:0}
 .primary.big{margin-top:0}
+#pickDunBtn{padding:8px;font-size:13px;margin-top:6px} #toDungeonBtn small{display:block;font-size:12px;font-weight:400;opacity:.85}
 .miniStats{display:flex;justify-content:space-around;font-size:11px;color:var(--sub);background:var(--panel);border:2px solid var(--edge);padding:6px}
 .miniStats b{color:var(--ink)}
 .bottomBar{margin-top:auto}
@@ -579,7 +580,8 @@ html,body{height:100%;overflow:hidden}
     <div class="charBar" id="charBar"></div>
     <div class="hubBottom">
       <p class="nextInfo" id="nextInfo">-</p>
-      <button class="primary big" id="toDungeonBtn">던전 입장</button>
+      <button class="primary big" id="toDungeonBtn">다음 던전 입장</button>
+      <button class="secondary" id="pickDunBtn">던전 고르기 · 깬 던전 다시 가기</button>
       <div class="miniStats"><span>깬 던전 <b id="hubBest">0</b></span><span>모은 단백질 <b id="kcalTot">0</b></span><span>처치 <b id="killTot">0</b></span><button class="ghost tiny" id="soundBtn">소리 켬</button><span>닉네임 <b id="nickNow">-</b></span><button class="ghost tiny" id="toTitle">처음으로</button></div>
     </div>
 
@@ -2057,7 +2059,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794890577814';
+const BUILD_ID = '1794893358942';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2448,6 +2450,7 @@ function updateHub() {
   if (S.items.time) items.push(`보스 시간 연장권 <b>${S.items.time}</b>개`);
   $('hubItems').innerHTML = (items.length ? items.join(' · ') + '<br>다음 던전 입장 때 자동 사용' : '') + (S.items.kcal > 0 ? `${items.length ? '<br>' : ''}단백질 상자 <b>${S.items.kcal}</b>개 · 던전 입장 화면에서 사용` : '');
   const next = S.dun.best + 1, rec = recPowerOf(next), pw = powerOf(S);
+  $('toDungeonBtn').innerHTML = `다음 던전 ${dungeonLabel(next)} 입장<small>근피로도 +${CFG.stamCost}</small>`;
   $('nextInfo').innerHTML = `다음 던전 <b>${dungeonLabel(next)} ${regionOf(next).name}</b><br>권장 전투력 <b>${fmtNum(rec)}</b> / 현재 전투력 <b class=${pw >= rec ? 'ok' : 'low'}>${fmtNum(pw)}</b>`;
   $('nickNow').textContent = NICK || '-';
   $('hubBest').textContent = S.dun.best; $('kcalTot').textContent = fmtNum(S.calTotal); $('killTot').textContent = fmtNum(S.kills);
@@ -2474,7 +2477,9 @@ function renderCharBar() {
     for (const b of document.querySelectorAll('.charChip:not([disabled])')) b.onclick = () => { if (b.dataset.ch === S.ch) return; save(); useChar(b.dataset.ch); save(); goHub('Home'); toast(`<b>${CH(S).name}</b>(으)로 바꿨습니다. 다른 캐릭터 기록은 그대로 남아 있습니다.`, 2400); };
   }
 }
-$('toDungeonBtn').addEventListener('click', () => goDungeons());
+// 큰 단추: 아직 못 깬 다음 던전으로 바로 들어간다. 깬 던전은 '던전 고르기'에서 골라 다시 간다
+$('toDungeonBtn').addEventListener('click', () => { if (!S || S.inDun) return; needStam(() => { const ev = []; if (enterDungeon(S, S.dun.best + 1, ev)) { save(); startBattle(); handleEvents(ev, false); } }); });
+$('pickDunBtn').addEventListener('click', () => goDungeons());
 // 근육 키우기: 깬 던전 수만큼 한도가 열린다
 function updateBurn() {
   const room = burnableKg(S), afford = maxAffordableBurn(S), per = kgPer(S), cap = burnCapKg(S), nf = nextFormOf(S);
@@ -2644,7 +2649,11 @@ function bnote(html, ms) {
 }
 function autoNext(e) { // 끝난 던전 결과를 받아 다음 입장을 정한다. 들어가면 true
   if (!AUTO) return false;
-  const d = e.t === 'clear' ? S.dun.best + 1 : Math.max(1, Math.min(S.dun.best, e.d));
+  // 처음 깨면 다음 던전, 실패하면 같은 던전에 다시 도전. 깬 던전을 골라 들어간 경우에만 그 던전을 다시 돈다.
+  // 같은 던전에서 2번 잇달아 실패하면 자동 진행을 멈춘다(자리를 비운 동안 근피로도만 쌓이지 않게)
+  if (e.t === 'clear') vis.autoFails = 0;
+  else { vis.autoFails = (vis.autoFailD === e.d ? vis.autoFails || 0 : 0) + 1; vis.autoFailD = e.d; if (vis.autoFails >= 2) { vis.autoFails = 0; toast(`${dungeonLabel(e.d)}에서 2번 잇달아 실패해 자동 진행을 멈췄습니다.<br>정비 화면에서 강해진 뒤 다시 도전하세요.`, 4200); return false; } }
+  const d = e.t === 'clear' ? (e.first ? S.dun.best + 1 : e.d) : e.d;
   if (!canEnter(S, d)) return false;
   if (stamNow() < CFG.stamCost) { toast('근피로도가 너무 쌓여 자동 진행을 멈췄습니다', 2600); return false; }
   stamUse(CFG.stamCost); refreshStam();
