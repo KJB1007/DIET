@@ -65,7 +65,7 @@ label{font-size:14px;font-weight:700}
 .rankList li{display:flex;align-items:center;gap:8px;background:var(--panel2);border:2px solid var(--edge);padding:4px 8px}
 .rankList li.me{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold-d)}
 .rankList .rk{width:26px;flex:none;text-align:center;font-weight:700;font-size:15px;color:var(--sub)}
-.rankList li:nth-child(-n+3) .rk{color:var(--gold)}
+.rankList li.top .rk{color:var(--gold)}
 .rankList canvas{width:32px;height:32px;flex:none}
 .rankList .rn{min-width:0;flex:1} .rankList .rn b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .rankList .rn small{font-size:11px;color:var(--sub)}
 .rankList .rv{font-size:15px;font-weight:700;white-space:nowrap}
@@ -524,7 +524,7 @@ html,body{height:100%;overflow:hidden}
     </div>
     <div class="card" id="rankCard" hidden>
       <p class="sectionK">근육량 랭킹</p>
-      <p class="rankNote">이 기기에 저장된 닉네임끼리 비교합니다. 같은 닉네임도 캐릭터마다 따로 순위를 매깁니다.</p>
+      <p class="rankNote">이 브라우저에 저장된 캐릭터 기록만 비교합니다. 같은 닉네임도 캐릭터마다 따로 순위를 매기고, 근육량이 같으면 공동 순위입니다.</p>
       <ol class="rankList" id="rankList"></ol>
     </div>
     <div class="card" id="accCard" hidden>
@@ -601,7 +601,7 @@ html,body{height:100%;overflow:hidden}
     <div class="sheet" id="pgRank">
       <div class="sheetHead"><b>근육량 랭킹</b><button class="back sheetClose">닫기</button></div>
       <div class="sheetBody">
-        <p class="rankNote">이 기기에 저장된 닉네임끼리 비교합니다. 같은 닉네임도 캐릭터마다 따로 순위를 매깁니다.</p>
+        <p class="rankNote">이 브라우저에 저장된 캐릭터 기록만 비교합니다. 같은 닉네임도 캐릭터마다 따로 순위를 매기고, 근육량이 같으면 공동 순위입니다.</p>
         <ol class="rankList" id="rankList2"></ol>
       </div>
     </div>
@@ -1931,7 +1931,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794881230142';
+const BUILD_ID = '1794881370304';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2090,11 +2090,15 @@ function rankRows() {
     const p = nick === NICK && PRO ? PRO : load(nick); if (!p) continue;
     for (const ch of CHAR_ORDER) { const st = p.chars[ch]; if (!st) continue; rows.push({ nick, ch, kg: weightOf(st), form: formOf(st).name, best: st.dun.best, skin: st.skin || '' }); }
   }
-  return rows.sort((a, b) => b.kg - a.kg || b.best - a.best || a.nick.localeCompare(b.nick, 'ko'));
+  // 순위는 근육량(0.1 kg 단위)만으로. 같으면 공동 순위이고, 닉네임·캐릭터 순서는 화면에 늘어놓는 순서만 정한다
+  rows.forEach(r => { r.k10 = Math.round(r.kg * 10); });
+  rows.sort((a, b) => b.k10 - a.k10 || a.nick.localeCompare(b.nick, 'ko') || CHAR_ORDER.indexOf(a.ch) - CHAR_ORDER.indexOf(b.ch));
+  rows.forEach((r, i) => { r.rank = i && rows[i - 1].k10 === r.k10 ? rows[i - 1].rank : i + 1; });
+  return rows;
 }
 function renderRank(el, max) {
   const rows = rankRows().slice(0, max || 50), esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  el.innerHTML = rows.map((r, i) => `<li class="${r.nick === NICK && S && r.ch === S.ch ? 'me' : ''}"><span class="rk">${i + 1}</span><canvas class="pix" width="64" height="64" data-rk="${i}"></canvas><span class="rn"><b>${esc(r.nick)}</b><small>${CHARS[r.ch].name} · ${r.form} · 던전 ${r.best}개</small></span><span class="rv">${r.kg.toFixed(1)} kg</span></li>`).join('');
+  el.innerHTML = rows.map((r, i) => `<li class="${r.nick === NICK && S && r.ch === S.ch ? 'me' : ''} ${r.rank <= 3 ? 'top' : ''}"><span class="rk">${r.rank}</span><canvas class="pix" width="64" height="64" data-rk="${i}"></canvas><span class="rn"><b>${esc(r.nick)}</b><small>${CHARS[r.ch].name} · ${r.form} · 던전 ${r.best}개</small></span><span class="rv">${r.kg.toFixed(1)} kg</span></li>`).join('');
   el.querySelectorAll('[data-rk]').forEach(cv => { const r = rows[Number(cv.dataset.rk)], cx = cv.getContext('2d'); cx.clearRect(0, 0, 64, 64); drawHero(cx, 31, 60, bodyOf(r.kg), { char: r.ch, skin: r.skin, aura: auraOf(r.kg), t: 0 }); });
   return rows.length;
 }
