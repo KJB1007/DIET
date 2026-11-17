@@ -1784,7 +1784,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794877347826';
+const BUILD_ID = '1794877449864';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2043,7 +2043,7 @@ function updateHub() {
 function renderCharBar() {
   const html = CHAR_ORDER.map(id => {
     const c = CHARS[id], open = PRO && PRO.unlocked[id], st = PRO && PRO.chars[id];
-    const state = !open ? `${CHARS[c.unlockBy].name} ${FORMS[c.unlockForm].name} 되면 해금` : st ? `${weightOf(st).toFixed(1)} kg · ${formOf(st).name}` : `${c.type} · 새로 시작`;
+    const state = !open ? `${CHARS[c.unlockBy].name}${josa(CHARS[c.unlockBy].name, "이", "가")} ${FORMS[c.unlockForm].name}${josa(FORMS[c.unlockForm].name, "이", "가")} 되면 해금` : st ? `${weightOf(st).toFixed(1)} kg · ${formOf(st).name}` : `${c.type} · 새로 시작`;
     return `<button class="charChip ${S.ch === id ? 'on' : ''} ${open ? '' : 'locked'}" data-ch="${id}" ${open ? '' : 'disabled'}><canvas class="pix" width="64" height="64" data-mini="${id}"></canvas><span><b>${c.name}</b><small>${state}</small></span></button>`;
   }).join('');
   if ($('charBar').dataset.k !== html) {
