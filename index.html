@@ -94,7 +94,7 @@ label{font-size:14px;font-weight:700}
 .hp{height:12px;background:var(--bar-bg);border:3px solid var(--edge)}
 .hp>div{height:100%;width:100%;background:var(--red);box-shadow:inset 0 2px 0 #ff9a8f;transition:width .1s linear}
 .sceneWrap{position:relative;margin-top:8px;border:3px solid var(--edge);overflow:hidden}
-#scene{width:100%;aspect-ratio:4/3;height:auto}
+#scene{width:100%;aspect-ratio:2/1;height:auto}
 .shake{animation:shake .25s steps(5)}
 @keyframes shake{0%,100%{transform:none}20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
 #fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -373,9 +373,9 @@ html,body{height:100%;overflow:hidden}
 .node.sel .dot{outline:3px solid #fff;outline-offset:1px}
 .hint.center{text-align:center}
 /* 전투 */
-#gameScreen .battle{margin-top:0;padding:8px;flex:1;min-height:0;display:flex;flex-direction:column}
-#gameScreen .sceneWrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#000}
-#gameScreen #scene{width:auto;height:100%;max-width:100%;aspect-ratio:4/3;object-fit:contain}
+#gameScreen .battle{margin-top:0;padding:8px;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:2px} /* 전투 화면이 낮아져 남는 세로 공간은 위아래로 나눔 */
+#gameScreen .sceneWrap{flex:none;display:block;background:#000}
+#gameScreen #scene{width:100%;height:auto;aspect-ratio:2/1;display:block}
 .dunName{font-size:12px;color:var(--gold);text-align:right}
 .dunBar{margin-bottom:6px}
 .powerLine{margin:0}
@@ -694,7 +694,7 @@ html,body{height:100%;overflow:hidden}
         </div>
       </div>
       <div class="sceneWrap" id="sceneWrap">
-        <canvas id="scene" class="pix" width="240" height="180"></canvas>
+        <canvas id="scene" class="pix" width="720" height="360"></canvas>
         <div id="fx"></div>
       </div>
       <div class="tapHint" id="buffLine">전투는 자동으로 진행됩니다</div>
@@ -800,7 +800,7 @@ const CFG = {
   // 잔몹 무리 전체의 단백질은 예전 잔몹 7마리 합과 같다. 잔몹이 주인공에게 닿으면 부딪혀 피해를 주고 사라진다(단백질 없음). 보스는 붙어서 계속 때린다
   waveN0: 12, waveNPer: 0.6, waveTime: 40, spawnSpan: 20, waveHp0: 5, waveHp: 12, waveHpRamp: 15, // 잔몹 무리 HP 합: 1던전은 기준의 5배, 16던전부터 12배(예전은 늘 5배: 너무 약하다는 의견). 동시 공격 수가 늘어나는 만큼 단단해진다. 단백질은 7마리분 그대로
   mobCap: 24, meleeMax: 3, leakMul: 1,
-  lane: { hero: 24, contact: 38, spawn: 252, speed: 24, range: 234 }, // 전투 화면(240x180) 위의 자리
+  lane: { hero: 28, contact: 42, spawn: 372, speed: 24, range: 352 }, // 전투 화면(360x180) 위의 자리. 걸어오는 데 약 13.7초
   knock: 8, knockPerEnh: 0.4, slowMul: 0.5, slowDur: 2, fireDur: 3, firePct: 0.2, chainChance: 0.25, chainN: 3, chainPct: 0.5, windEvery: 5, windPush: 30,
   // 주인공 HP: 깬 던전·무기 강화·방어 스킬로 오른다. 몬스터는 1.6초마다 때린다. 던전 안에서는 회복하지 않고(보스를 깨야 끝), HP 0이면 쓰러져 던전 실패
   heroHp0: 300, heroHpGrow: 1.17, hpPerEnh: 0.06, hpPerDef: 0.08, monAtk0: 7, monAtkGrow: 1.21, monAtkEvery: 1.6, bossAtkMul: 1.5, healOnKill: 0,
@@ -1396,7 +1396,7 @@ function step(s, dt, ev, rnd) {
   }
   // 6) 버피 강타(강산해: 화면 전체) / 회오리 킥(김혁수: 앞 절반): 6초마다 범위 안의 적을 모두 때린다
   if (burpeeMul(s)) {
-    s.burpeeT += dt; const reach = styleOf(s).burpeeAll ? L.range : L.hero + 130;
+    s.burpeeT += dt; const reach = styleOf(s).burpeeAll ? L.range : L.hero + (L.range - L.hero) / 2; // 김혁수 회오리 킥: 들판 앞쪽 절반
     if (s.burpeeT >= 6 && s.mobs.some(m => m.x <= reach)) {
       s.burpeeT = 0; if (ev) ev.push({ t: 'skill', all: styleOf(s).burpeeAll });
       const r = rollDamage(s, burpeeMul(s), rnd);
@@ -1409,7 +1409,7 @@ function step(s, dt, ev, rnd) {
   // 6-1) 남은 회오리(회오리 킥 Lv5): 0.5초마다 앞쪽 절반의 적에게 공격력 30%
   if (s.whirlT > 0) {
     s.whirlT -= dt; s.whirlA = (s.whirlA || 0) + dt;
-    if (s.whirlA >= 0.5) { s.whirlA -= 0.5; const d = Math.max(1, Math.round(atkOf(s) * 0.3)); for (const m of s.mobs.filter(m => m.x <= L.hero + 130)) { hurtMob(s, m, d, false, ev, 'whirl'); if (!s.inDun) return; } }
+    if (s.whirlA >= 0.5) { s.whirlA -= 0.5; const d = Math.max(1, Math.round(atkOf(s) * 0.3)); for (const m of s.mobs.filter(m => m.x <= L.hero + (L.range - L.hero) / 2)) { hurtMob(s, m, d, false, ev, 'whirl'); if (!s.inDun) return; } }
   }
   // 7) 주인공 공격: 화면 안에 적이 있으면 원거리로 맞힌다
   const iv = 1 / (speedOf(s) * slow);
@@ -2057,7 +2057,7 @@ function drawBackground(c, t, stage, scroll) {
 
 // ===== 새 버전 확인 =====
 // GitHub Pages는 페이지를 최대 10분 캐시한다. 서버 쪽 최신 BUILD_ID와 다르면 띠를 띄우고 누르면 새로 불러온다
-const BUILD_ID = '1794890120168';
+const BUILD_ID = '1794890577814';
 async function checkUpdate() {
   try {
     const r = await fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
@@ -2669,8 +2669,8 @@ $('packs').addEventListener('click', e => {
 
 // ----- 전투 화면 -----
 const scene = $('scene'), ctx = scene.getContext('2d');
-const SCW = 240, SCH = 180; // 전투 화면 크기(도트). 키울수록 캐릭터가 작아 보인다
-const HERO_X = CFG.lane.hero, MON_X = 120, GROUND = 154;
+const SCW = 360, SCH = 180; // 전투 화면 크기(도트, 가로로 넓은 2:1). 넓을수록 캐릭터가 작아 보이고 적이 멀리서 온다
+const HERO_X = CFG.lane.hero, MON_X = 190, GROUND = 154;
 scene.width = SCW * 2; scene.height = SCH * 2; scene.lw = SCW; scene.lh = SCH; // 내부 2배 해상도(도트 그림을 줄이지 않고 그대로 보이게)
 ctx.imageSmoothingEnabled = false;
 function startBattle() {
@@ -2889,7 +2889,7 @@ function drawFx(c, dt) {
     } else if (f.kind === 'gust') { // 바람: 화면을 가로지르는 줄
       const q = f.t / .4; if (q >= 1) { f.dead = 1; continue; }
       c.globalAlpha = (1 - q) * .8;
-      for (let i = 0; i < 7; i++) { const x = f.x + q * 200 + (i % 3) * 12, y = f.y - 26 + i * 8; rect(c, x, y, 18 - (i % 3) * 4, 1, '#d8f2ff'); }
+      for (let i = 0; i < 7; i++) { const x = f.x + q * 320 + (i % 3) * 12, y = f.y - 26 + i * 8; rect(c, x, y, 18 - (i % 3) * 4, 1, '#d8f2ff'); }
       c.globalAlpha = 1;
     } else if (f.kind === 'crumb') { // 먹이기: 음식 부스러기가 주인공 입으로 날아감
       const q = f.t / .4; if (q >= 1) { f.dead = 1; continue; }
