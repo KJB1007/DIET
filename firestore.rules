@@ -2,11 +2,14 @@ rules_version = '2';
 // 강산해 키우기 · 모든 이용자 랭킹용 Firestore 보안 규칙
 // Firebase 콘솔 > Firestore Database > 규칙 탭에 이 내용을 그대로 붙여 넣고 '게시'한다.
 // 랭킹만 서버에 둔다. 게임 기록은 각자 브라우저에 있다.
-// 한계: 근육량·던전 수는 브라우저가 계산해 올리는 값이라 검증되지 않는다. 아래 조건은 형식과 소유자, 쓰기 간격만 막는다.
+// 한계: 근육량·던전 수는 브라우저가 계산해 올리는 값이라 검증되지 않는다. 아래 조건은 소유자·형식·범위와
+//       정상 게임 중 갱신 간격(10초)만 확인한다. 줄을 지웠다가 다시 만드는 쓰기까지 막지는 않는다.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 닉네임 선점: 문서 이름 = 정리한 닉네임 코드. 누구나 읽고, 없을 때만 만든다(만든 사람 = 로그인한 사람). 지우기는 본인만
+    // 닉네임 선점: 문서 이름 = 'n_' + 정리한 닉네임의 소문자(앞뒤·겹친 공백 없음, '/' 없음, 1~12자).
+    // 문서 이름과 nick이 같은 닉네임인지 규칙이 확인하므로, 같은 닉네임을 다른 문서 이름으로 다시 선점할 수 없다.
+    // 한 번 만든 닉네임은 지우거나 고칠 수 없다(관리자만 콘솔에서 지울 수 있음).
     match /gsh_names/{key} {
       allow read: if true;
       allow create: if request.auth != null
@@ -15,14 +18,17 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.nick is string
         && request.resource.data.nick.size() >= 1 && request.resource.data.nick.size() <= 12
+        && request.resource.data.nick.matches('^[^\\s/]+( [^\\s/]+)*$')
+        && key == 'n_' + request.resource.data.nick.lower()
         && request.resource.data.created == request.time;
-      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
     }
 
     function nameOf(key) {
       return get(/databases/$(database)/documents/gsh_names/$(key)).data;
     }
-    // 랭킹 한 줄의 형식: 필드·자료형, 문서 이름 = key_ch, 닉네임은 선점한 사람이 선점한 표기 그대로, 던전 수 상한 500, 근육량은 25 kg + 던전 수 이하, 시각은 서버 시각
+    // 랭킹 한 줄의 형식: 필드·자료형, 문서 이름 = key_ch, 닉네임은 선점한 사람이 선점한 표기 그대로,
+    // 외형은 게임에 있는 이름만, 던전 수 0~100000, 근육량 25 kg 이상·25 kg + 던전 수 이하, 시각은 서버 시각
     function validRank(id) {
       let d = request.resource.data;
       let n = nameOf(d.key);
@@ -34,13 +40,16 @@ service cloud.firestore {
         && id == d.key + '_' + d.ch
         && n.uid == request.auth.uid
         && d.nick == n.nick
-        && d.form is string && d.form.size() <= 20
-        && d.best is int && d.best >= 0 && d.best <= 500
+        && d.form is string
+        && d.form.matches('^(마른 몸|탄탄한 몸|근육질|거대 근육|(푸른|금빛|붉은|보랏빛|무지개) 오라( [0-9]{1,4}단계)?)$')
+        && d.best is int && d.best >= 0 && d.best <= 100000
         && d.kg is number && d.kg >= 25 && d.kg <= 25 + d.best + 0.05
         && d.at == request.time;
     }
 
-    // 랭킹: 누구나 읽기. 쓰기는 그 닉네임을 선점한 사람만. 고칠 때는 uid·key·nick·ch를 바꾸지 못하고, 10초에 한 번까지(서버 시각 기준)
+    // 랭킹: 누구나 읽기. 쓰기는 그 닉네임을 선점한 사람만.
+    // 고칠 때는 uid·key·nick·ch를 바꾸지 못하고, 이전 기록 시각에서 10초가 지나야 한다(서버 시각 기준).
+    // 본인은 자기 줄을 지울 수 있다('내 기록 랭킹에서 빼기').
     match /gsh_rank/{id} {
       allow read: if true;
       allow create: if request.auth != null && validRank(id);
